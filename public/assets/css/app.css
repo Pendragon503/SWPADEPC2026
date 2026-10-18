@@ -1,0 +1,11 @@
+/* EquipRent - Estilos propios (lo demás es Bootstrap 5) */
+
+.contenido-angosto {
+    max-width: 420px;
+}
+
+@media (min-width: 768px) {
+    .menu-lateral {
+        min-height: calc(100vh - 56px);
+    }
+}
