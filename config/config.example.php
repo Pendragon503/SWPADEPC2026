@@ -16,5 +16,6 @@ return [
     ],
     'app' => [
         'urlBase' => 'http://localhost/SWPADEPC2026/public',
+        'debug'   => true,
     ],
 ];
