@@ -1,5 +1,36 @@
 /* EquipRent - Estilos propios (lo demás es Bootstrap 5) */
 
+/* ---------------------------------------------------------------------
+   Variables del diseño (Figma "Sistema Web")
+   --------------------------------------------------------------------- */
+:root {
+    --er-fuente: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+
+    --er-naranja: #f9a825;
+    --er-naranja-texto: #e89400;
+    --er-naranja-claro: #ffb01c;
+    --er-naranja-oscuro: #f49b00;
+    --er-oscuro: #292d2e;
+    --er-oscuro-2: #202425;
+    --er-texto-boton: #202426;
+    --er-texto-etiqueta: #505a64;
+    --er-texto-secundario: #7d8996;
+    --er-texto-tenue: #87919d;
+    --er-gris-claro: #d7dce0;
+    --er-placeholder: #a5afb9;
+    --er-icono-tenue: #9ba5af;
+    --er-borde: #e1e5e8;
+    --er-fondo-control: #fbfcfc;
+
+    --er-radio-tarjeta: 13px;
+    --er-radio-logo: 8px;
+    --er-radio-control: 7px;
+
+    --er-sombra-tarjeta: 0 20px 50px rgba(33, 37, 41, .13), 0 3px 10px rgba(33, 37, 41, .06);
+    --er-sombra-boton: 0 5px 6px rgba(249, 168, 37, .25);
+    --er-anillo-foco: 0 0 0 .2rem rgba(249, 168, 37, .3);
+}
+
 .contenido-angosto {
     max-width: 420px;
 }
@@ -7,5 +38,359 @@
 @media (min-width: 768px) {
     .menu-lateral {
         min-height: calc(100vh - 56px);
+    }
+}
+
+/* ---------------------------------------------------------------------
+   Pantallas de acceso (layout simple: login y errores)
+   --------------------------------------------------------------------- */
+.pantalla-acceso {
+    /* Bootstrap 5 personalizado solo en estas pantallas */
+    --bs-body-font-family: var(--er-fuente);
+    --bs-body-bg: #fff;
+    --bs-border-radius: var(--er-radio-control);
+    --bs-link-color-rgb: 232, 148, 0;
+
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+
+/* Foto de fondo al 25 % */
+.pantalla-acceso::before {
+    content: "";
+    position: fixed;
+    inset: 0;
+    z-index: -1;
+    background: url("../img/login-fondo.jpg") center / cover no-repeat;
+    opacity: .25;
+}
+
+.barra-acceso {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    height: 80px;
+    padding: 0 76.8px;
+    background: rgba(255, 255, 255, .94);
+    backdrop-filter: blur(4px);
+    border-bottom: 1px solid rgba(0, 0, 0, .08);
+}
+
+.marca {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    text-decoration: none;
+}
+
+.marca-icono,
+.logo-cuadro {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    background: var(--er-naranja);
+    color: var(--er-texto-boton);
+}
+
+.marca-icono {
+    width: 46px;
+    height: 46px;
+    border-radius: 10px;
+    font-size: 22px;
+}
+
+.marca-texto {
+    font-size: 25px;
+    font-weight: 800;
+    letter-spacing: -.7px;
+    color: var(--er-oscuro);
+}
+
+.marca-texto span {
+    color: var(--er-naranja-texto);
+}
+
+.marca-separador {
+    width: 1px;
+    height: 30px;
+    margin: 0 8px;
+    background: var(--er-gris-claro);
+}
+
+.marca-subtitulo {
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--er-texto-secundario);
+}
+
+.barra-lema {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-left: auto;
+    font-size: 12.3px;
+    color: var(--er-texto-tenue);
+}
+
+.barra-lema-raya {
+    width: 24px;
+    height: 2px;
+    background: var(--er-naranja);
+}
+
+.contenedor-acceso {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    padding: 48px 16px;
+}
+
+/* Tarjeta del login */
+.tarjeta-acceso {
+    width: 100%;
+    max-width: 420px;
+    overflow: hidden;
+    background: #fff;
+    border: 1px solid rgba(0, 0, 0, .04);
+    border-radius: var(--er-radio-tarjeta);
+    box-shadow: var(--er-sombra-tarjeta);
+}
+
+.tarjeta-acceso-cabecera {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 165px;
+    padding: 31.5px 28px;
+    text-align: center;
+    background: linear-gradient(128deg, var(--er-oscuro) 0%, var(--er-oscuro-2) 100%);
+}
+
+.cabecera-franja {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 30px;
+    width: 45px;
+    background: rgba(255, 255, 255, .04);
+    transform: skewX(-20deg);
+}
+
+.cabecera-cinta {
+    position: absolute;
+    top: 0;
+    right: -25px;
+    width: 100px;
+    height: 15px;
+    background: var(--er-naranja);
+    transform: rotate(45deg);
+}
+
+.logo-cuadro {
+    width: 45px;
+    height: 45px;
+    margin-bottom: 8px;
+    border-radius: var(--er-radio-logo);
+    font-size: 22px;
+}
+
+.titulo-acceso {
+    margin: 0;
+    font-size: 27px;
+    font-weight: 800;
+    letter-spacing: -.5px;
+    line-height: normal;
+    text-transform: uppercase;
+    color: #fff;
+}
+
+.subtitulo-acceso {
+    margin: 3px 0 0;
+    font-size: 12.4px;
+    color: var(--er-gris-claro);
+}
+
+.tarjeta-acceso-cuerpo {
+    padding: 34px 36px 30px;
+}
+
+.intro-acceso {
+    margin: 0 0 25px;
+    font-size: 13px;
+    color: var(--er-texto-secundario);
+}
+
+.alerta-acceso {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    margin: -8px 0 22px;
+    padding: 11px 14px;
+    font-size: 13px;
+    line-height: 1.4;
+    border-radius: var(--er-radio-control);
+}
+
+.alerta-acceso .bi {
+    font-size: 15px;
+    line-height: 1.25;
+}
+
+.campo-acceso {
+    margin-bottom: 20px;
+}
+
+.etiqueta-acceso {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 8px;
+    font-size: 13px;
+    font-weight: 650;
+    color: var(--er-texto-etiqueta);
+}
+
+.etiqueta-acceso .bi {
+    font-size: 12px;
+    color: var(--er-naranja-texto);
+}
+
+.control-acceso {
+    height: 50px;
+    padding: 0 15px;
+    font-size: 13.3px;
+    background: var(--er-fondo-control);
+    border: 1px solid var(--er-borde);
+    border-radius: var(--er-radio-control);
+}
+
+.control-acceso::placeholder {
+    color: var(--er-placeholder);
+}
+
+.control-acceso:focus {
+    background: #fff;
+    border-color: var(--er-naranja);
+    box-shadow: var(--er-anillo-foco);
+}
+
+.control-clave {
+    padding-right: 50px;
+}
+
+.boton-ver-clave {
+    position: absolute;
+    top: 50%;
+    right: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    padding: 0;
+    font-size: 16px;
+    color: var(--er-icono-tenue);
+    background: transparent;
+    border: 0;
+    border-radius: var(--er-radio-control);
+    transform: translateY(-50%);
+}
+
+.boton-ver-clave:hover {
+    color: var(--er-texto-etiqueta);
+}
+
+.boton-ver-clave:focus-visible {
+    outline: 0;
+    box-shadow: var(--er-anillo-foco);
+}
+
+.boton-acceso {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+    height: 54px;
+    margin-top: 4px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--er-texto-boton);
+    background: linear-gradient(125deg, var(--er-naranja-claro) 0%, var(--er-naranja-oscuro) 100%);
+    border: 0;
+    border-radius: var(--er-radio-control);
+    box-shadow: var(--er-sombra-boton);
+    transition: filter .15s ease-in-out, transform .05s;
+}
+
+.boton-acceso:hover {
+    filter: brightness(1.04) saturate(1.05);
+}
+
+.boton-acceso:active {
+    transform: translateY(1px);
+}
+
+.boton-acceso:focus-visible {
+    outline: 0;
+    box-shadow: var(--er-sombra-boton), var(--er-anillo-foco);
+}
+
+/* Celular */
+@media (max-width: 767.98px) {
+    .barra-acceso {
+        height: 64px;
+        padding: 0 16px;
+    }
+
+    .marca {
+        gap: 10px;
+    }
+
+    .marca-icono {
+        width: 38px;
+        height: 38px;
+        border-radius: 9px;
+        font-size: 18px;
+    }
+
+    .marca-texto {
+        font-size: 21px;
+    }
+
+    .marca-separador,
+    .marca-subtitulo,
+    .barra-lema {
+        display: none;
+    }
+
+    .contenedor-acceso {
+        align-items: flex-start;
+        padding: 24px 16px;
+    }
+
+    .pantalla-acceso::before {
+        background-position: 65% bottom;
+    }
+
+    .tarjeta-acceso-cuerpo {
+        padding: 28px 22px 24px;
+    }
+
+    .titulo-acceso {
+        font-size: 24px;
+    }
+}
+
+@media (max-width: 991.98px) {
+    .barra-lema {
+        display: none;
     }
 }
