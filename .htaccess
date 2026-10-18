@@ -1,0 +1,23 @@
+# EquipRent - Raíz del proyecto.
+# Solo public/ es accesible desde el navegador. La raíz redirige a public/
+# y todo lo demás (.git/, app/, config/, database/, docs/...) se bloquea.
+
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # /SWPADEPC2026/  ->  /SWPADEPC2026/public/
+    RewriteCond %{REQUEST_URI} ^(.*/)$
+    RewriteRule ^$ %1public/ [R=302,L]
+
+    # public/ tiene su propio .htaccess
+    RewriteRule ^public(/|$) - [L]
+
+    # Cualquier otra ruta: 403
+    RewriteRule ^ - [F]
+</IfModule>
+
+<IfModule !mod_rewrite.c>
+    Require all denied
+</IfModule>

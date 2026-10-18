@@ -1,0 +1,11 @@
+# EquipRent - Front controller.
+# Los archivos que existen (css, js, imágenes) se sirven tal cual;
+# todo lo demás pasa por index.php.
+
+Options -Indexes
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L,QSA]
+</IfModule>
