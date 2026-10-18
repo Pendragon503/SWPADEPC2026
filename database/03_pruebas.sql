@@ -4,6 +4,7 @@
 --  Cada bloque indica el resultado ESPERADO para comprobarlo a mano.
 -- =====================================================================
 USE equiprent;
+SET NAMES utf8mb4;
 
 -- ---------------------------------------------------------------------
 -- PRUEBA 1. Disponibilidad de hoy+2 a hoy+6 (todas las categorías)

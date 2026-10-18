@@ -1,16 +1,18 @@
 # EquipRent – Base de datos
 
-Motor: **MySQL 8.0.16+** (también compatible con MariaDB 10.4+, la que trae XAMPP).
+Motor: **MySQL 26.7** (servicio de Windows `MySQL267`, puerto 3306, `lower_case_table_names=1`). Mínimo MySQL 8.0.16 por los CHECK y triggers. La MariaDB de XAMPP no se usa.
+
+Probado el 18/10/2026 en MySQL 26.7: las 8 pruebas y las 10 pruebas negativas de `03_pruebas.sql` dan el resultado esperado.
 
 | Script | Qué hace |
 |---|---|
 | `01_schema.sql` | Borra y crea la base `equiprent`: 16 tablas, función de conflictos, procedimiento de disponibilidad, triggers y vistas. |
 | `02_seed.sql` | Datos de prueba: 3 roles, 6 usuarios, 3 clientes, 11 equipos, 6 contratos en distintos estados. Las fechas se calculan desde el día de ejecución. |
-| `03_pruebas.sql` | 8 pruebas con su resultado esperado + 10 pruebas negativas (deben fallar). |
+| `03_pruebas.sql` | 8 pruebas con su resultado esperado + 10 pruebas negativas (deben fallar). Hace `SET NAMES utf8mb4` para que los acentos no se dañen si la consola usa cp850. |
 
 ## Cómo ejecutarlo
 
-**Consola (XAMPP: `C:\xampp\mysql\bin`)**
+**Consola (`C:\Program Files\MySQL\MySQL Server 26.7\bin`)**
 ```
 mysql -u root -p < 01_schema.sql
 mysql -u root -p < 02_seed.sql
