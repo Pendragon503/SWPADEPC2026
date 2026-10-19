@@ -852,6 +852,177 @@
     color: var(--er-texto-2);
 }
 
+/* Encabezado de una página de módulo: título a la izquierda, botón principal a la derecha */
+.encabezado-pagina {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 12px 16px;
+    margin-bottom: 20px;
+}
+
+.encabezado-pagina-titulo {
+    margin: 0 0 4px;
+    font-size: 22px;
+    font-weight: 800;
+    color: var(--er-texto);
+}
+
+.encabezado-pagina-texto {
+    margin: 0;
+    font-size: 14px;
+    color: var(--er-texto-2);
+}
+
+/* Buscador sobre una tabla (formulario GET) */
+.buscador-tabla {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    width: 100%;
+    max-width: 560px;
+}
+
+.buscador-tabla-campo {
+    position: relative;
+    flex: 1;
+    min-width: 200px;
+}
+
+.buscador-tabla-campo .bi {
+    position: absolute;
+    top: 50%;
+    left: 12px;
+    color: #94a3b8;
+    transform: translateY(-50%);
+}
+
+.app-er .buscador-tabla-campo .form-control {
+    padding-left: 36px;
+}
+
+/* Pie de tabla: "Mostrando 1–10 de 23" + paginación */
+.pie-tabla {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-top: 16px;
+}
+
+.pie-tabla-texto {
+    margin: 0;
+    font-size: 13px;
+    color: var(--er-texto-2);
+}
+
+.etiqueta-opcional {
+    font-weight: 500;
+    text-transform: none;
+    letter-spacing: 0;
+    color: var(--er-texto-2);
+}
+
+/* Modal con formulario (Figma "Crear categoría"): cabecera oscura, etiquetas en
+   mayúsculas con icono naranja y dos botones al 50 %. Ejemplo: categorias/index.php */
+.modal-er .modal-content {
+    overflow: hidden;
+    border: 0;
+    border-radius: var(--er-radio-panel);
+    box-shadow: var(--er-sombra-tarjeta);
+}
+
+.modal-er .modal-header {
+    gap: 12px;
+    padding: 22px 24px;
+    background: var(--er-oscuro-2);
+    border-bottom: 0;
+}
+
+.modal-er .modal-title {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    color: #fff;
+}
+
+.modal-er .modal-subtitulo {
+    margin: 4px 0 0;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--er-naranja);
+}
+
+.modal-er .modal-header .btn-close {
+    align-self: flex-start;
+    margin: 0 0 0 auto;
+}
+
+.modal-er .modal-body {
+    display: grid;
+    gap: 16px;
+    padding: 28px 24px 8px;
+}
+
+.modal-er .form-label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+    color: #232626;
+}
+
+.modal-er .form-label .bi {
+    font-size: 12px;
+    color: var(--er-naranja-texto);
+}
+
+.modal-er textarea.form-control {
+    resize: vertical;
+}
+
+.modal-er .modal-footer {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    padding: 16px 24px 24px;
+    border-top: 0;
+}
+
+.modal-er .modal-footer > * {
+    margin: 0;
+}
+
+.modal-er .modal-footer .btn {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+}
+
+.modal-er .modal-footer .btn-primary {
+    font-weight: 800;
+    box-shadow: 0 4px 6px rgba(249, 168, 37, .28);
+}
+
+.modal-er .modal-footer .btn-claro {
+    --bs-btn-bg: var(--er-borde-suave);
+    --bs-btn-border-color: var(--er-borde-suave);
+    --bs-btn-color: #232626;
+}
+
 /* Indicadores (tarjetas con un número) */
 .indicador {
     display: flex;
@@ -1049,6 +1220,10 @@
 .tabla-er .col-acciones {
     text-align: right;
     white-space: nowrap;
+}
+
+.tabla-er .col-acciones > * + * {
+    margin-left: 6px;
 }
 
 /* Código de inventario, número de contrato... */

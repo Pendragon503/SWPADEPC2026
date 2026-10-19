@@ -12,7 +12,7 @@ $menus = [
         ['bi-speedometer2', 'Panel', '/admin'],
         ['bi-people-fill', 'Usuarios y roles', '#'],
         ['bi-box-seam-fill', 'Inventario', '#'],
-        ['bi-grid-fill', 'Categorías', '#'],
+        ['bi-tags-fill', 'Categorías', '/admin/categorias'],
         ['bi-cash-coin', 'Tarifas', '#'],
         ['bi-person-vcard-fill', 'Clientes', '#'],
         ['bi-file-earmark-text-fill', 'Contratos', '#'],
