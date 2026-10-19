@@ -50,6 +50,61 @@ function asset(string $ruta): string
 }
 
 // ---------------------------------------------------------------------
+// Presentación
+// ---------------------------------------------------------------------
+
+/**
+ * Etiqueta de color para un estado guardado en la base (equipo, contrato,
+ * daño, mantenimiento, activo/inactivo): estadoBadge('FueraServicio')
+ * imprime una píldora roja que dice "Fuera de servicio".
+ */
+function estadoBadge(string $estado): string
+{
+    // estado en la base => [color, texto que ve el usuario]
+    $estados = [
+        // equipo
+        'Disponible'        => ['verde', 'Disponible'],
+        'Alquilado'         => ['naranja', 'Alquilado'],
+        'Revision'          => ['gris', 'En revisión'],
+        'Mantenimiento'     => ['azul', 'Mantenimiento'],
+        'FueraServicio'     => ['rojo', 'Fuera de servicio'],
+        // contrato
+        'Pendiente'         => ['naranja', 'Pendiente'],
+        'Aprobado'          => ['azul', 'Aprobado'],
+        'Rechazado'         => ['rojo', 'Rechazado'],
+        'Activo'            => ['verde', 'Activo'],
+        'Finalizado'        => ['gris', 'Finalizado'],
+        'Cancelado'         => ['gris', 'Cancelado'],
+        // daño
+        'Reportado'         => ['naranja', 'Reportado'],
+        'EnEvaluacion'      => ['azul', 'En evaluación'],
+        'EnReparacion'      => ['azul', 'En reparación'],
+        'Resuelto'          => ['verde', 'Resuelto'],
+        'Descartado'        => ['gris', 'Descartado'],
+        // mantenimiento
+        'Diagnostico'       => ['azul', 'Diagnóstico'],
+        'EsperandoRepuesto' => ['naranja', 'Esperando repuesto'],
+        // registros que se activan o desactivan (categorías, usuarios...)
+        'Activa'            => ['verde', 'Activa'],
+        'Inactiva'          => ['gris', 'Inactiva'],
+        'Inactivo'          => ['gris', 'Inactivo'],
+    ];
+
+    [$color, $texto] = $estados[$estado] ?? ['gris', $estado];
+    return '<span class="estado estado-' . $color . '">' . e($texto) . '</span>';
+}
+
+/**
+ * Iniciales para el avatar: iniciales('Carlos Andrés', 'Rodríguez') -> 'CR'.
+ */
+function iniciales(string $nombres, string $apellidos): string
+{
+    $primera = mb_substr(trim($nombres), 0, 1);
+    $segunda = mb_substr(trim($apellidos), 0, 1);
+    return mb_strtoupper($primera . $segunda);
+}
+
+// ---------------------------------------------------------------------
 // Sesión
 // ---------------------------------------------------------------------
 

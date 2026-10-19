@@ -7,7 +7,7 @@ public/uploads/*
 !public/uploads/.gitkeep
 
 # Dependencias de Composer
-vendor/
+/vendor/
 
 # Editores
 .vscode/

@@ -1,38 +1,42 @@
 <?php
 /**
- * Menú lateral según el rol en sesión. Los módulos todavía no existen:
- * por ahora son enlaces de prueba (#).
+ * Menú lateral de Administrador y Operador. El menú del Cliente está en layouts/cliente.php.
+ *
+ * Para agregar un módulo: añadir una fila [icono, texto, ruta] en el rol que corresponda.
+ * Los módulos que todavía no existen llevan la ruta '#' (enlace de prueba).
+ * $menuActivo (opcional) marca el enlace actual; por defecto, el Panel.
+ * Iconos: https://icons.getbootstrap.com
  */
 $menus = [
     'Administrador' => [
-        ['bi-people', 'Usuarios y roles'],
-        ['bi-box-seam', 'Inventario'],
-        ['bi-tags', 'Categorías'],
-        ['bi-cash-coin', 'Tarifas'],
-        ['bi-person-vcard', 'Clientes'],
-        ['bi-file-earmark-text', 'Contratos'],
-        ['bi-gear', 'Configuración'],
-        ['bi-bar-chart', 'Reportes'],
+        ['bi-speedometer2', 'Panel', '/admin'],
+        ['bi-people-fill', 'Usuarios y roles', '#'],
+        ['bi-box-seam-fill', 'Inventario', '#'],
+        ['bi-grid-fill', 'Categorías', '#'],
+        ['bi-cash-coin', 'Tarifas', '#'],
+        ['bi-person-vcard-fill', 'Clientes', '#'],
+        ['bi-file-earmark-text-fill', 'Contratos', '#'],
+        ['bi-gear-fill', 'Configuración', '#'],
+        ['bi-bar-chart-fill', 'Reportes', '#'],
     ],
     'Operador' => [
-        ['bi-inbox', 'Solicitudes'],
-        ['bi-truck', 'Entregas'],
-        ['bi-arrow-return-left', 'Devoluciones'],
-        ['bi-exclamation-triangle', 'Daños'],
-        ['bi-tools', 'Mantenimiento'],
-    ],
-    'Cliente' => [
-        ['bi-grid', 'Catálogo'],
-        ['bi-calendar-check', 'Disponibilidad'],
-        ['bi-cart-plus', 'Solicitar alquiler'],
-        ['bi-clock-history', 'Mis alquileres'],
-        ['bi-person-circle', 'Perfil'],
+        ['bi-speedometer2', 'Panel', '/operador'],
+        ['bi-inbox-fill', 'Solicitudes', '#'],
+        ['bi-truck', 'Entregas', '#'],
+        ['bi-arrow-left-right', 'Devoluciones', '#'],
+        ['bi-exclamation-triangle-fill', 'Daños', '#'],
+        ['bi-wrench-adjustable', 'Mantenimiento', '#'],
     ],
 ];
+
+$activo = $menuActivo ?? 'Panel';
 ?>
-<nav class="nav nav-pills flex-column gap-1">
-    <a class="nav-link active" href="<?= e(url(Auth::rutaInicio())) ?>"><i class="bi bi-speedometer2 me-2"></i>Panel</a>
-    <?php foreach ($menus[Auth::rol()] ?? [] as [$icono, $nombre]): ?>
-        <a class="nav-link link-body-emphasis" href="#"><i class="bi <?= e($icono) ?> me-2"></i><?= e($nombre) ?></a>
+<nav class="menu-lateral" aria-label="Menú principal">
+    <?php foreach ($menus[Auth::rol()] ?? [] as [$icono, $texto, $ruta]): ?>
+        <?php $esActivo = ($texto === $activo); ?>
+        <a class="menu-lateral-enlace<?= $esActivo ? ' activo' : '' ?>"
+           href="<?= $ruta === '#' ? '#' : e(url($ruta)) ?>"<?= $esActivo ? ' aria-current="page"' : '' ?>>
+            <i class="bi <?= e($icono) ?>" aria-hidden="true"></i><?= e($texto) ?>
+        </a>
     <?php endforeach; ?>
 </nav>

@@ -14,6 +14,10 @@ class AdminController extends Controller
     /** GET /admin */
     public function dashboard(): void
     {
-        $this->view('admin/dashboard', ['titulo' => 'Panel del administrador']);
+        $this->view('admin/dashboard', [
+            'titulo'      => 'Panel del administrador',
+            'indicadores' => Indicador::resumenGeneral(),
+            'inventario'  => Catalogo::inventarioResumido(5),
+        ]);
     }
 }

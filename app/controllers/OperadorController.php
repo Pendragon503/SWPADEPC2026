@@ -14,6 +14,9 @@ class OperadorController extends Controller
     /** GET /operador */
     public function dashboard(): void
     {
-        $this->view('operador/dashboard', ['titulo' => 'Panel del operador']);
+        $this->view('operador/dashboard', [
+            'titulo'      => 'Panel del operador',
+            'indicadores' => Indicador::resumenGeneral(),
+        ]);
     }
 }

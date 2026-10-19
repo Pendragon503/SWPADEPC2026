@@ -1,7 +1,7 @@
 /* EquipRent - JavaScript propio (Bootstrap 5 + jQuery). */
 $(function () {
-    // Los enlaces de módulos aún no implementados no navegan.
-    $('.menu-lateral a[href="#"]').on('click', function (evento) {
+    // Los enlaces de prueba (href="#") de módulos que aún no existen no navegan.
+    $(document).on('click', 'a[href="#"]', function (evento) {
         evento.preventDefault();
     });
 

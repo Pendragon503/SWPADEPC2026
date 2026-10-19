@@ -1,10 +1,12 @@
 <?php
 /**
- * Layout de las páginas con sesión: barra superior, menú lateral por rol y mensajes.
+ * Layout de Administrador y Operador: menú lateral oscuro + barra superior naranja.
+ * En pantallas pequeñas el menú lateral se abre como panel deslizable (offcanvas).
  *
  * @var string $titulo
  * @var string $contenido
  */
+$usuario = Auth::usuario();
 ?>
 <!doctype html>
 <html lang="es">
@@ -12,52 +14,57 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title><?= e($titulo ?? 'EquipRent') ?> · EquipRent</title>
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
-    <link rel="stylesheet" href="<?= e(asset('css/app.css')) ?>">
+<?php require RAIZ . '/app/views/layouts/recursos.php'; ?>
 </head>
-<body class="bg-body-tertiary">
-<nav class="navbar navbar-expand-md navbar-dark bg-dark sticky-top">
-    <div class="container-fluid">
-        <button class="navbar-toggler me-2" type="button" data-bs-toggle="collapse" data-bs-target="#menuLateral"
-                aria-controls="menuLateral" aria-expanded="false" aria-label="Mostrar menú">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <a class="navbar-brand fw-semibold" href="<?= e(url('/')) ?>"><i class="bi bi-cone-striped"></i> EquipRent</a>
-        <div class="d-flex align-items-center gap-3 ms-auto text-white">
-            <span class="d-none d-sm-inline">
-                <?= e(Auth::nombreCompleto()) ?>
-                <span class="badge text-bg-secondary ms-1"><?= e(Auth::rol()) ?></span>
-            </span>
-            <form method="post" action="<?= e(url('/logout')) ?>" class="m-0">
-                <?= csrfCampo() ?>
-                <button type="submit" class="btn btn-outline-light btn-sm"><i class="bi bi-box-arrow-right"></i> Salir</button>
-            </form>
-        </div>
-    </div>
-</nav>
-
-<div class="container-fluid">
-    <div class="row">
-        <aside id="menuLateral" class="col-md-3 col-lg-2 collapse d-md-block bg-white border-end menu-lateral py-3">
-            <?php require RAIZ . '/app/views/layouts/menu.php'; ?>
-        </aside>
-
-        <main class="col-md-9 col-lg-10 py-4 px-md-4">
-            <?php foreach (flashes() as $mensaje): ?>
-                <div class="alert alert-<?= e($mensaje['tipo']) ?> alert-dismissible fade show" role="alert">
-                    <?= e($mensaje['mensaje']) ?>
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
+<body class="app-er">
+<div class="app-marco">
+    <aside class="offcanvas-lg offcanvas-start barra-lateral" tabindex="-1" id="menuLateral" aria-labelledby="menuLateralTitulo">
+        <div class="barra-lateral-interior">
+            <div class="franja-precaucion" aria-hidden="true"></div>
+            <div class="barra-lateral-marca">
+                <span class="marca-icono marca-icono-38" aria-hidden="true"><i class="bi bi-cone-striped"></i></span>
+                <div class="flex-grow-1">
+                    <span class="barra-lateral-nombre" id="menuLateralTitulo">EQUIP<span>RENT</span></span>
+                    <span class="barra-lateral-subtitulo">Panel de control</span>
                 </div>
-            <?php endforeach; ?>
+                <button type="button" class="btn-close btn-close-white d-lg-none" data-bs-dismiss="offcanvas"
+                        data-bs-target="#menuLateral" aria-label="Cerrar menú"></button>
+            </div>
+            <?php require RAIZ . '/app/views/layouts/menu.php'; ?>
+        </div>
+    </aside>
 
+    <div class="app-principal">
+        <header class="barra-superior">
+            <button type="button" class="boton-menu d-lg-none" data-bs-toggle="offcanvas" data-bs-target="#menuLateral"
+                    aria-controls="menuLateral" aria-label="Abrir menú">
+                <i class="bi bi-list" aria-hidden="true"></i>
+            </button>
+            <h1 class="barra-superior-titulo"><?= e($titulo ?? 'EquipRent') ?></h1>
+
+            <div class="barra-superior-usuario">
+                <span class="pildora-usuario">
+                    <span class="avatar-iniciales" aria-hidden="true"><?= e(iniciales($usuario['nombres'], $usuario['apellidos'])) ?></span>
+                    <span class="pildora-usuario-texto">
+                        <strong><?= e(Auth::nombreCompleto()) ?></strong>
+                        <small><?= e(Auth::rol()) ?></small>
+                    </span>
+                </span>
+                <form method="post" action="<?= e(url('/logout')) ?>" class="m-0">
+                    <?= csrfCampo() ?>
+                    <button type="submit" class="boton-salir" aria-label="Cerrar sesión">
+                        <i class="bi bi-box-arrow-right" aria-hidden="true"></i><span>Salir</span>
+                    </button>
+                </form>
+            </div>
+        </header>
+
+        <main class="app-contenido">
+            <?php require RAIZ . '/app/views/layouts/mensajes.php'; ?>
             <?= $contenido ?>
         </main>
     </div>
 </div>
-
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-<script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
-<script src="<?= e(asset('js/app.js')) ?>"></script>
+<?php require RAIZ . '/app/views/layouts/scripts.php'; ?>
 </body>
 </html>
