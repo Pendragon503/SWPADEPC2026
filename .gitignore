@@ -5,6 +5,7 @@ config/config.local.php
 # Archivos subidos por los usuarios (se conserva la carpeta)
 public/uploads/*
 !public/uploads/.gitkeep
+!public/uploads/.htaccess
 
 # Dependencias de Composer
 /vendor/

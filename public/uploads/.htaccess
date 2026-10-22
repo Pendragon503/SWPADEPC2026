@@ -1,0 +1,15 @@
+# EquipRent - Carpeta de archivos subidos por los usuarios (fotos de equipos).
+# Aquí solo hay imágenes: nada se ejecuta como código, aunque alguien lograra
+# subir un archivo con otra extensión.
+
+Options -Indexes
+
+# Bloquea scripts y páginas por su extensión
+<FilesMatch "(?i)\.(php\d?|phtml|phar|pl|py|cgi|sh|bat|cmd|exe|asp|aspx|jsp|html?|svg|js)$">
+    Require all denied
+</FilesMatch>
+
+# Y por si acaso, PHP no se ejecuta en esta carpeta
+<IfModule php_module>
+    php_flag engine off
+</IfModule>

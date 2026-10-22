@@ -73,18 +73,11 @@ $iconosCategoria = [
                 <h2 class="titulo-seccion">Equipos destacados</h2>
                 <div class="row g-3">
                     <?php foreach ($destacados as $equipo): ?>
-                        <?php
-                        // Solo se muestra la foto si el archivo existe en public/; si no, un icono.
-                        $tieneFoto = $equipo['fotoPrincipal'] !== null && is_file(RAIZ . '/public/' . $equipo['fotoPrincipal']);
-                        ?>
                         <div class="col-sm-6 col-md-3">
                             <article class="tarjeta-equipo">
                                 <div class="tarjeta-equipo-imagen">
-                                    <?php if ($tieneFoto): ?>
-                                        <img src="<?= e(url($equipo['fotoPrincipal'])) ?>" alt="<?= e($equipo['nombre']) ?>">
-                                    <?php else: ?>
-                                        <i class="bi <?= e($iconosCategoria[$equipo['categoria']] ?? 'bi-tools') ?>" aria-hidden="true"></i>
-                                    <?php endif; ?>
+                                    <?php // Foto principal, o el marcador gris con el icono de la categoría si no hay archivo. ?>
+                                    <?= imagenEquipo($equipo['fotoPrincipal'], $equipo['nombre'], $iconosCategoria[$equipo['categoria']] ?? 'bi-tools') ?>
                                 </div>
                                 <h3 class="tarjeta-equipo-nombre"><?= e($equipo['nombre']) ?></h3>
                                 <p class="tarjeta-equipo-categoria"><?= e($equipo['categoria']) ?></p>

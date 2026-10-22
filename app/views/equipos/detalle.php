@@ -6,6 +6,7 @@
  *
  * @var array      $equipo
  * @var array      $historial         bitácora, del más reciente al más antiguo
+ * @var array      $fotos             FotografiaEquipo::listarPorEquipo()
  * @var array|null $contratoAbierto   contrato Pendiente/Aprobado/Activo sin devolver, o null
  * @var array      $categorias
  * @var array|null $formulario        modal de editar con errores
@@ -95,7 +96,7 @@ $parrafo = function (?string $texto): string {
 <?php endif; ?>
 
 <div class="row g-3 mb-4">
-    <div class="col-12" id="ficha">
+    <div class="col-xl-7" id="ficha">
         <section class="panel">
             <div class="panel-cabecera">
                 <h3 class="panel-titulo">Ficha técnica</h3>
@@ -116,6 +117,83 @@ $parrafo = function (?string $texto): string {
                     <div><dt>Características técnicas</dt><dd><?= $parrafo($equipo['caracteristicasTecnicas']) ?></dd></div>
                     <div><dt>Condiciones de uso</dt><dd><?= $parrafo($equipo['condicionesUso']) ?></dd></div>
                 </dl>
+            </div>
+        </section>
+    </div>
+
+    <div class="col-xl-5" id="fotos">
+        <section class="panel">
+            <div class="panel-cabecera">
+                <h3 class="panel-titulo">Fotografías</h3>
+                <span class="texto-suave small"><?= count($fotos) ?> <?= count($fotos) === 1 ? 'foto' : 'fotos' ?></span>
+            </div>
+            <div class="panel-cuerpo">
+                <?php if (!$fotos): ?>
+                    <div class="estado-vacio">
+                        <span class="estado-vacio-icono"><i class="bi bi-images" aria-hidden="true"></i></span>
+                        <p class="estado-vacio-titulo">Sin fotos</p>
+                        <p class="estado-vacio-texto">La primera que subas será la foto principal del catálogo.</p>
+                    </div>
+                <?php else: ?>
+                    <ul class="galeria-fotos">
+                        <?php foreach ($fotos as $posicion => $foto): ?>
+                            <li class="foto-galeria<?= $foto['esPrincipal'] ? ' es-principal' : '' ?>">
+                                <div class="foto-galeria-imagen">
+                                    <?php // imagenEquipo() muestra el marcador gris si el archivo no existe (fotos del seed). ?>
+                                    <?= imagenEquipo($foto['urlFotografia'], $foto['textoAlternativo'] ?? $equipo['nombre']) ?>
+                                    <?php if ($foto['esPrincipal']): ?>
+                                        <span class="foto-galeria-etiqueta"><i class="bi bi-star-fill" aria-hidden="true"></i> Principal</span>
+                                    <?php endif; ?>
+                                </div>
+                                <div class="foto-galeria-acciones">
+                                    <?php if (!$foto['esPrincipal']): ?>
+                                        <form method="post" action="<?= e(url('/admin/equipos/fotos/principal')) ?>">
+                                            <?= csrfCampo() ?>
+                                            <input type="hidden" name="idFotografia" value="<?= e($foto['idFotografia']) ?>">
+                                            <button type="submit" class="btn btn-secondary btn-sm" title="Marcar como principal" aria-label="Marcar la foto <?= $posicion + 1 ?> como principal">
+                                                <i class="bi bi-star" aria-hidden="true"></i>
+                                            </button>
+                                        </form>
+                                    <?php endif; ?>
+                                    <?php foreach (['subir' => 'bi-arrow-up', 'bajar' => 'bi-arrow-down'] as $direccion => $icono): ?>
+                                        <?php $esExtremo = $direccion === 'subir' ? $posicion === 0 : $posicion === count($fotos) - 1; ?>
+                                        <form method="post" action="<?= e(url('/admin/equipos/fotos/ordenar')) ?>">
+                                            <?= csrfCampo() ?>
+                                            <input type="hidden" name="idFotografia" value="<?= e($foto['idFotografia']) ?>">
+                                            <input type="hidden" name="direccion" value="<?= e($direccion) ?>">
+                                            <button type="submit" class="btn btn-secondary btn-sm"<?= $esExtremo ? ' disabled' : '' ?>
+                                                    title="<?= $direccion === 'subir' ? 'Mover antes' : 'Mover después' ?>"
+                                                    aria-label="<?= $direccion === 'subir' ? 'Mover antes' : 'Mover después' ?> la foto <?= $posicion + 1 ?>">
+                                                <i class="bi <?= e($icono) ?>" aria-hidden="true"></i>
+                                            </button>
+                                        </form>
+                                    <?php endforeach; ?>
+                                    <form method="post" action="<?= e(url('/admin/equipos/fotos/eliminar')) ?>"
+                                          data-confirmar="¿Eliminar esta foto? Se borra también el archivo.">
+                                        <?= csrfCampo() ?>
+                                        <input type="hidden" name="idFotografia" value="<?= e($foto['idFotografia']) ?>">
+                                        <button type="submit" class="btn btn-danger btn-sm" title="Eliminar" aria-label="Eliminar la foto <?= $posicion + 1 ?>">
+                                            <i class="bi bi-trash-fill" aria-hidden="true"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </li>
+                        <?php endforeach; ?>
+                    </ul>
+                <?php endif; ?>
+
+                <?php // enctype="multipart/form-data" es obligatorio para enviar archivos. ?>
+                <form method="post" action="<?= e(url('/admin/equipos/fotos/subir')) ?>" enctype="multipart/form-data" class="subir-fotos">
+                    <?= csrfCampo() ?>
+                    <input type="hidden" name="idEquipo" value="<?= e($idEquipo) ?>">
+                    <label for="fotos" class="form-label">Agregar fotos</label>
+                    <div class="subir-fotos-campos">
+                        <input type="file" id="fotos" name="fotos[]" multiple required class="form-control"
+                               accept="image/jpeg,image/png,image/webp" aria-describedby="ayudaFotos">
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-upload" aria-hidden="true"></i> Subir</button>
+                    </div>
+                    <div class="form-text" id="ayudaFotos">JPG, PNG o WebP · hasta 2 MB cada una · máximo <?= FotografiaEquipo::MAXIMO_POR_ENVIO ?> a la vez.</div>
+                </form>
             </div>
         </section>
     </div>

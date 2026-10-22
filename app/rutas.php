@@ -33,3 +33,7 @@ $router->post('/admin/equipos/actualizar', 'EquipoController@actualizar');
 $router->get('/admin/equipos/detalle', 'EquipoController@detalle');   // ?id=5
 $router->post('/admin/equipos/cambiar-estado', 'EquipoController@cambiarEstado');
 $router->post('/admin/equipos/cambiar-activo', 'EquipoController@cambiarActivo');
+$router->post('/admin/equipos/fotos/subir', 'FotografiaEquipoController@subir');
+$router->post('/admin/equipos/fotos/principal', 'FotografiaEquipoController@marcarPrincipal');
+$router->post('/admin/equipos/fotos/ordenar', 'FotografiaEquipoController@ordenar');
+$router->post('/admin/equipos/fotos/eliminar', 'FotografiaEquipoController@eliminar');

@@ -153,6 +153,7 @@ class EquipoController extends Controller
             'menuActivo'        => 'Inventario',
             'equipo'            => $equipo,
             'historial'         => Equipo::historialEstados($idEquipo),
+            'fotos'             => FotografiaEquipo::listarPorEquipo($idEquipo),
             'contratoAbierto'   => Equipo::contratoAbierto($idEquipo),
             'categorias'        => Categoria::listar('', 1000, 0),
             'formulario'        => $formularios[self::SESION_FORMULARIO],
