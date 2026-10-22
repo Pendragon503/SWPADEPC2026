@@ -35,6 +35,27 @@ class Equipo
     /** Largo máximo que se acepta en los textos largos (columnas TEXT). */
     private const MAX_TEXTO_LARGO = 2000;
 
+    /** Campos del modal de crear/editar (los "name" del formulario). */
+    public const CAMPOS_FORMULARIO = [
+        'idEquipo', 'codigoInventario', 'numeroSerie', 'nombre', 'idCategoria', 'estadoActual',
+        'marca', 'modelo', 'fechaAdquisicion', 'valorReferencia',
+        'descripcion', 'caracteristicasTecnicas', 'condicionesUso',
+    ];
+
+    /**
+     * Valores para llenar el modal al editar (data-campos del botón "Editar"):
+     * los NULL de la base pasan a texto vacío.
+     */
+    public static function camposFormulario(array $equipo): array
+    {
+        $campos = [];
+        foreach (self::CAMPOS_FORMULARIO as $campo) {
+            $campos[$campo] = (string) ($equipo[$campo] ?? '');
+        }
+        $campos['estadoActual'] = self::ESTADOS[$equipo['estado']] ?? $equipo['estado'];
+        return $campos;
+    }
+
     // ---------------------------------------------------------------------
     // Validaciones y reglas de negocio
     // ---------------------------------------------------------------------

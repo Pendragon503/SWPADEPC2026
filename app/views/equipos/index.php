@@ -32,6 +32,14 @@ $tarjetas = [
         <h2 class="encabezado-pagina-titulo">Inventario de equipos</h2>
         <p class="encabezado-pagina-texto">Cada fila es una unidad física, con su propio código de inventario.</p>
     </div>
+    <?php // Abre el modal vacío en modo "crear" (ver app.js). ?>
+    <button type="button" class="btn btn-primary"
+            data-bs-toggle="modal" data-bs-target="#modalEquipo"
+            data-accion="<?= e(url('/admin/equipos/guardar')) ?>"
+            data-titulo="Registrar equipo" data-modo="crear"
+            data-campos="<?= e(json_encode(array_fill_keys(Equipo::CAMPOS_FORMULARIO, ''))) ?>">
+        <i class="bi bi-plus-circle-fill" aria-hidden="true"></i> Registrar equipo
+    </button>
 </div>
 
 <div class="row g-3 mb-4">
@@ -140,6 +148,14 @@ $tarjetas = [
                                    title="Ver detalle" aria-label="Ver detalle de <?= e($equipo['codigoInventario']) ?>">
                                     <i class="bi bi-eye-fill" aria-hidden="true"></i>
                                 </a>
+                                <button type="button" class="btn btn-secondary btn-sm"
+                                        data-bs-toggle="modal" data-bs-target="#modalEquipo"
+                                        data-accion="<?= e(url('/admin/equipos/actualizar')) ?>"
+                                        data-titulo="Editar equipo" data-modo="editar"
+                                        data-campos="<?= e(json_encode(Equipo::camposFormulario($equipo))) ?>"
+                                        title="Editar" aria-label="Editar <?= e($equipo['codigoInventario']) ?>">
+                                    <i class="bi bi-pencil-fill" aria-hidden="true"></i>
+                                </button>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -161,3 +177,8 @@ $tarjetas = [
         <?php endif; ?>
     </div>
 </section>
+
+<?php
+$origen = 'listado';
+require RAIZ . '/app/views/equipos/_formulario.php';
+?>

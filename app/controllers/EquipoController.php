@@ -63,9 +63,135 @@ class EquipoController extends Controller
         ]);
     }
 
+    /**
+     * POST /admin/equipos/guardar
+     * Si todo sale bien, va al detalle del equipo nuevo para agregarle fotos y tarifa.
+     */
+    public function guardar(): void
+    {
+        $datos = $this->leerFormulario();
+
+        $errores = Equipo::validar($datos, null);
+        if ($errores) {
+            $this->volverConErrores('crear', 0, $datos, $errores);
+        }
+
+        try {
+            $idEquipo = Equipo::crear($datos);
+        } catch (PDOException $e) {
+            // Dos personas guardando el mismo código o serie a la vez: lo detiene el UNIQUE (1062).
+            if (esValorDuplicado($e, 'uq_equipo_codigo')) {
+                $this->volverConErrores('crear', 0, $datos, ['codigoInventario' => Equipo::ERROR_CODIGO_REPETIDO]);
+            }
+            if (esValorDuplicado($e, 'uq_equipo_serie')) {
+                $this->volverConErrores('crear', 0, $datos, ['numeroSerie' => Equipo::ERROR_SERIE_REPETIDA]);
+            }
+            throw $e;
+        }
+
+        flash('success', "Se registró el equipo {$datos['codigoInventario']}. Agrégale sus fotos y su tarifa.");
+        $this->redirect('/admin/equipos/detalle?id=' . $idEquipo);
+    }
+
+    /**
+     * POST /admin/equipos/actualizar
+     */
+    public function actualizar(): void
+    {
+        $idEquipo = (int) ($_POST['idEquipo'] ?? 0);
+        $datos = $this->leerFormulario();
+
+        $actual = Equipo::buscarPorId($idEquipo);
+        if ($actual === null) {
+            flash('danger', 'El equipo que intentas editar no existe.');
+            $this->redirect('/admin/equipos');
+        }
+        $datos['codigoInventario'] = $actual['codigoInventario']; // el código no se cambia al editar
+
+        $errores = Equipo::validar($datos, $actual);
+        if ($errores) {
+            $this->volverConErrores('editar', $idEquipo, $datos, $errores);
+        }
+
+        try {
+            Equipo::actualizar($idEquipo, $datos);
+        } catch (PDOException $e) {
+            if (esValorDuplicado($e, 'uq_equipo_serie')) {
+                $this->volverConErrores('editar', $idEquipo, $datos, ['numeroSerie' => Equipo::ERROR_SERIE_REPETIDA]);
+            }
+            throw $e;
+        }
+
+        flash('success', "Se guardaron los cambios de {$actual['codigoInventario']}.");
+        $this->redirect($this->urlVolver($idEquipo));
+    }
+
     // ---------------------------------------------------------------------
     // Ayudantes privados
     // ---------------------------------------------------------------------
+
+    /** Lee y limpia los campos del modal de crear/editar. */
+    private function leerFormulario(): array
+    {
+        $texto = function (string $campo): string {
+            return trim((string) ($_POST[$campo] ?? ''));
+        };
+        return [
+            // El código se guarda en mayúsculas: "eq-1005" y "EQ-1005" son el mismo equipo.
+            'codigoInventario'        => mb_strtoupper($texto('codigoInventario')),
+            'numeroSerie'             => $texto('numeroSerie'),
+            'nombre'                  => $texto('nombre'),
+            'marca'                   => $texto('marca'),
+            'modelo'                  => $texto('modelo'),
+            'idCategoria'             => (int) ($_POST['idCategoria'] ?? 0),
+            'fechaAdquisicion'        => $texto('fechaAdquisicion'),
+            'valorReferencia'         => $texto('valorReferencia'),
+            'descripcion'             => $texto('descripcion'),
+            'caracteristicasTecnicas' => $texto('caracteristicasTecnicas'),
+            'condicionesUso'          => $texto('condicionesUso'),
+            // Solo informativo (campo de solo lectura del modal): no se guarda.
+            'estadoActual'            => $texto('estadoActual'),
+        ];
+    }
+
+    /**
+     * Guarda lo escrito y los errores en la sesión y vuelve a la página de origen
+     * (listado o detalle), donde el modal se abre solo (data-abrir-al-cargar).
+     */
+    private function volverConErrores(string $modo, int $idEquipo, array $datos, array $errores): void
+    {
+        $_SESSION[self::SESION_FORMULARIO] = [
+            'modo'     => $modo,
+            'idEquipo' => $idEquipo,
+            'valores'  => $datos,
+            'errores'  => $errores,
+        ];
+        flash('danger', 'Revisa los datos del formulario.');
+        $this->redirect($this->urlVolver($idEquipo));
+    }
+
+    /**
+     * A dónde volver después de un POST. Los formularios envían:
+     *   origen = 'detalle' -> al detalle del equipo
+     *   origen = 'listado' -> al listado, con los filtros del campo oculto "volver"
+     *                         (por ejemplo "buscar=bobcat&estado=Disponible&pagina=2")
+     */
+    private function urlVolver(int $idEquipo): string
+    {
+        if (($_POST['origen'] ?? '') === 'detalle' && $idEquipo > 0) {
+            return '/admin/equipos/detalle?id=' . $idEquipo;
+        }
+
+        // parse_str convierte el texto en arreglo; leerFiltros() descarta lo que no sea un filtro válido.
+        parse_str((string) ($_POST['volver'] ?? ''), $parametros);
+        $filtros = $this->leerFiltros($parametros);
+        $pagina = max(1, (int) ($parametros['pagina'] ?? 1));
+
+        $consulta = array_filter($filtros + ['pagina' => $pagina > 1 ? $pagina : ''], function ($valor) {
+            return $valor !== '' && $valor !== 0;
+        });
+        return '/admin/equipos' . ($consulta ? '?' . http_build_query($consulta) : '');
+    }
 
     /**
      * Filtros del listado, con valores por defecto. Se usa con $_GET (al listar) y con
