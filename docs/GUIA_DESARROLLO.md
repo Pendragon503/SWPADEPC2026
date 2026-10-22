@@ -14,7 +14,7 @@ comandos tal como están.
 4. [Git paso a paso](#4-git-paso-a-paso)
 5. [Estructura del proyecto](#5-estructura-del-proyecto)
 6. [Cómo funciona una página por dentro](#6-cómo-funciona-una-página-por-dentro)
-7. [Receta: crear un módulo nuevo copiando Categorías (ejemplo: Tarifas)](#7-receta-crear-un-módulo-nuevo-copiando-categorías-ejemplo-tarifas)
+7. [Receta: crear un módulo nuevo copiando Categorías (ejemplo: Usuarios y roles)](#7-receta-crear-un-módulo-nuevo-copiando-categorías-ejemplo-usuarios-y-roles)
 8. [Reglas obligatorias](#8-reglas-obligatorias)
 9. [Librerías, estilos y componentes](#9-librerías-estilos-y-componentes)
 10. [Reglas entre módulos](#10-reglas-entre-módulos)
@@ -276,13 +276,13 @@ Para volver a tu rama otro día: `git checkout feature/inventario`.
 2. Agrega los archivos que son de tu módulo (con su ruta; **no** uses `git add .` sin revisar antes):
 
    ```bat
-   git add app/controllers/TarifaController.php app/models/Tarifa.php app/views/tarifas/index.php app/rutas.php
+   git add app/controllers/UsuarioAdminController.php app/models/Usuario.php app/views/usuarios/index.php app/rutas.php
    ```
 
 3. Haz el commit siguiendo la **convención del grupo**:
 
    ```bat
-   git commit -m "Add: listado de tarifas con búsqueda y paginación"
+   git commit -m "Add: listado de usuarios con búsqueda y paginación"
    ```
 
 **Convención de mensajes:** `Prefijo: descripción en español`, en minúscula después de los dos
@@ -318,7 +318,7 @@ git push
 1. Entra a `https://github.com/Pendragon503/SWPADEPC2026`.
 2. Aparece un aviso amarillo con tu rama y el botón **Compare & pull request**. Presiónalo.
    (Si no aparece: pestaña **Pull requests → New pull request**, *base:* `main`, *compare:* tu rama.)
-3. Título con la convención, por ejemplo `Add: módulo de tarifas`.
+3. Título con la convención, por ejemplo `Add: módulo de usuarios y roles`.
 4. En la descripción: qué hace, cómo probarlo (usuario y pasos) y la lista de la sección 13 marcada.
 5. En **Reviewers**, elige a un compañero. Presiona **Create pull request**.
 6. Si el revisor pide cambios, hazlos en tu misma rama, `commit` y `push`: el Pull Request se actualiza solo.
@@ -347,7 +347,7 @@ o en el menú). Git te avisa con `CONFLICT (content): Merge conflict in app/ruta
 
    ```text
    <<<<<<< HEAD
-   $router->get('/admin/tarifas', 'TarifaController@index');
+   $router->get('/admin/usuarios', 'UsuarioAdminController@index');
    =======
    $router->get('/admin/clientes', 'ClienteAdminController@index');
    >>>>>>> main
@@ -439,6 +439,25 @@ Ejemplo: el administrador abre `http://localhost/SWPADEPC2026/public/admin/categ
 5. **La vista** (`app/views/categorias/index.php`) dibuja el HTML con esos datos, dentro del
    **layout** (`layouts/principal.php`), que pone el menú y la barra superior.
 
+**Quién hace qué (regla del grupo):**
+
+| Capa | Hace | No hace |
+|---|---|---|
+| **Controlador** | Lee `$_GET`/`$_POST`, llama al modelo y decide qué mostrar: vista, `flash()`, `redirect()` | No valida datos ni aplica reglas de negocio |
+| **Modelo** | **Valida** (`validar($datos, $id)` devuelve `['campo' => 'mensaje']`), aplica las **reglas de negocio** (`validarCambioEstado(...)` devuelve el mensaje de bloqueo o `null`) y hace las consultas | No lee `$_POST` ni imprime HTML |
+| **Vista** | Dibuja el HTML con `e()` | No consulta la base |
+
+Ejemplo en `CategoriaController::guardar()`:
+
+```php
+$datos = $this->leerFormulario();          // controlador: leer
+$errores = Categoria::validar($datos, 0);  // modelo: validar
+if ($errores) {
+    $this->volverConErrores('crear', 0, $datos, $errores);  // controlador: decidir
+}
+Categoria::crear($datos);                  // modelo: guardar
+```
+
 **Rutas sin parámetros en la URL.** El Router compara la ruta completa, así que direcciones como
 `/admin/categorias/5` **no existen**. En su lugar:
 
@@ -451,146 +470,163 @@ formulario POST con `csrfCampo()`.
 
 ---
 
-## 7. Receta: crear un módulo nuevo copiando Categorías (ejemplo: Tarifas)
+## 7. Receta: crear un módulo nuevo copiando Categorías (ejemplo: Usuarios y roles)
 
-El módulo de **Categorías** es el ejemplo oficial. Está comentado línea por línea; léelo completo
-antes de empezar:
+El módulo de **Categorías** es el ejemplo oficial: listado + modal, con validaciones en el modelo.
+Está comentado línea por línea; léelo completo antes de empezar:
 
 - `app/controllers/CategoriaController.php`
 - `app/models/Categoria.php`
 - `app/views/categorias/index.php`
 
-Vamos a crear **Tarifas** (Administrador): listar las tarifas de los equipos, crear, editar y
-activar/desactivar. Tabla `tarifa` en `database/01_schema.sql`:
-`idTarifa, tipoPeriodo ('Dia'|'Semana'|'Mes'), monto, depositoSugerido, fechaInicioVigencia,
-fechaFinVigencia, activa, idEquipo`.
+Para algo más grande (filtros, página de detalle, fotos, transacciones, bitácora), mira
+**Inventario**: `EquipoController`, `Equipo`, `FotografiaEquipo`, `Tarifa` y `app/views/equipos/`.
+
+Vamos a crear **Usuarios y roles** (Administrador, RF-02): listar los usuarios internos
+(Administrador y Operador), crear, editar y activar/desactivar. Tabla `usuario` en
+`database/01_schema.sql`: `idUsuario, nombres, apellidos, correo (único), claveHash, telefono,
+documentoIdentidad (único), direccion, activo, ultimoAcceso, idRol`.
 
 ### Paso 0. Rama
 
 ```bat
 git checkout main
 git pull origin main
-git checkout -b feature/inventario
+git checkout -b feature/usuarios-clientes
 ```
 
 ### Paso 1. Rutas (`app/rutas.php`)
 
-Agrega tu bloque **debajo** del de categorías:
+Agrega tu bloque **debajo** de los que ya existen:
 
 ```php
-// Administrador: tarifas
-$router->get('/admin/tarifas', 'TarifaController@index');
-$router->post('/admin/tarifas/guardar', 'TarifaController@guardar');
-$router->post('/admin/tarifas/actualizar', 'TarifaController@actualizar');
-$router->post('/admin/tarifas/cambiar-estado', 'TarifaController@cambiarEstado');
+// Administrador: usuarios y roles (RF-02)
+$router->get('/admin/usuarios', 'UsuarioAdminController@index');
+$router->post('/admin/usuarios/guardar', 'UsuarioAdminController@guardar');
+$router->post('/admin/usuarios/actualizar', 'UsuarioAdminController@actualizar');
+$router->post('/admin/usuarios/cambiar-estado', 'UsuarioAdminController@cambiarEstado');
 ```
 
-### Paso 2. Modelo (`app/models/Tarifa.php`)
+(El modelo `Usuario` ya existe y lo usa el login: agrégale métodos, no lo reemplaces.
+El controlador se llama `UsuarioAdminController` para no confundirlo con `AuthController`.)
 
-Copia `Categoria.php` como `Tarifa.php`, cambia el nombre de la clase a `Tarifa` y adapta cada
-consulta a la tabla `tarifa`. Por ejemplo, el listado trae también el código y nombre del equipo:
+### Paso 2. Modelo (`app/models/Usuario.php`)
+
+Copia de `Categoria.php` los métodos que necesites y adáptalos a la tabla `usuario`. El listado
+trae también el nombre del rol, y **solo los usuarios internos**:
 
 ```php
-public static function listar(string $buscar, int $limite, int $desplazamiento): array
+public static function listarInternos(string $buscar, int $limite, int $desplazamiento): array
 {
     $sentencia = Database::conexion()->prepare(
-        'SELECT t.idTarifa, t.tipoPeriodo, t.monto, t.depositoSugerido,
-                t.fechaInicioVigencia, t.fechaFinVigencia, t.activa, t.idEquipo,
-                e.codigoInventario, e.nombre AS equipo
-           FROM tarifa t
-           JOIN equipo e ON e.idEquipo = t.idEquipo
-          WHERE e.codigoInventario LIKE ? OR e.nombre LIKE ?
-          ORDER BY e.codigoInventario, t.fechaInicioVigencia DESC
-          LIMIT ? OFFSET ?'
+        "SELECT u.idUsuario, u.nombres, u.apellidos, u.correo, u.telefono, u.activo,
+                u.ultimoAcceso, u.idRol, r.nombre AS rol
+           FROM usuario u
+           JOIN rol r ON r.idRol = u.idRol
+          WHERE r.nombre IN ('Administrador', 'Operador')
+            AND (u.nombres LIKE ? OR u.apellidos LIKE ? OR u.correo LIKE ?)
+          ORDER BY u.apellidos, u.nombres
+          LIMIT ? OFFSET ?"
     );
     $patron = '%' . $buscar . '%';
     $sentencia->bindValue(1, $patron);
     $sentencia->bindValue(2, $patron);
-    $sentencia->bindValue(3, $limite, PDO::PARAM_INT);
-    $sentencia->bindValue(4, $desplazamiento, PDO::PARAM_INT);
+    $sentencia->bindValue(3, $patron);
+    $sentencia->bindValue(4, $limite, PDO::PARAM_INT);
+    $sentencia->bindValue(5, $desplazamiento, PDO::PARAM_INT);
     $sentencia->execute();
     return $sentencia->fetchAll();
 }
 ```
 
-Haz lo mismo con `contar`, `buscarPorId`, `crear`, `actualizar` y `cambiarActiva`. Para la lista de
-equipos del formulario agrega, por ejemplo, `Tarifa::equiposActivos()`
-(`SELECT idEquipo, codigoInventario, nombre FROM equipo WHERE activo = TRUE ORDER BY codigoInventario`).
+Las **validaciones van en el modelo** (`Usuario::validar(array $datos, int $idUsuario): array`),
+nunca en el controlador. Ejemplos:
 
-### Paso 3. Controlador (`app/controllers/TarifaController.php`)
+```php
+if (!filter_var($datos['correo'], FILTER_VALIDATE_EMAIL)) {
+    $errores['correo'] = 'Escribe un correo válido.';
+} elseif (self::existeCorreo($datos['correo'], $idUsuario)) {
+    $errores['correo'] = 'Ya hay un usuario con ese correo.';
+}
+// Al crear, la contraseña es obligatoria; al editar, vacía = no cambiarla.
+if ($idUsuario === 0 && mb_strlen($datos['clave']) < 8) {
+    $errores['clave'] = 'La contraseña debe tener al menos 8 caracteres.';
+}
+```
 
-Copia `CategoriaController.php` como `TarifaController.php` y:
+Y la contraseña **nunca** se guarda tal cual: `password_hash($datos['clave'], PASSWORD_DEFAULT)`.
 
-1. Cambia el nombre de la clase, `SESION_FORMULARIO` (`'formularioTarifa'`) y la ruta de `urlListado()`
-   (`'/admin/tarifas'`).
+Reglas de negocio, también en el modelo (`validarCambioEstado()`, como en Categorías):
+- un administrador no puede desactivarse a sí mismo (`Auth::id()`);
+- no se puede desactivar al último administrador activo.
+
+### Paso 3. Controlador (`app/controllers/UsuarioAdminController.php`)
+
+Copia `CategoriaController.php` y:
+
+1. Cambia el nombre de la clase, `SESION_FORMULARIO` (`'formularioUsuario'`) y la ruta de `urlListado()`
+   (`'/admin/usuarios'`).
 2. Deja `requireRole('Administrador')` en el constructor.
-3. En `guardar()` y `actualizar()`, lee los campos de la tarifa:
+3. En `leerFormulario()`, lee los campos (el controlador **solo lee**):
 
    ```php
-   $idEquipo = (int) ($_POST['idEquipo'] ?? 0);
-   $tipoPeriodo = (string) ($_POST['tipoPeriodo'] ?? '');
-   $monto = trim((string) ($_POST['monto'] ?? ''));
-   $deposito = trim((string) ($_POST['depositoSugerido'] ?? '0'));
-   $inicio = trim((string) ($_POST['fechaInicioVigencia'] ?? ''));
-   $fin = trim((string) ($_POST['fechaFinVigencia'] ?? ''));
+   return [
+       'nombres'   => trim((string) ($_POST['nombres'] ?? '')),
+       'apellidos' => trim((string) ($_POST['apellidos'] ?? '')),
+       'correo'    => mb_strtolower(trim((string) ($_POST['correo'] ?? ''))),
+       'telefono'  => trim((string) ($_POST['telefono'] ?? '')),
+       'idRol'     => (int) ($_POST['idRol'] ?? 0),
+       'clave'     => (string) ($_POST['clave'] ?? ''),
+   ];
    ```
 
-4. Cambia `validar()` por las reglas de la tarifa. Ejemplos:
+4. Llama al modelo para validar y guardar, igual que en Categorías.
+5. **Nunca** devuelvas la contraseña a la vista: en `volverConErrores()`, quítala de `$datos`
+   antes de guardarlos en la sesión (`unset($datos['clave'])`).
+6. Si la base responde con un duplicado, usa el helper `esValorDuplicado($e, 'uq_usuario_correo')`.
 
-   ```php
-   if (!in_array($tipoPeriodo, ['Dia', 'Semana', 'Mes'], true)) {
-       $errores['tipoPeriodo'] = 'Elige el periodo de la tarifa.';
-   }
-   if (!is_numeric($monto) || (float) $monto <= 0) {
-       $errores['monto'] = 'El monto debe ser un número mayor que cero.';
-   }
-   if ($fin !== '' && $fin < $inicio) {
-       $errores['fechaFinVigencia'] = 'La fecha final no puede ser anterior a la inicial.';
-   }
-   ```
+### Paso 4. Vista (`app/views/usuarios/index.php`)
 
-   La base también tiene estas reglas (CHECK), pero los mensajes claros salen de tu validación.
-5. En `index()`, pasa además a la vista la lista de equipos para el `<select>`.
+Crea la carpeta `app/views/usuarios/` y copia `categorias/index.php`. Cambia:
 
-### Paso 4. Vista (`app/views/tarifas/index.php`)
-
-Crea la carpeta `app/views/tarifas/` y copia `categorias/index.php` como `index.php`. Cambia:
-
-- Los textos ("Tarifas", "Nueva tarifa"), las URLs (`/admin/tarifas/...`) y el id del modal (`modalTarifa`).
-- Las columnas de la tabla (Equipo, Periodo, Monto, Depósito, Vigencia, Estado, Acciones).
-  Usa `<span class="codigo">` para el código del equipo y `estadoBadge()` para el estado.
-- Los campos del modal y su `data-campos` (todos los `name` del formulario). Ejemplo de un `<select>`:
+- Los textos ("Usuarios y roles", "Nuevo usuario"), las URLs (`/admin/usuarios/...`) y el id del modal (`modalUsuario`).
+- Las columnas: Nombre, Correo, Rol, Último acceso (`fechaCorta($u['ultimoAcceso'], true)`), Estado
+  (`estadoBadge($u['activo'] ? 'Activo' : 'Inactivo')`) y Acciones.
+- Los campos del modal y su `data-campos` (todos los `name` del formulario). Si el formulario
+  tiene muchos campos, usa `modal-lg` y dos columnas, como `equipos/_formulario.php`. Ejemplo de `<select>`:
 
   ```php
   <div>
-      <label for="idEquipo" class="form-label"><i class="bi bi-box-seam" aria-hidden="true"></i> Equipo</label>
-      <select id="idEquipo" name="idEquipo" class="form-select<?= isset($errores['idEquipo']) ? ' is-invalid' : '' ?>">
-          <option value="">Elige un equipo</option>
-          <?php foreach ($equipos as $equipo): ?>
-              <option value="<?= e($equipo['idEquipo']) ?>"<?= (string) $valores['idEquipo'] === (string) $equipo['idEquipo'] ? ' selected' : '' ?>>
-                  <?= e($equipo['codigoInventario'] . ' · ' . $equipo['nombre']) ?>
+      <label for="idRol" class="form-label"><i class="bi bi-person-badge" aria-hidden="true"></i> Rol</label>
+      <select id="idRol" name="idRol" class="form-select<?= isset($errores['idRol']) ? ' is-invalid' : '' ?>">
+          <option value="">Elige un rol</option>
+          <?php foreach ($roles as $rol): ?>
+              <option value="<?= e($rol['idRol']) ?>"<?= (string) $valores['idRol'] === (string) $rol['idRol'] ? ' selected' : '' ?>>
+                  <?= e($rol['nombre']) ?>
               </option>
           <?php endforeach; ?>
       </select>
-      <?php if (isset($errores['idEquipo'])): ?>
-          <div class="invalid-feedback"><?= e($errores['idEquipo']) ?></div>
+      <?php if (isset($errores['idRol'])): ?>
+          <div class="invalid-feedback"><?= e($errores['idRol']) ?></div>
       <?php endif; ?>
   </div>
   ```
 
-- La paginación: `$rutaPaginacion = '/admin/tarifas';`.
+- La contraseña: `<input type="password" name="clave" autocomplete="new-password">`, **sin** `value`
+  (nunca se vuelve a mostrar). Al editar, un texto de ayuda: "Déjala vacía para no cambiarla".
+- La paginación: `$rutaPaginacion = '/admin/usuarios';`.
 
 ### Paso 5. Enlace en el menú
 
-En `app/views/layouts/menu.php`, cambia el `'#'` de la fila de Tarifas por la ruta:
+En `app/views/layouts/menu.php`, cambia el `'#'` de la fila de Usuarios por la ruta:
 
 ```php
-['bi-cash-coin', 'Tarifas', '/admin/tarifas'],
+['bi-people-fill', 'Usuarios y roles', '/admin/usuarios'],
 ```
 
-Y en tu controlador pasa `'menuActivo' => 'Tarifas'` a la vista (debe ser igual al texto del menú),
-para que el enlace se marque en naranja. Para el **Cliente** el menú está en `layouts/cliente.php`
-(arreglo `$menuCliente`) y `menuActivo` usa la clave (`'catalogo'`, `'alquileres'`…).
+Y en tu controlador pasa `'menuActivo' => 'Usuarios y roles'` a la vista (debe ser igual al texto
+del menú), para que el enlace se marque en naranja. Para el **Cliente** el menú está en
+`layouts/cliente.php` (arreglo `$menuCliente`) y `menuActivo` usa la clave (`'catalogo'`, `'alquileres'`…).
 
 ### Paso 6. Roles
 
@@ -640,6 +676,9 @@ Prueba con la lista de la sección 13, haz tus commits y crea el Pull Request (s
 7. **No se borran registros: se desactivan** (`activo = FALSE` / `activa = FALSE`). Nada de `DELETE`
    en el sistema.
 8. **Validación en el servidor**, siempre, aunque el navegador también valide (`required`, `maxlength`).
+   **Las validaciones y las reglas de negocio van en el modelo** (`validar()`, `validarCambioEstado()`…),
+   que devuelve los errores en un arreglo o el mensaje de bloqueo; el controlador solo recibe los
+   datos, llama al modelo y decide qué mostrar (sección 6).
 9. **POST → redirect → GET:** después de guardar, `flash(...)` y `$this->redirect(...)`. Nunca muestres
    una vista directamente después de un POST.
 10. **Roles:** todo controlador llama a `requireRole(...)` en su constructor.
@@ -708,6 +747,33 @@ siempre la identidad del sistema**, no la del frame.
 `Mantenimiento`, `FueraServicio`), contrato (`Pendiente`, `Aprobado`, `Rechazado`, `Activo`,
 `Finalizado`, `Cancelado`), daño, mantenimiento y `Activa`/`Inactiva`/`Inactivo`.
 
+Agregados con Inventario (ejemplos en `app/views/equipos/`):
+
+| Necesito… | Usa | Ejemplo en |
+|---|---|---|
+| Varios filtros sobre una tabla (texto + listas) | `<form method="get" class="filtros-tabla">` | `equipos/index.php` |
+| Enlace "Volver" en una página de detalle | `<a class="enlace-volver">` | `equipos/detalle.php` |
+| Botones a la derecha del título | `<div class="acciones-pagina">` | `equipos/detalle.php` |
+| Datos de una ficha (etiqueta y valor) | `<dl class="ficha-datos">` / `<dl class="ficha-textos">` | `equipos/detalle.php` |
+| Modal ancho en dos columnas | `modal-dialog modal-lg` + `<div class="row g-3">` | `equipos/_formulario.php` |
+| Modal de una acción delicada (cabecera con icono rojo) | `modal-er modal-er-peligro` | `equipos/detalle.php` |
+| Foto de equipo o marcador gris | `<?= imagenEquipo($ruta, $texto) ?>` | `equipos/detalle.php`, `cliente/dashboard.php` |
+| Galería con acciones | `.galeria-fotos` / `.foto-galeria` | `equipos/detalle.php` |
+| Campo que se escribe en mayúsculas | `class="form-control campo-mayusculas"` | `equipos/_formulario.php` |
+| Fecha o dinero para mostrar | `fechaCorta($fecha, $conHora)`, `dinero($monto)` | `equipos/index.php` |
+
+Atributos que entiende `app.js` (sin escribir JavaScript):
+
+- `data-modo="crear"` / `"editar"` en el botón que abre un modal: al editar, los campos con
+  `data-bloquear-al-editar` quedan en solo lectura y se muestran los bloques `data-solo-al-editar`.
+- `data-mostrar-si="motivo=Otro"` en un bloque: se ve solo si el campo `name="motivo"` vale "Otro".
+- `data-confirmar="¿Seguro…?"` en un `<form>`: pide confirmación antes de enviarlo.
+
+Subir archivos: el formulario lleva `enctype="multipart/form-data"`, el controlador convierte
+`$_FILES` en una lista (`FotografiaEquipoController::leerArchivos()`) y el modelo valida el **tipo real**
+con `finfo` y `getimagesize` (no la extensión). Los archivos van a `public/uploads/`, que tiene un
+`.htaccess` que impide ejecutar scripts.
+
 Si necesitas un componente que no existe, **propónlo al grupo** y se agrega en `app.css`
 (sección 5 del archivo). Los estilos propios van **solo** en `app.css`.
 
@@ -726,9 +792,21 @@ Si necesitas un componente que no existe, **propónlo al grupo** y se agrega en 
 
 Estas reglas cruzan módulos: si tu módulo toca estos datos, respétalas aunque "no sean tuyas".
 
-- **No asignar equipos a categorías inactivas (Inventario).** Al crear o editar un equipo, la lista
-  de categorías solo muestra las activas, y el servidor valida que la elegida siga activa. (Categorías
-  ya impide desactivar una categoría con equipos activos.)
+- **No asignar equipos a categorías inactivas (Inventario).** `Equipo::validar()` rechaza una
+  categoría inactiva (al editar solo se acepta si es la que el equipo ya tenía), y
+  `Equipo::validarReactivacion()` no reactiva un equipo cuya categoría esté inactiva. Categorías, a su
+  vez, no deja desactivar una categoría con equipos activos.
+- **Estados de un equipo (Inventario → Operación y Mantenimiento).** El administrador solo elige a mano
+  Disponible, En revisión, Mantenimiento o Fuera de servicio (`Equipo::ESTADOS_MANUALES`).
+  **"Alquilado" lo pone Operación** al registrar la entrega, y lo quita al registrar la devolución;
+  mientras está Alquilado, Inventario no deja cambiarle el estado. Para cambiar un estado desde
+  cualquier módulo usa `Equipo::cambiarEstado($idEquipo, $estado, $motivo)`: ya pone `@app_motivo`.
+- **Baja de equipos.** Un equipo no se borra: `Equipo::desactivar()` lo deja Fuera de servicio y
+  `activo = FALSE` en una transacción, con el motivo en la bitácora. No se puede dar de baja si está en
+  un contrato Pendiente, Aprobado o Activo sin devolver (`Equipo::contratoAbierto()`).
+- **Fotos de equipos.** Muéstralas siempre con `imagenEquipo($ruta, $texto)`: si el archivo no existe
+  (las fotos del seed), dibuja el marcador gris. La foto del catálogo es `v_catalogoEquipo.fotoPrincipal`.
+  Una foto sí se borra (registro y archivo): es la única excepción a "no borrar registros".
 - **Bitácora de equipos.** La tabla `equipo` tiene un trigger que registra cada cambio de estado en
   `bitacoraEstadoEquipo`, y exige saber quién lo hizo:
   - `@app_idUsuario`: **lo pone el sistema solo** al conectar (`Database`), con el usuario en sesión.
@@ -871,8 +949,9 @@ Copia esta lista en la descripción de tu Pull Request y márcala (`[x]`):
 | Mantenimiento y reportes: mantenimiento, bitácora, dashboards con indicadores, reportes y configuración | Operador / Administrador | RF-12, RF-13, RF-14, RF-15 | `feature/mantenimiento-reportes` | |
 
 Ya hechos y en `main`: login y control de acceso por rol (RF-01), layout y paneles de los tres roles,
-y el módulo de ejemplo **Categorías**. Los RNF (seguridad, usabilidad, accesibilidad, compatibilidad…)
-aplican a todos los módulos.
+y el módulo de ejemplo **Categorías**. **Inventario** (equipos, fotos y tarifas) está en la rama
+`feature/inventario`, en revisión por Pull Request. Los RNF (seguridad, usabilidad, accesibilidad,
+compatibilidad…) aplican a todos los módulos.
 
 Resumen de los RF (texto completo en el documento de la Etapa 1, en `docs/`):
 RF-01 autenticación · RF-02 usuarios y perfiles · RF-03 clientes · RF-04 catálogo de equipos ·
@@ -907,7 +986,7 @@ Inventario de los frames por módulo (solo como referencia; abre el enlace para 
 | Formulario Desactivar Equpo Carlos | https://www.figma.com/design/uGjJN3mgJTYV8bdHy05NVx/Sistema-Web?node-id=53-1052 |
 | Equipos Emerson (vista del Operador) | https://www.figma.com/design/uGjJN3mgJTYV8bdHy05NVx/Sistema-Web?node-id=74-1130 |
 
-No hay frame de Tarifas: usar el patrón de Categorías (listado + modal).
+Implementado en la rama `feature/inventario`: listado, detalle (`?id=`), fotos, tarifas (modal en el detalle) y bitácora.
 
 **Usuarios y clientes**
 

@@ -25,3 +25,16 @@ $router->get('/admin/categorias', 'CategoriaController@index');
 $router->post('/admin/categorias/guardar', 'CategoriaController@guardar');
 $router->post('/admin/categorias/actualizar', 'CategoriaController@actualizar');
 $router->post('/admin/categorias/cambiar-estado', 'CategoriaController@cambiarEstado');
+
+// Administrador: inventario de equipos (RF-04)
+$router->get('/admin/equipos', 'EquipoController@index');
+$router->post('/admin/equipos/guardar', 'EquipoController@guardar');
+$router->post('/admin/equipos/actualizar', 'EquipoController@actualizar');
+$router->get('/admin/equipos/detalle', 'EquipoController@detalle');   // ?id=5
+$router->post('/admin/equipos/cambiar-estado', 'EquipoController@cambiarEstado');
+$router->post('/admin/equipos/cambiar-activo', 'EquipoController@cambiarActivo');
+$router->post('/admin/equipos/fotos/subir', 'FotografiaEquipoController@subir');
+$router->post('/admin/equipos/fotos/principal', 'FotografiaEquipoController@marcarPrincipal');
+$router->post('/admin/equipos/fotos/ordenar', 'FotografiaEquipoController@ordenar');
+$router->post('/admin/equipos/fotos/eliminar', 'FotografiaEquipoController@eliminar');
+$router->post('/admin/equipos/tarifas/guardar', 'TarifaController@guardar');

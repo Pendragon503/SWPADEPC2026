@@ -86,8 +86,8 @@ $tarjetas = [
 <section class="panel">
     <div class="panel-cabecera">
         <h3 class="panel-titulo">Inventario de equipos</h3>
-        <a href="#" class="btn btn-primary btn-sm">
-            <i class="bi bi-plus-circle-fill" aria-hidden="true"></i> Registrar equipo
+        <a href="<?= e(url('/admin/equipos')) ?>" class="btn btn-primary btn-sm">
+            <i class="bi bi-box-seam-fill" aria-hidden="true"></i> Ir al inventario
         </a>
     </div>
     <div class="panel-cuerpo">
@@ -116,7 +116,7 @@ $tarjetas = [
             </table>
         </div>
         <p class="texto-suave small mt-3 mb-0">
-            Se muestran los primeros <?= e(count($inventario)) ?> de <?= e($total) ?> equipos. El listado completo llega con el módulo de Inventario.
+            Se muestran los primeros <?= e(count($inventario)) ?> de <?= e($total) ?> equipos. <a href="<?= e(url('/admin/equipos')) ?>">Ver el inventario completo</a>.
         </p>
     </div>
 </section>
