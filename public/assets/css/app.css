@@ -1045,7 +1045,7 @@
 /* Barra de filtros sobre una tabla (texto + listas + botones), formulario GET */
 .filtros-tabla {
     display: grid;
-    grid-template-columns: minmax(220px, 2fr) repeat(3, minmax(150px, 1fr)) auto;
+    grid-template-columns: minmax(200px, 1.6fr) minmax(190px, 1.2fr) repeat(2, minmax(160px, 1fr)) auto;
     gap: 8px;
     width: 100%;
 }
@@ -1097,6 +1097,7 @@
 /* Modal con formulario (Figma "Crear categoría"): cabecera oscura, etiquetas en
    mayúsculas con icono naranja y dos botones al 50 %. Ejemplo: categorias/index.php */
 .modal-er .modal-content {
+    --bs-modal-bg: #fff;
     overflow: hidden;
     border: 0;
     border-radius: var(--er-radio-panel);
@@ -1418,8 +1419,18 @@
     font-weight: 700;
     color: #232626;
     background: #e9ecef;
+    white-space: nowrap;
     border-radius: 5px;
     font-variant-numeric: tabular-nums;
+}
+
+/* Campo que se escribe en mayúsculas (por ejemplo, códigos); el placeholder no */
+.campo-mayusculas {
+    text-transform: uppercase;
+}
+
+.campo-mayusculas::placeholder {
+    text-transform: none;
 }
 
 /* Etiquetas de estado: en PHP usar estadoBadge($estado) */

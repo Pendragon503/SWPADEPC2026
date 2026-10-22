@@ -59,7 +59,7 @@ $urlActualizarEquipo = url('/admin/equipos/actualizar');
                         <div class="col-md-6">
                             <label for="codigoInventario" class="form-label"><i class="bi bi-hash" aria-hidden="true"></i> Código de inventario</label>
                             <input type="text" id="codigoInventario" name="codigoInventario" maxlength="30" required data-bloquear-al-editar
-                                   class="form-control text-uppercase<?= $claseError('codigoInventario') ?>" placeholder="Ej. EQ-1005"
+                                   class="form-control campo-mayusculas<?= $claseError('codigoInventario') ?>" placeholder="Ej. EQ-1005"
                                    value="<?= e($valor('codigoInventario')) ?>"<?= $modoFormulario === 'editar' ? ' readonly' : '' ?>>
                             <?= $mensajeError('codigoInventario') ?>
                         </div>
