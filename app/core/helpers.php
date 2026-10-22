@@ -88,10 +88,69 @@ function estadoBadge(string $estado): string
         'Activa'            => ['verde', 'Activa'],
         'Inactiva'          => ['gris', 'Inactiva'],
         'Inactivo'          => ['gris', 'Inactivo'],
+        // situación de una tarifa (Tarifa::listarPorEquipo)
+        'Vigente'           => ['verde', 'Vigente'],
+        'Programada'        => ['azul', 'Programada'],
+        'Historica'         => ['gris', 'Histórica'],
     ];
 
     [$color, $texto] = $estados[$estado] ?? ['gris', $estado];
     return '<span class="estado estado-' . $color . '">' . e($texto) . '</span>';
+}
+
+/**
+ * URL pública de una foto de equipo, o null si no hay foto o si el archivo no existe
+ * (por ejemplo, las fotos de 02_seed.sql apuntan a archivos que todavía no se subieron).
+ *
+ * @param string|null $ruta valor de fotografiaEquipo.urlFotografia o de v_catalogoEquipo.fotoPrincipal,
+ *                          relativo a public/ (por ejemplo 'uploads/equipos/abc.jpg')
+ */
+function urlFotoEquipo(?string $ruta): ?string
+{
+    if ($ruta === null || $ruta === '') {
+        return null;
+    }
+    // Solo se aceptan rutas dentro de public/uploads/ y sin "..", para no servir otros archivos.
+    if (strpos($ruta, 'uploads/') !== 0 || strpos($ruta, '..') !== false) {
+        return null;
+    }
+    return is_file(RAIZ . '/public/' . $ruta) ? url($ruta) : null;
+}
+
+/**
+ * Foto de un equipo lista para imprimir: un <img> si el archivo existe, o el
+ * marcador gris (icono) si no hay foto o el archivo no existe. Úsala en todo
+ * lugar que muestre fotoPrincipal o urlFotografia (inventario, catálogo...).
+ * El tamaño lo da el contenedor (por ejemplo .tarjeta-equipo-imagen o .foto-galeria).
+ *
+ * @param string $icono icono del marcador (Bootstrap Icons), por ejemplo el de la categoría
+ */
+function imagenEquipo(?string $ruta, string $textoAlternativo, string $icono = 'bi-image'): string
+{
+    $url = urlFotoEquipo($ruta);
+    if ($url !== null) {
+        return '<img class="foto-equipo" src="' . e($url) . '" alt="' . e($textoAlternativo) . '" loading="lazy">';
+    }
+    return '<span class="foto-equipo-vacia" role="img" aria-label="' . e('Sin foto: ' . $textoAlternativo) . '">'
+        . '<i class="bi ' . e($icono) . '" aria-hidden="true"></i></span>';
+}
+
+/**
+ * Fecha de la base (Y-m-d o Y-m-d H:i:s) en formato de El Salvador: 15/03/2024 o 15/03/2024 14:30.
+ */
+function fechaCorta(?string $fecha, bool $conHora = false): string
+{
+    if ($fecha === null || $fecha === '') {
+        return '—';
+    }
+    $marca = strtotime($fecha);
+    return $marca === false ? $fecha : date($conHora ? 'd/m/Y H:i' : 'd/m/Y', $marca);
+}
+
+/** Monto en dólares: dinero(1500) -> '$1,500.00'. */
+function dinero($monto): string
+{
+    return $monto === null || $monto === '' ? '—' : '$' . number_format((float) $monto, 2);
 }
 
 /**

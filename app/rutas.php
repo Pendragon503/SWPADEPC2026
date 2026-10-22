@@ -25,3 +25,6 @@ $router->get('/admin/categorias', 'CategoriaController@index');
 $router->post('/admin/categorias/guardar', 'CategoriaController@guardar');
 $router->post('/admin/categorias/actualizar', 'CategoriaController@actualizar');
 $router->post('/admin/categorias/cambiar-estado', 'CategoriaController@cambiarEstado');
+
+// Administrador: inventario de equipos (RF-04)
+$router->get('/admin/equipos', 'EquipoController@index');

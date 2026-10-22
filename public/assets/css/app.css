@@ -902,6 +902,35 @@
     padding-left: 36px;
 }
 
+/* Barra de filtros sobre una tabla (texto + listas + botones), formulario GET */
+.filtros-tabla {
+    display: grid;
+    grid-template-columns: minmax(220px, 2fr) repeat(3, minmax(150px, 1fr)) auto;
+    gap: 8px;
+    width: 100%;
+}
+
+.filtros-tabla-botones {
+    display: flex;
+    gap: 8px;
+}
+
+@media (max-width: 1199.98px) {
+    .filtros-tabla {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .filtros-tabla-texto {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 575.98px) {
+    .filtros-tabla {
+        grid-template-columns: 1fr;
+    }
+}
+
 /* Pie de tabla: "Mostrando 1–10 de 23" + paginación */
 .pie-tabla {
     display: flex;
