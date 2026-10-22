@@ -1050,6 +1050,11 @@
     width: 100%;
 }
 
+/* Variante con texto + 2 listas */
+.filtros-tabla-3 {
+    grid-template-columns: minmax(240px, 2fr) repeat(2, minmax(160px, 1fr)) auto;
+}
+
 .filtros-tabla-botones {
     display: flex;
     gap: 8px;
