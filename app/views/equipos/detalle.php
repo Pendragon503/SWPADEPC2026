@@ -7,6 +7,8 @@
  * @var array      $equipo
  * @var array      $historial         bitácora, del más reciente al más antiguo
  * @var array      $fotos             FotografiaEquipo::listarPorEquipo()
+ * @var array      $tarifas           Tarifa::listarPorEquipo(), con su situación
+ * @var array|null $formularioTarifa  modal de nueva tarifa con errores
  * @var array|null $contratoAbierto   contrato Pendiente/Aprobado/Activo sin devolver, o null
  * @var array      $categorias
  * @var array|null $formulario        modal de editar con errores
@@ -199,6 +201,57 @@ $parrafo = function (?string $texto): string {
     </div>
 </div>
 
+<section class="panel mb-4" id="tarifas">
+    <div class="panel-cabecera">
+        <h3 class="panel-titulo">Tarifas</h3>
+        <?php if ($activo): ?>
+            <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalTarifa">
+                <i class="bi bi-plus-circle-fill" aria-hidden="true"></i> Nueva tarifa
+            </button>
+        <?php endif; ?>
+    </div>
+    <div class="panel-cuerpo">
+        <?php if (!$tarifas): ?>
+            <div class="estado-vacio">
+                <span class="estado-vacio-icono"><i class="bi bi-cash-coin" aria-hidden="true"></i></span>
+                <p class="estado-vacio-titulo">Sin tarifas</p>
+                <p class="estado-vacio-texto">Sin una tarifa por día vigente, el equipo no muestra precio en el catálogo.</p>
+            </div>
+        <?php else: ?>
+            <div class="table-responsive">
+                <table class="table tabla-er">
+                    <thead>
+                    <tr>
+                        <th scope="col">Periodo</th>
+                        <th scope="col" class="text-end">Monto</th>
+                        <th scope="col" class="text-end d-none d-sm-table-cell">Depósito sugerido</th>
+                        <th scope="col">Desde</th>
+                        <th scope="col">Hasta</th>
+                        <th scope="col">Situación</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($tarifas as $tarifa): ?>
+                        <tr>
+                            <td class="texto-fuerte"><?= e(Tarifa::PERIODOS[$tarifa['tipoPeriodo']] ?? $tarifa['tipoPeriodo']) ?></td>
+                            <td class="text-end"><?= dinero($tarifa['monto']) ?></td>
+                            <td class="text-end d-none d-sm-table-cell"><?= dinero($tarifa['depositoSugerido']) ?></td>
+                            <td><?= e(fechaCorta($tarifa['fechaInicioVigencia'])) ?></td>
+                            <td><?= $tarifa['fechaFinVigencia'] === null ? '<span class="texto-suave">Sin fecha final</span>' : e(fechaCorta($tarifa['fechaFinVigencia'])) ?></td>
+                            <td><?= estadoBadge($tarifa['situacion']) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+            <p class="texto-suave small mt-3 mb-0">
+                El catálogo usa la tarifa <strong>por día</strong> vigente. Para cambiar un precio, crea una tarifa nueva:
+                la anterior del mismo periodo se cierra un día antes.
+            </p>
+        <?php endif; ?>
+    </div>
+</section>
+
 <section class="panel" id="historial">
     <div class="panel-cabecera">
         <h3 class="panel-titulo">Historial de estados</h3>
@@ -247,7 +300,77 @@ require RAIZ . '/app/views/equipos/_formulario.php';
 
 $erroresEstado = $formularioEstado['errores'] ?? [];
 $erroresBaja = $formularioBaja['errores'] ?? [];
+$erroresTarifa = $formularioTarifa['errores'] ?? [];
+$valorTarifa = function (string $campo, string $porDefecto = '') use ($formularioTarifa): string {
+    return (string) ($formularioTarifa['valores'][$campo] ?? $porDefecto);
+};
 ?>
+
+<?php // Nueva tarifa: cierra la abierta del mismo periodo (Tarifa::crear, en una transacción). ?>
+<div class="modal fade modal-er" id="modalTarifa" tabindex="-1" aria-labelledby="modalTarifaTitulo" aria-hidden="true"
+     data-abrir-al-cargar="<?= $formularioTarifa ? '1' : '0' ?>">
+    <div class="modal-dialog modal-dialog-centered">
+        <form method="post" action="<?= e(url('/admin/equipos/tarifas/guardar')) ?>" class="modal-content" novalidate>
+            <div class="modal-header">
+                <span class="marca-icono marca-icono-38" aria-hidden="true"><i class="bi bi-cash-coin"></i></span>
+                <div>
+                    <h2 class="modal-title" id="modalTarifaTitulo">Nueva tarifa</h2>
+                    <p class="modal-subtitulo"><?= e($equipo['codigoInventario']) ?> · <?= e($equipo['nombre']) ?></p>
+                </div>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
+            </div>
+            <div class="modal-body">
+                <?= csrfCampo() ?>
+                <input type="hidden" name="idEquipo" value="<?= e($idEquipo) ?>">
+                <div>
+                    <label for="tipoPeriodo" class="form-label"><i class="bi bi-calendar-range" aria-hidden="true"></i> Periodo</label>
+                    <select id="tipoPeriodo" name="tipoPeriodo" required class="form-select<?= isset($erroresTarifa['tipoPeriodo']) ? ' is-invalid' : '' ?>">
+                        <?php foreach (Tarifa::PERIODOS as $periodo => $textoPeriodo): ?>
+                            <option value="<?= e($periodo) ?>"<?= $valorTarifa('tipoPeriodo', 'Dia') === $periodo ? ' selected' : '' ?>><?= e($textoPeriodo) ?></option>
+                        <?php endforeach; ?>
+                    </select>
+                    <?php if (isset($erroresTarifa['tipoPeriodo'])): ?>
+                        <div class="invalid-feedback"><?= e($erroresTarifa['tipoPeriodo']) ?></div>
+                    <?php endif; ?>
+                </div>
+                <div class="row g-3">
+                    <div class="col-sm-6">
+                        <label for="montoTarifa" class="form-label"><i class="bi bi-currency-dollar" aria-hidden="true"></i> Monto</label>
+                        <input type="number" id="montoTarifa" name="monto" min="0.01" step="0.01" required
+                               class="form-control<?= isset($erroresTarifa['monto']) ? ' is-invalid' : '' ?>"
+                               placeholder="Ej. 120.00" value="<?= e($valorTarifa('monto')) ?>">
+                        <?php if (isset($erroresTarifa['monto'])): ?>
+                            <div class="invalid-feedback"><?= e($erroresTarifa['monto']) ?></div>
+                        <?php endif; ?>
+                    </div>
+                    <div class="col-sm-6">
+                        <label for="depositoTarifa" class="form-label"><i class="bi bi-safe" aria-hidden="true"></i> Depósito sugerido</label>
+                        <input type="number" id="depositoTarifa" name="depositoSugerido" min="0" step="0.01"
+                               class="form-control<?= isset($erroresTarifa['depositoSugerido']) ? ' is-invalid' : '' ?>"
+                               placeholder="Ej. 300.00" value="<?= e($valorTarifa('depositoSugerido')) ?>">
+                        <?php if (isset($erroresTarifa['depositoSugerido'])): ?>
+                            <div class="invalid-feedback"><?= e($erroresTarifa['depositoSugerido']) ?></div>
+                        <?php endif; ?>
+                    </div>
+                </div>
+                <div>
+                    <label for="inicioTarifa" class="form-label"><i class="bi bi-calendar-event" aria-hidden="true"></i> Vigente desde</label>
+                    <input type="date" id="inicioTarifa" name="fechaInicioVigencia" required
+                           class="form-control<?= isset($erroresTarifa['fechaInicioVigencia']) ? ' is-invalid' : '' ?>"
+                           value="<?= e($valorTarifa('fechaInicioVigencia', date('Y-m-d'))) ?>">
+                    <?php if (isset($erroresTarifa['fechaInicioVigencia'])): ?>
+                        <div class="invalid-feedback"><?= e($erroresTarifa['fechaInicioVigencia']) ?></div>
+                    <?php endif; ?>
+                    <div class="form-text">Si ya hay una tarifa del mismo periodo sin fecha final, se cierra el día anterior.</div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-claro" data-bs-dismiss="modal">Cancelar</button>
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle-fill" aria-hidden="true"></i> Guardar</button>
+            </div>
+        </form>
+    </div>
+</div>
 
 <?php // Cambiar estado: solo los estados manuales; el motivo queda en la bitácora. ?>
 <div class="modal fade modal-er" id="modalEstado" tabindex="-1" aria-labelledby="modalEstadoTitulo" aria-hidden="true"

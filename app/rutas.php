@@ -37,3 +37,4 @@ $router->post('/admin/equipos/fotos/subir', 'FotografiaEquipoController@subir');
 $router->post('/admin/equipos/fotos/principal', 'FotografiaEquipoController@marcarPrincipal');
 $router->post('/admin/equipos/fotos/ordenar', 'FotografiaEquipoController@ordenar');
 $router->post('/admin/equipos/fotos/eliminar', 'FotografiaEquipoController@eliminar');
+$router->post('/admin/equipos/tarifas/guardar', 'TarifaController@guardar');

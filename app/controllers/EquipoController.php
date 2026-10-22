@@ -142,7 +142,7 @@ class EquipoController extends Controller
 
         // Formularios de este equipo que volvieron con errores (se leen una vez y se borran).
         $formularios = [];
-        foreach ([self::SESION_FORMULARIO, self::SESION_ESTADO, self::SESION_BAJA] as $clave) {
+        foreach ([self::SESION_FORMULARIO, self::SESION_ESTADO, self::SESION_BAJA, TarifaController::SESION_FORMULARIO] as $clave) {
             $guardado = $_SESSION[$clave] ?? null;
             $formularios[$clave] = ($guardado !== null && (int) $guardado['idEquipo'] === $idEquipo) ? $guardado : null;
             unset($_SESSION[$clave]);
@@ -154,11 +154,13 @@ class EquipoController extends Controller
             'equipo'            => $equipo,
             'historial'         => Equipo::historialEstados($idEquipo),
             'fotos'             => FotografiaEquipo::listarPorEquipo($idEquipo),
+            'tarifas'           => Tarifa::listarPorEquipo($idEquipo),
             'contratoAbierto'   => Equipo::contratoAbierto($idEquipo),
             'categorias'        => Categoria::listar('', 1000, 0),
             'formulario'        => $formularios[self::SESION_FORMULARIO],
             'formularioEstado'  => $formularios[self::SESION_ESTADO],
             'formularioBaja'    => $formularios[self::SESION_BAJA],
+            'formularioTarifa'  => $formularios[TarifaController::SESION_FORMULARIO],
         ]);
     }
 
