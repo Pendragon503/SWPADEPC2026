@@ -40,9 +40,14 @@ $(function () {
         // Opcional: data-modo="crear" | "editar" (ejemplo: app/views/equipos/_formulario.php)
         //   [data-bloquear-al-editar] queda en solo lectura al editar (por ejemplo, el código)
         //   [data-solo-al-editar]     solo se muestra al editar (por ejemplo, el estado actual)
+        //   [data-solo-al-crear]      solo se muestra al crear (por ejemplo, un aviso)
         var editando = $boton.data('modo') === 'editar';
         $formulario.find('[data-bloquear-al-editar]').prop('readOnly', editando);
         $formulario.find('[data-solo-al-editar]').prop('hidden', !editando);
+        $formulario.find('[data-solo-al-crear]').prop('hidden', editando);
+
+        // Los bloques data-mostrar-si dependen de los valores recién copiados.
+        actualizarMostrarSi($formulario);
 
         // Quitar los errores de un envío anterior.
         $formulario.find('.is-invalid').removeClass('is-invalid');

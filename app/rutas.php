@@ -41,3 +41,5 @@ $router->post('/admin/equipos/tarifas/guardar', 'TarifaController@guardar');
 
 // Administrador y Operador: clientes (RF-03). Sin /admin porque lo usan los dos roles.
 $router->get('/clientes', 'GestionClienteController@index');
+$router->post('/clientes/guardar', 'GestionClienteController@guardar');
+$router->post('/clientes/actualizar', 'GestionClienteController@actualizar');

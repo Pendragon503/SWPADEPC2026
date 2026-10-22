@@ -56,9 +56,129 @@ class GestionClienteController extends Controller
         ]);
     }
 
+    /**
+     * POST /clientes/guardar
+     * Crea el usuario (rol Cliente, contraseña temporal) y el cliente en una transacción.
+     * La contraseña temporal se muestra UNA sola vez, en el mensaje de éxito.
+     */
+    public function guardar(): void
+    {
+        $datos = $this->leerFormulario();
+
+        $errores = Cliente::validar($datos, null);
+        if ($errores) {
+            $this->volverConErrores('crear', 0, $datos, $errores);
+        }
+
+        $claveTemporal = Cliente::generarClaveTemporal();
+        try {
+            $nuevo = Cliente::crear($datos, $claveTemporal);
+        } catch (PDOException $e) {
+            $this->siEsDuplicadoVolver($e, 'crear', 0, $datos);
+            throw $e;
+        }
+
+        // Solo aquí se conoce la contraseña sin cifrar: en la base queda su hash.
+        flash('success', "Se registró el cliente {$nuevo['codigoCliente']}. Su usuario es {$datos['correo']} "
+            . "y su contraseña temporal es $claveTemporal. Entrégasela al cliente: no se volverá a mostrar.");
+        $this->redirect($this->urlVolver());
+    }
+
+    /**
+     * POST /clientes/actualizar
+     * No cambia la contraseña ni el código del cliente.
+     */
+    public function actualizar(): void
+    {
+        $idCliente = (int) ($_POST['idCliente'] ?? 0);
+        $datos = $this->leerFormulario();
+
+        $actual = Cliente::buscarPorId($idCliente);
+        if ($actual === null) {
+            flash('danger', 'El cliente que intentas editar no existe.');
+            $this->redirect($this->urlVolver());
+        }
+
+        $errores = Cliente::validar($datos, $actual);
+        if ($errores) {
+            $this->volverConErrores('editar', $idCliente, $datos, $errores);
+        }
+
+        try {
+            Cliente::actualizar($actual, $datos);
+        } catch (PDOException $e) {
+            $this->siEsDuplicadoVolver($e, 'editar', $idCliente, $datos);
+            throw $e;
+        }
+
+        flash('success', "Se guardaron los cambios de {$actual['codigoCliente']}.");
+        $this->redirect($this->urlVolver());
+    }
+
     // ---------------------------------------------------------------------
     // Ayudantes privados
     // ---------------------------------------------------------------------
+
+    /** Lee y limpia los campos del modal. */
+    private function leerFormulario(): array
+    {
+        $texto = function (string $campo): string {
+            return trim((string) ($_POST[$campo] ?? ''));
+        };
+        return [
+            'nombres'             => $texto('nombres'),
+            'apellidos'           => $texto('apellidos'),
+            'correo'              => mb_strtolower($texto('correo')), // el correo se guarda en minúsculas
+            'telefono'            => $texto('telefono'),
+            'documentoIdentidad'  => mb_strtoupper($texto('documentoIdentidad')),
+            'direccion'           => $texto('direccion'),
+            'tipoPersona'         => $texto('tipoPersona'),
+            'razonSocial'         => $texto('razonSocial'),
+            'documentoTributario' => mb_strtoupper($texto('documentoTributario')),
+            'contactoAlterno'     => $texto('contactoAlterno'),
+            'telefonoAlterno'     => $texto('telefonoAlterno'),
+            'observaciones'       => $texto('observaciones'),
+        ];
+    }
+
+    /**
+     * Si la base rechazó un valor repetido (error 1062, por ejemplo dos personas
+     * guardando el mismo correo a la vez), vuelve al modal marcando el campo repetido.
+     */
+    private function siEsDuplicadoVolver(PDOException $e, string $modo, int $idCliente, array $datos): void
+    {
+        foreach (Cliente::DUPLICADOS as $restriccion => [$campo, $mensaje]) {
+            if (esValorDuplicado($e, $restriccion)) {
+                $this->volverConErrores($modo, $idCliente, $datos, [$campo => $mensaje]);
+            }
+        }
+    }
+
+    /** Guarda lo escrito y los errores en la sesión y vuelve al listado; el modal se abre solo. */
+    private function volverConErrores(string $modo, int $idCliente, array $datos, array $errores): void
+    {
+        $_SESSION[self::SESION_FORMULARIO] = [
+            'modo'      => $modo,
+            'idCliente' => $idCliente,
+            'valores'   => $datos,
+            'errores'   => $errores,
+        ];
+        flash('danger', 'Revisa los datos del formulario.');
+        $this->redirect($this->urlVolver());
+    }
+
+    /** Listado con los filtros del campo oculto "volver" (solo se aceptan filtros válidos). */
+    private function urlVolver(): string
+    {
+        parse_str((string) ($_POST['volver'] ?? ''), $parametros);
+        $filtros = $this->leerFiltros($parametros);
+        $pagina = max(1, (int) ($parametros['pagina'] ?? 1));
+
+        $consulta = array_filter($filtros + ['pagina' => $pagina > 1 ? $pagina : ''], function ($valor) {
+            return $valor !== '';
+        });
+        return '/clientes' . ($consulta ? '?' . http_build_query($consulta) : '');
+    }
 
     /** Filtros del listado con valores por defecto; los valores desconocidos se ignoran. */
     private function leerFiltros(array $origen): array

@@ -19,6 +19,13 @@ $volver = http_build_query($filtros + ['pagina' => $pagina]);
         <h2 class="encabezado-pagina-titulo">Clientes</h2>
         <p class="encabezado-pagina-texto">Personas y empresas que alquilan equipos. Cada cliente tiene su usuario para el portal.</p>
     </div>
+    <button type="button" class="btn btn-primary"
+            data-bs-toggle="modal" data-bs-target="#modalCliente"
+            data-accion="<?= e(url('/clientes/guardar')) ?>"
+            data-titulo="Registrar cliente" data-modo="crear"
+            data-campos="<?= e(json_encode(array_fill_keys(Cliente::CAMPOS_FORMULARIO, '') + ['tipoPersona' => 'Natural'])) ?>">
+        <i class="bi bi-person-plus-fill" aria-hidden="true"></i> Registrar cliente
+    </button>
 </div>
 
 <section class="panel">
@@ -97,7 +104,16 @@ $volver = http_build_query($filtros + ['pagina' => $pagina]);
                             <td class="d-none d-lg-table-cell text-nowrap"><?= e($cliente['telefono'] ?? '—') ?></td>
                             <td class="d-none d-md-table-cell"><?= e($cliente['correo']) ?></td>
                             <td><?= estadoBadge($cliente['activo'] ? 'Activo' : 'Inactivo') ?></td>
-                            <td class="col-acciones"></td>
+                            <td class="col-acciones">
+                                <button type="button" class="btn btn-secondary btn-sm"
+                                        data-bs-toggle="modal" data-bs-target="#modalCliente"
+                                        data-accion="<?= e(url('/clientes/actualizar')) ?>"
+                                        data-titulo="Editar cliente" data-modo="editar"
+                                        data-campos="<?= e(json_encode(Cliente::camposFormulario($cliente))) ?>"
+                                        title="Editar" aria-label="Editar <?= e($cliente['codigoCliente']) ?>">
+                                    <i class="bi bi-pencil-fill" aria-hidden="true"></i>
+                                </button>
+                            </td>
                         </tr>
                     <?php endforeach; ?>
                     </tbody>
@@ -118,3 +134,5 @@ $volver = http_build_query($filtros + ['pagina' => $pagina]);
         <?php endif; ?>
     </div>
 </section>
+
+<?php require RAIZ . '/app/views/clientes/_formulario.php'; ?>

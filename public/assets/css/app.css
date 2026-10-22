@@ -1162,6 +1162,18 @@
     color: var(--er-naranja-texto);
 }
 
+/* Subtítulo de un grupo de campos dentro de un modal de dos columnas */
+.modal-er .titulo-formulario {
+    margin: 0 0 12px;
+    padding-bottom: 6px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .6px;
+    text-transform: uppercase;
+    color: var(--er-texto-2);
+    border-bottom: 1px solid var(--er-borde-suave);
+}
+
 .modal-er textarea.form-control {
     resize: vertical;
 }
