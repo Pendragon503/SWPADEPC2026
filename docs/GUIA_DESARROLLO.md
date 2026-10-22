@@ -439,6 +439,25 @@ Ejemplo: el administrador abre `http://localhost/SWPADEPC2026/public/admin/categ
 5. **La vista** (`app/views/categorias/index.php`) dibuja el HTML con esos datos, dentro del
    **layout** (`layouts/principal.php`), que pone el menú y la barra superior.
 
+**Quién hace qué (regla del grupo):**
+
+| Capa | Hace | No hace |
+|---|---|---|
+| **Controlador** | Lee `$_GET`/`$_POST`, llama al modelo y decide qué mostrar: vista, `flash()`, `redirect()` | No valida datos ni aplica reglas de negocio |
+| **Modelo** | **Valida** (`validar($datos, $id)` devuelve `['campo' => 'mensaje']`), aplica las **reglas de negocio** (`validarCambioEstado(...)` devuelve el mensaje de bloqueo o `null`) y hace las consultas | No lee `$_POST` ni imprime HTML |
+| **Vista** | Dibuja el HTML con `e()` | No consulta la base |
+
+Ejemplo en `CategoriaController::guardar()`:
+
+```php
+$datos = $this->leerFormulario();          // controlador: leer
+$errores = Categoria::validar($datos, 0);  // modelo: validar
+if ($errores) {
+    $this->volverConErrores('crear', 0, $datos, $errores);  // controlador: decidir
+}
+Categoria::crear($datos);                  // modelo: guardar
+```
+
 **Rutas sin parámetros en la URL.** El Router compara la ruta completa, así que direcciones como
 `/admin/categorias/5` **no existen**. En su lugar:
 
@@ -524,28 +543,27 @@ Copia `CategoriaController.php` como `TarifaController.php` y:
 1. Cambia el nombre de la clase, `SESION_FORMULARIO` (`'formularioTarifa'`) y la ruta de `urlListado()`
    (`'/admin/tarifas'`).
 2. Deja `requireRole('Administrador')` en el constructor.
-3. En `guardar()` y `actualizar()`, lee los campos de la tarifa:
+3. En `leerFormulario()`, lee los campos de la tarifa (el controlador solo lee):
 
    ```php
-   $idEquipo = (int) ($_POST['idEquipo'] ?? 0);
-   $tipoPeriodo = (string) ($_POST['tipoPeriodo'] ?? '');
-   $monto = trim((string) ($_POST['monto'] ?? ''));
-   $deposito = trim((string) ($_POST['depositoSugerido'] ?? '0'));
-   $inicio = trim((string) ($_POST['fechaInicioVigencia'] ?? ''));
-   $fin = trim((string) ($_POST['fechaFinVigencia'] ?? ''));
+   return [
+       'idEquipo'            => (int) ($_POST['idEquipo'] ?? 0),
+       'tipoPeriodo'         => (string) ($_POST['tipoPeriodo'] ?? ''),
+       'monto'               => trim((string) ($_POST['monto'] ?? '')),
+       'depositoSugerido'    => trim((string) ($_POST['depositoSugerido'] ?? '0')),
+       'fechaInicioVigencia' => trim((string) ($_POST['fechaInicioVigencia'] ?? '')),
+   ];
    ```
 
-4. Cambia `validar()` por las reglas de la tarifa. Ejemplos:
+4. Las validaciones van en el **modelo**, en `Tarifa::validar(array $datos, int $idTarifa): array`
+   (nunca en el controlador). Ejemplos:
 
    ```php
-   if (!in_array($tipoPeriodo, ['Dia', 'Semana', 'Mes'], true)) {
+   if (!in_array($datos['tipoPeriodo'], ['Dia', 'Semana', 'Mes'], true)) {
        $errores['tipoPeriodo'] = 'Elige el periodo de la tarifa.';
    }
-   if (!is_numeric($monto) || (float) $monto <= 0) {
+   if (!is_numeric($datos['monto']) || (float) $datos['monto'] <= 0) {
        $errores['monto'] = 'El monto debe ser un número mayor que cero.';
-   }
-   if ($fin !== '' && $fin < $inicio) {
-       $errores['fechaFinVigencia'] = 'La fecha final no puede ser anterior a la inicial.';
    }
    ```
 
@@ -640,6 +658,9 @@ Prueba con la lista de la sección 13, haz tus commits y crea el Pull Request (s
 7. **No se borran registros: se desactivan** (`activo = FALSE` / `activa = FALSE`). Nada de `DELETE`
    en el sistema.
 8. **Validación en el servidor**, siempre, aunque el navegador también valide (`required`, `maxlength`).
+   **Las validaciones y las reglas de negocio van en el modelo** (`validar()`, `validarCambioEstado()`…),
+   que devuelve los errores en un arreglo o el mensaje de bloqueo; el controlador solo recibe los
+   datos, llama al modelo y decide qué mostrar (sección 6).
 9. **POST → redirect → GET:** después de guardar, `flash(...)` y `$this->redirect(...)`. Nunca muestres
    una vista directamente después de un POST.
 10. **Roles:** todo controlador llama a `requireRole(...)` en su constructor.

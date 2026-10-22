@@ -206,6 +206,19 @@ function csrfValido(?string $token): bool
 // ---------------------------------------------------------------------
 
 /**
+ * ¿La base rechazó el INSERT/UPDATE por un valor repetido en una columna UNIQUE?
+ * (error 1062 de MySQL). Con $restriccion se comprueba cuál: el mensaje de MySQL
+ * incluye el nombre del UNIQUE, por ejemplo 'uq_equipo_serie'.
+ */
+function esValorDuplicado(PDOException $e, string $restriccion = ''): bool
+{
+    if (!isset($e->errorInfo[1]) || (int) $e->errorInfo[1] !== 1062) {
+        return false;
+    }
+    return $restriccion === '' || stripos((string) ($e->errorInfo[2] ?? ''), $restriccion) !== false;
+}
+
+/**
  * Último recurso para cualquier excepción no atrapada.
  * Con debug muestra el detalle; sin debug, una página genérica.
  */
