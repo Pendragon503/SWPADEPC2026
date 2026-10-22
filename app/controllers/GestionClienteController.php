@@ -115,6 +115,35 @@ class GestionClienteController extends Controller
         $this->redirect($this->urlVolver());
     }
 
+    /**
+     * POST /clientes/cambiar-estado  (activar = 1 o 0)
+     * Activa o desactiva el usuario del cliente; no se borra nada. Un cliente
+     * desactivado no puede iniciar sesión (Auth lo rechaza).
+     */
+    public function cambiarEstado(): void
+    {
+        $idCliente = (int) ($_POST['idCliente'] ?? 0);
+        $activar = ($_POST['activar'] ?? '') === '1';
+
+        $cliente = Cliente::buscarPorId($idCliente);
+        if ($cliente === null) {
+            flash('danger', 'El cliente no existe.');
+            $this->redirect($this->urlVolver());
+        }
+
+        $error = Cliente::validarCambioActivo($cliente, $activar);
+        if ($error !== null) {
+            flash('danger', $error);
+            $this->redirect($this->urlVolver());
+        }
+
+        Cliente::cambiarActivo($cliente, $activar);
+        flash('success', $activar
+            ? "Se activó {$cliente['codigoCliente']}: ya puede iniciar sesión."
+            : "Se desactivó {$cliente['codigoCliente']}: ya no puede iniciar sesión ni solicitar alquileres.");
+        $this->redirect($this->urlVolver());
+    }
+
     // ---------------------------------------------------------------------
     // Ayudantes privados
     // ---------------------------------------------------------------------

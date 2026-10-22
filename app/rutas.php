@@ -43,3 +43,4 @@ $router->post('/admin/equipos/tarifas/guardar', 'TarifaController@guardar');
 $router->get('/clientes', 'GestionClienteController@index');
 $router->post('/clientes/guardar', 'GestionClienteController@guardar');
 $router->post('/clientes/actualizar', 'GestionClienteController@actualizar');
+$router->post('/clientes/cambiar-estado', 'GestionClienteController@cambiarEstado');

@@ -113,6 +113,26 @@ $volver = http_build_query($filtros + ['pagina' => $pagina]);
                                         title="Editar" aria-label="Editar <?= e($cliente['codigoCliente']) ?>">
                                     <i class="bi bi-pencil-fill" aria-hidden="true"></i>
                                 </button>
+
+                                <?php // Activar / desactivar: formulario POST por fila (nunca un enlace GET). ?>
+                                <form method="post" action="<?= e(url('/clientes/cambiar-estado')) ?>" class="d-inline"
+                                    <?php if ($cliente['activo']): ?>
+                                      data-confirmar="¿Desactivar a <?= e(Cliente::nombreVisible($cliente)) ?>? No podrá iniciar sesión ni solicitar alquileres."
+                                    <?php endif; ?>>
+                                    <?= csrfCampo() ?>
+                                    <input type="hidden" name="idCliente" value="<?= e($cliente['idCliente']) ?>">
+                                    <input type="hidden" name="activar" value="<?= $cliente['activo'] ? '0' : '1' ?>">
+                                    <input type="hidden" name="volver" value="<?= e($volver) ?>">
+                                    <?php if ($cliente['activo']): ?>
+                                        <button type="submit" class="btn btn-danger btn-sm" title="Desactivar" aria-label="Desactivar <?= e($cliente['codigoCliente']) ?>">
+                                            <i class="bi bi-slash-circle" aria-hidden="true"></i>
+                                        </button>
+                                    <?php else: ?>
+                                        <button type="submit" class="btn btn-primary btn-sm" title="Activar" aria-label="Activar <?= e($cliente['codigoCliente']) ?>">
+                                            <i class="bi bi-check-circle" aria-hidden="true"></i>
+                                        </button>
+                                    <?php endif; ?>
+                                </form>
                             </td>
                         </tr>
                     <?php endforeach; ?>
