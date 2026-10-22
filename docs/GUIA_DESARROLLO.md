@@ -949,9 +949,8 @@ Copia esta lista en la descripción de tu Pull Request y márcala (`[x]`):
 | Mantenimiento y reportes: mantenimiento, bitácora, dashboards con indicadores, reportes y configuración | Operador / Administrador | RF-12, RF-13, RF-14, RF-15 | `feature/mantenimiento-reportes` | |
 
 Ya hechos y en `main`: login y control de acceso por rol (RF-01), layout y paneles de los tres roles,
-y el módulo de ejemplo **Categorías**. **Inventario** (equipos, fotos y tarifas) está en la rama
-`feature/inventario`, en revisión por Pull Request. Los RNF (seguridad, usabilidad, accesibilidad,
-compatibilidad…) aplican a todos los módulos.
+el módulo de ejemplo **Categorías** e **Inventario** (equipos, fotos, tarifas, estados y bitácora; RF-04).
+Los RNF (seguridad, usabilidad, accesibilidad, compatibilidad…) aplican a todos los módulos.
 
 Resumen de los RF (texto completo en el documento de la Etapa 1, en `docs/`):
 RF-01 autenticación · RF-02 usuarios y perfiles · RF-03 clientes · RF-04 catálogo de equipos ·
@@ -986,7 +985,7 @@ Inventario de los frames por módulo (solo como referencia; abre el enlace para 
 | Formulario Desactivar Equpo Carlos | https://www.figma.com/design/uGjJN3mgJTYV8bdHy05NVx/Sistema-Web?node-id=53-1052 |
 | Equipos Emerson (vista del Operador) | https://www.figma.com/design/uGjJN3mgJTYV8bdHy05NVx/Sistema-Web?node-id=74-1130 |
 
-Implementado en la rama `feature/inventario`: listado, detalle (`?id=`), fotos, tarifas (modal en el detalle) y bitácora.
+Ya implementado (en `main`): listado, detalle (`?id=`), fotos, tarifas (modal en el detalle) y bitácora.
 
 **Usuarios y clientes**
 
