@@ -24,6 +24,8 @@ class EquipoController extends Controller
 
     /** Claves de sesión de los formularios con errores (se leen una vez y se borran). */
     private const SESION_FORMULARIO = 'formularioEquipo';
+    private const SESION_ESTADO = 'formularioEstadoEquipo';
+    private const SESION_BAJA = 'formularioBajaEquipo';
 
     public function __construct()
     {
@@ -126,9 +128,128 @@ class EquipoController extends Controller
         $this->redirect($this->urlVolver($idEquipo));
     }
 
+    /**
+     * GET /admin/equipos/detalle?id=5
+     * El Router no tiene parámetros en la URL: el id llega en la query string.
+     */
+    public function detalle(): void
+    {
+        $idEquipo = (int) ($_GET['id'] ?? 0);
+        $equipo = Equipo::buscarPorId($idEquipo);
+        if ($equipo === null) {
+            throw new ErrorHttp('Equipo no encontrado', 404);
+        }
+
+        // Formularios de este equipo que volvieron con errores (se leen una vez y se borran).
+        $formularios = [];
+        foreach ([self::SESION_FORMULARIO, self::SESION_ESTADO, self::SESION_BAJA] as $clave) {
+            $guardado = $_SESSION[$clave] ?? null;
+            $formularios[$clave] = ($guardado !== null && (int) $guardado['idEquipo'] === $idEquipo) ? $guardado : null;
+            unset($_SESSION[$clave]);
+        }
+
+        $this->view('equipos/detalle', [
+            'titulo'            => 'Equipo ' . $equipo['codigoInventario'],
+            'menuActivo'        => 'Inventario',
+            'equipo'            => $equipo,
+            'historial'         => Equipo::historialEstados($idEquipo),
+            'contratoAbierto'   => Equipo::contratoAbierto($idEquipo),
+            'categorias'        => Categoria::listar('', 1000, 0),
+            'formulario'        => $formularios[self::SESION_FORMULARIO],
+            'formularioEstado'  => $formularios[self::SESION_ESTADO],
+            'formularioBaja'    => $formularios[self::SESION_BAJA],
+        ]);
+    }
+
+    /**
+     * POST /admin/equipos/cambiar-estado
+     * El motivo queda en la bitácora (trigger de la tabla equipo).
+     */
+    public function cambiarEstado(): void
+    {
+        $idEquipo = (int) ($_POST['idEquipo'] ?? 0);
+        $estado = (string) ($_POST['estado'] ?? '');
+        $motivo = trim((string) ($_POST['motivo'] ?? ''));
+
+        $equipo = $this->equipoOListado($idEquipo);
+
+        $errores = Equipo::validarCambioEstado($equipo, $estado, $motivo);
+        if ($errores) {
+            $_SESSION[self::SESION_ESTADO] = [
+                'idEquipo' => $idEquipo,
+                'valores'  => ['estado' => $estado, 'motivo' => $motivo],
+                'errores'  => $errores,
+            ];
+            flash('danger', 'Revisa los datos del cambio de estado.');
+            $this->redirect('/admin/equipos/detalle?id=' . $idEquipo);
+        }
+
+        Equipo::cambiarEstado($idEquipo, $estado, $motivo);
+        flash('success', "{$equipo['codigoInventario']} pasó a \"" . Equipo::ESTADOS[$estado] . '".');
+        $this->redirect('/admin/equipos/detalle?id=' . $idEquipo);
+    }
+
+    /**
+     * POST /admin/equipos/cambiar-activo
+     *   activar = 0 -> baja: pide motivo (lista) y, si es "Otro", el detalle
+     *   activar = 1 -> reactivación
+     */
+    public function cambiarActivo(): void
+    {
+        $idEquipo = (int) ($_POST['idEquipo'] ?? 0);
+        $activar = ($_POST['activar'] ?? '') === '1';
+        $equipo = $this->equipoOListado($idEquipo);
+        $urlDetalle = '/admin/equipos/detalle?id=' . $idEquipo;
+
+        if ($activar) {
+            $error = Equipo::validarReactivacion($equipo);
+            if ($error !== null) {
+                flash('danger', $error);
+                $this->redirect($urlDetalle);
+            }
+            Equipo::reactivar($equipo);
+            flash('success', "Se reactivó {$equipo['codigoInventario']}. Quedó Disponible.");
+            $this->redirect($urlDetalle);
+        }
+
+        $motivo = (string) ($_POST['motivo'] ?? '');
+        $detalle = trim((string) ($_POST['detalle'] ?? ''));
+
+        $errores = Equipo::validarDesactivacion($equipo, $motivo, $detalle);
+        if (isset($errores['general'])) {
+            // Bloqueo que no depende de lo escrito (por ejemplo, un contrato abierto).
+            flash('danger', $errores['general']);
+            $this->redirect($urlDetalle);
+        }
+        if ($errores) {
+            $_SESSION[self::SESION_BAJA] = [
+                'idEquipo' => $idEquipo,
+                'valores'  => ['motivo' => $motivo, 'detalle' => $detalle],
+                'errores'  => $errores,
+            ];
+            flash('danger', 'Revisa el motivo de la baja.');
+            $this->redirect($urlDetalle);
+        }
+
+        Equipo::desactivar($equipo, $motivo, $detalle);
+        flash('success', "Se dio de baja {$equipo['codigoInventario']}: quedó Fuera de servicio e inactivo.");
+        $this->redirect($urlDetalle);
+    }
+
     // ---------------------------------------------------------------------
     // Ayudantes privados
     // ---------------------------------------------------------------------
+
+    /** El equipo del id (campo oculto que el usuario podría cambiar) o, si no existe, vuelve al listado. */
+    private function equipoOListado(int $idEquipo): array
+    {
+        $equipo = Equipo::buscarPorId($idEquipo);
+        if ($equipo === null) {
+            flash('danger', 'El equipo no existe.');
+            $this->redirect('/admin/equipos');
+        }
+        return $equipo;
+    }
 
     /** Lee y limpia los campos del modal de crear/editar. */
     private function leerFormulario(): array

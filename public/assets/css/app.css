@@ -902,6 +902,65 @@
     padding-left: 36px;
 }
 
+/* Enlace "Volver" arriba de una página de detalle */
+.enlace-volver {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: 12px;
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--er-texto-2);
+    text-decoration: none;
+}
+
+.enlace-volver:hover {
+    color: var(--er-texto);
+}
+
+/* Botones a la derecha del encabezado de una página */
+.acciones-pagina {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+/* Ficha de datos: etiqueta arriba, valor abajo, en columnas */
+.ficha-datos,
+.ficha-textos {
+    display: grid;
+    gap: 16px 24px;
+    margin: 0;
+}
+
+.ficha-datos {
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+}
+
+.ficha-textos {
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    margin-top: 20px;
+    padding-top: 20px;
+    border-top: 1px solid var(--er-borde-suave);
+}
+
+.ficha-datos dt,
+.ficha-textos dt {
+    margin-bottom: 2px;
+    font-size: 11.5px;
+    font-weight: 700;
+    letter-spacing: .4px;
+    text-transform: uppercase;
+    color: var(--er-texto-2);
+}
+
+.ficha-datos dd,
+.ficha-textos dd {
+    margin: 0;
+    font-size: 14px;
+    color: var(--er-texto);
+}
+
 /* Barra de filtros sobre una tabla (texto + listas + botones), formulario GET */
 .filtros-tabla {
     display: grid;
@@ -1044,6 +1103,21 @@
 .modal-er .modal-footer .btn-primary {
     font-weight: 800;
     box-shadow: 0 4px 6px rgba(249, 168, 37, .28);
+}
+
+/* Modal de una acción delicada (dar de baja): icono y subtítulo en rojo */
+.modal-er-peligro .modal-header .marca-icono {
+    color: var(--er-rojo);
+    background: #fee2e2;
+}
+
+.modal-er-peligro .modal-subtitulo {
+    color: #f87171;
+}
+
+.modal-er .modal-footer .btn-danger {
+    font-weight: 800;
+    box-shadow: 0 4px 6px rgba(229, 57, 53, .25);
 }
 
 .modal-er .modal-footer .btn-claro {

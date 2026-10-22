@@ -58,6 +58,20 @@ $(function () {
         $campo.trigger('focus');
     });
 
+    // Mostrar un bloque solo cuando otro campo del mismo formulario tiene cierto valor:
+    //   <div data-mostrar-si="motivo=Otro"> se ve solo si el campo name="motivo" vale "Otro".
+    // (Ejemplo en app/views/equipos/detalle.php, modal de baja.)
+    function actualizarMostrarSi($formulario) {
+        $formulario.find('[data-mostrar-si]').each(function () {
+            var partes = String($(this).data('mostrar-si')).split('=');
+            var valorActual = $formulario.find('[name="' + partes[0] + '"]').val();
+            $(this).prop('hidden', valorActual !== partes[1]);
+        });
+    }
+    $(document).on('change', 'form :input', function () {
+        actualizarMostrarSi($(this).closest('form'));
+    });
+
     // El servidor marca con data-abrir-al-cargar="1" el modal que debe abrirse
     // al cargar la página (cuando el último envío tuvo errores de validación).
     $('.modal[data-abrir-al-cargar="1"]').each(function () {

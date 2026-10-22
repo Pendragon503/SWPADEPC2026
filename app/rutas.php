@@ -30,3 +30,6 @@ $router->post('/admin/categorias/cambiar-estado', 'CategoriaController@cambiarEs
 $router->get('/admin/equipos', 'EquipoController@index');
 $router->post('/admin/equipos/guardar', 'EquipoController@guardar');
 $router->post('/admin/equipos/actualizar', 'EquipoController@actualizar');
+$router->get('/admin/equipos/detalle', 'EquipoController@detalle');   // ?id=5
+$router->post('/admin/equipos/cambiar-estado', 'EquipoController@cambiarEstado');
+$router->post('/admin/equipos/cambiar-activo', 'EquipoController@cambiarActivo');
