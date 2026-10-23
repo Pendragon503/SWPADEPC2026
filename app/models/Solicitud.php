@@ -16,6 +16,296 @@ class Solicitud
     /** Período máximo de un alquiler (detalleContrato.diasFacturados es SMALLINT). */
     public const MAXIMO_DIAS = 365;
 
+    /** Equipos que caben en una misma solicitud. */
+    public const MAXIMO_EQUIPOS = 10;
+
+    /** Clave de sesión de la solicitud en curso. */
+    private const SESION = 'solicitud';
+
+    // ---------------------------------------------------------------------
+    // La solicitud en curso (sesión)
+    // ---------------------------------------------------------------------
+
+    /** ['inicio' => 'AAAA-MM-DD' | null, 'fin' => ... | null, 'equipos' => [idEquipo, ...]] */
+    public static function actual(): array
+    {
+        return $_SESSION[self::SESION] ?? ['inicio' => null, 'fin' => null, 'equipos' => []];
+    }
+
+    /** Cuántos equipos lleva (contador "Mi solicitud" del menú). */
+    public static function cantidad(): int
+    {
+        return count(self::actual()['equipos']);
+    }
+
+    public static function vaciar(): void
+    {
+        unset($_SESSION[self::SESION]);
+    }
+
+    /** Agrega un equipo (ya validado con validarAgregar). El primero fija las fechas de la solicitud. */
+    public static function agregar(int $idEquipo, string $inicio, string $fin): void
+    {
+        $solicitud = self::actual();
+        $solicitud['inicio'] = $inicio;
+        $solicitud['fin'] = $fin;
+        $solicitud['equipos'][] = $idEquipo;
+        $_SESSION[self::SESION] = $solicitud;
+    }
+
+    public static function quitar(int $idEquipo): void
+    {
+        $solicitud = self::actual();
+        $solicitud['equipos'] = array_values(array_diff($solicitud['equipos'], [$idEquipo]));
+        if ($solicitud['equipos']) {
+            $_SESSION[self::SESION] = $solicitud;
+        } else {
+            self::vaciar(); // sin equipos tampoco se guardan las fechas
+        }
+    }
+
+    /**
+     * Cambia las fechas (ya validadas) y quita los equipos que no están libres en el
+     * nuevo rango. Devuelve los nombres de los que se quitaron, para avisarle al cliente.
+     */
+    public static function cambiarFechas(string $inicio, string $fin): array
+    {
+        $solicitud = self::actual();
+        $quitados = self::conflictos($solicitud['equipos'], $inicio, $fin);
+        $solicitud['inicio'] = $inicio;
+        $solicitud['fin'] = $fin;
+        $solicitud['equipos'] = array_values(array_diff($solicitud['equipos'], array_keys($quitados)));
+        $_SESSION[self::SESION] = $solicitud;
+        return array_values($quitados);
+    }
+
+    // ---------------------------------------------------------------------
+    // Validaciones y reglas
+    // ---------------------------------------------------------------------
+
+    /**
+     * ¿Se puede agregar el equipo en esas fechas? Devuelve ['campo' => 'mensaje'];
+     * vacío = sí. 'general' es un mensaje que no depende de un campo.
+     */
+    public static function validarAgregar(int $idEquipo, string $inicio, string $fin): array
+    {
+        $errores = self::validarFechas($inicio, $fin);
+        if ($errores) {
+            return $errores;
+        }
+
+        $solicitud = self::actual();
+        if ($solicitud['equipos'] && ($solicitud['inicio'] !== $inicio || $solicitud['fin'] !== $fin)) {
+            return ['general' => 'Tu solicitud es del ' . periodo($solicitud['inicio'], $solicitud['fin'])
+                . '. Todos los equipos van en las mismas fechas: cámbialas en "Mi solicitud" o agrega este equipo en ese período.'];
+        }
+        if (in_array($idEquipo, $solicitud['equipos'], true)) {
+            return ['general' => 'Ese equipo ya está en tu solicitud.'];
+        }
+        if (count($solicitud['equipos']) >= self::MAXIMO_EQUIPOS) {
+            return ['general' => 'Puedes solicitar hasta ' . self::MAXIMO_EQUIPOS . ' equipos a la vez.'];
+        }
+
+        $equipo = Catalogo::equipo($idEquipo);
+        if ($equipo === null) {
+            return ['general' => 'Ese equipo no está disponible para alquilar.'];
+        }
+        if (self::conflictos([$idEquipo], $inicio, $fin)) {
+            return ['general' => "{$equipo['nombre']} no está libre del " . periodo($inicio, $fin) . '. Revisa su calendario y elige otras fechas.'];
+        }
+        return [];
+    }
+
+    /**
+     * Valida el envío: que haya equipos, que las fechas sigan siendo válidas (pudo pasar
+     * un día desde que se armó), que todos sigan libres y los datos del formulario.
+     *
+     * @param array $datos ['destino', 'observaciones']
+     */
+    public static function validarEnvio(array $solicitud, array $datos): array
+    {
+        if (!$solicitud['equipos']) {
+            return ['general' => 'Tu solicitud no tiene equipos. Agrega al menos uno desde el catálogo.'];
+        }
+        if (self::validarFechas($solicitud['inicio'], $solicitud['fin'])) {
+            return ['general' => 'Las fechas de tu solicitud ya no son válidas. Elige nuevas fechas.'];
+        }
+        $ocupados = self::conflictos($solicitud['equipos'], $solicitud['inicio'], $solicitud['fin']);
+        if ($ocupados) {
+            return ['general' => self::mensajeOcupados($ocupados, $solicitud)];
+        }
+
+        $errores = [];
+        foreach ($datos as $valor) {
+            if (!mb_check_encoding($valor, 'UTF-8')) {
+                return ['destino' => 'El texto tiene caracteres no válidos. Escríbelo de nuevo.'];
+            }
+        }
+        if ($datos['destino'] === '') {
+            $errores['destino'] = 'Escribe la dirección de la obra donde se entregarán los equipos.';
+        } elseif (mb_strlen($datos['destino']) > 250) {
+            $errores['destino'] = 'La dirección no puede tener más de 250 caracteres.';
+        }
+        if (mb_strlen($datos['observaciones']) > 500) {
+            $errores['observaciones'] = 'Las observaciones no pueden tener más de 500 caracteres.';
+        }
+        return $errores;
+    }
+
+    // ---------------------------------------------------------------------
+    // Consultas
+    // ---------------------------------------------------------------------
+
+    /**
+     * De los equipos dados, los que NO se pueden alquilar en el rango, en UNA consulta:
+     * ya no son alquilables (baja, mantenimiento, sin tarifa) o fn_conflictosEquipo
+     * encuentra un contrato que se cruza. Devuelve [idEquipo => nombre].
+     */
+    public static function conflictos(array $idsEquipo, string $inicio, string $fin): array
+    {
+        if (!$idsEquipo) {
+            return [];
+        }
+        $marcas = implode(', ', array_fill(0, count($idsEquipo), '?')); // "?, ?, ?" uno por equipo
+        $sentencia = Database::conexion()->prepare(
+            "SELECT v.idEquipo, v.nombre
+               FROM v_catalogoEquipo v
+              WHERE v.idEquipo IN ($marcas)
+                AND (NOT (" . Catalogo::CONDICION_ALQUILABLE . ")
+                     OR fn_conflictosEquipo(v.idEquipo, ?, ?, NULL) > 0)"
+        );
+        $sentencia->execute(array_merge($idsEquipo, [$inicio, $fin]));
+        return $sentencia->fetchAll(PDO::FETCH_KEY_PAIR);
+    }
+
+    /**
+     * Importe de la solicitud (RF-07), con los precios VIGENTES de la base y en una sola
+     * consulta: por equipo la tarifa diaria, los días, el subtotal y el depósito sugerido;
+     * y los totales. total = subtotal + depósito (es la regla ck_contrato_total).
+     *
+     * @return array ['dias', 'lineas' => [...], 'subtotal', 'deposito', 'total']; lineas vacío si no hay equipos
+     */
+    public static function importe(array $solicitud): array
+    {
+        $resultado = ['dias' => 0, 'lineas' => [], 'subtotal' => 0.0, 'deposito' => 0.0, 'total' => 0.0];
+        if (!$solicitud['equipos']) {
+            return $resultado;
+        }
+
+        $dias = self::dias($solicitud['inicio'], $solicitud['fin']);
+        $marcas = implode(', ', array_fill(0, count($solicitud['equipos']), '?'));
+        $sentencia = Database::conexion()->prepare(
+            "SELECT v.idEquipo, v.codigoInventario, v.nombre, v.categoria, v.precioDiario,
+                    COALESCE(v.depositoSugerido, 0) AS deposito
+               FROM v_catalogoEquipo v
+              WHERE v.idEquipo IN ($marcas) AND v.precioDiario IS NOT NULL
+              ORDER BY v.nombre, v.codigoInventario"
+        );
+        $sentencia->execute($solicitud['equipos']);
+
+        foreach ($sentencia->fetchAll() as $linea) {
+            // round(..., 2): montos de dinero siempre con 2 decimales, igual que en la base.
+            $linea['dias'] = $dias;
+            $linea['subtotal'] = round($linea['precioDiario'] * $dias, 2);
+            $resultado['lineas'][] = $linea;
+            $resultado['subtotal'] += $linea['subtotal'];
+            $resultado['deposito'] += (float) $linea['deposito'];
+        }
+        $resultado['dias'] = $dias;
+        $resultado['subtotal'] = round($resultado['subtotal'], 2);
+        $resultado['deposito'] = round($resultado['deposito'], 2);
+        $resultado['total'] = round($resultado['subtotal'] + $resultado['deposito'], 2);
+        return $resultado;
+    }
+
+    // ---------------------------------------------------------------------
+    // Enviar
+    // ---------------------------------------------------------------------
+
+    /**
+     * Convierte la solicitud en un contrato Pendiente, en UNA transacción:
+     *   1. contrato con los importes calculados con los precios vigentes
+     *   2. sus líneas en detalleContrato (un solo INSERT de varias filas)
+     *   3. numeroContrato = ALQ-AAAA-00001 a partir del id
+     * Si el trigger de detalleContrato encuentra un traslape (alguien reservó primero),
+     * se hace rollback y se lanza EquipoNoDisponible con el equipo que ya no está libre.
+     * Si todo sale bien, la solicitud de la sesión se vacía AQUÍ MISMO: un segundo
+     * envío (doble clic, F5) llega sin equipos y no crea otro contrato (RF-15).
+     *
+     * @return string numeroContrato
+     */
+    public static function enviar(int $idCliente, array $solicitud, array $datos): string
+    {
+        $importe = self::importe($solicitud);
+        $conexion = Database::conexion();
+        $conexion->beginTransaction();
+        try {
+            $conexion->prepare(
+                "INSERT INTO contrato (fechaInicio, fechaFin, destino, estado, subtotal, depositoGarantia,
+                                       totalEstimado, observaciones, idCliente)
+                 VALUES (?, ?, ?, 'Pendiente', ?, ?, ?, ?, ?)"
+            )->execute([
+                $solicitud['inicio'],
+                $solicitud['fin'],
+                $datos['destino'],
+                self::monto($importe['subtotal']),
+                self::monto($importe['deposito']),
+                self::monto($importe['total']),
+                $datos['observaciones'] === '' ? null : $datos['observaciones'],
+                $idCliente,
+            ]);
+            $idContrato = (int) $conexion->lastInsertId();
+
+            // Un solo INSERT con una fila "(?, ?, ?, ?)" por equipo.
+            $filas = [];
+            $valores = [];
+            foreach ($importe['lineas'] as $linea) {
+                $filas[] = '(?, ?, ?, ?, ?)';
+                array_push($valores, self::monto($linea['precioDiario']), $linea['dias'], self::monto($linea['subtotal']),
+                    $idContrato, $linea['idEquipo']);
+            }
+            $conexion->prepare(
+                'INSERT INTO detalleContrato (precioDiarioAplicado, diasFacturados, subtotalLinea, idContrato, idEquipo)
+                 VALUES ' . implode(', ', $filas)
+            )->execute($valores);
+
+            $numero = sprintf('ALQ-%s-%05d', date('Y'), $idContrato);
+            $conexion->prepare('UPDATE contrato SET numeroContrato = ? WHERE idContrato = ?')->execute([$numero, $idContrato]);
+
+            $conexion->commit();
+        } catch (PDOException $e) {
+            $conexion->rollBack();
+            // 45000 = SIGNAL del trigger trg_detalleContrato_bi: otra persona reservó primero.
+            if ($e->getCode() === '45000') {
+                $ocupados = self::conflictos($solicitud['equipos'], $solicitud['inicio'], $solicitud['fin']);
+                throw new EquipoNoDisponible(self::mensajeOcupados($ocupados, $solicitud));
+            }
+            throw $e;
+        }
+
+        self::vaciar();
+        return $numero;
+    }
+
+    // ---------------------------------------------------------------------
+    // Ayudantes privados
+    // ---------------------------------------------------------------------
+
+    /** "Minicargador Bobcat S70 ya no está libre del ..." para uno o varios equipos. */
+    private static function mensajeOcupados(array $ocupados, array $solicitud): string
+    {
+        $nombres = $ocupados ? implode(', ', $ocupados) : 'Uno de los equipos';
+        $verbo = count($ocupados) > 1 ? 'ya no están libres' : 'ya no está libre';
+        return "$nombres $verbo del " . periodo($solicitud['inicio'], $solicitud['fin'])
+            . ': otra persona lo reservó primero. Quítalo de tu solicitud o cambia las fechas.';
+    }
+
+    /** Monto con 2 decimales como texto ("1350.00"), para que MySQL lo guarde exacto. */
+    private static function monto($valor): string
+    {
+        return number_format((float) $valor, 2, '.', '');
+    }
+
     // ---------------------------------------------------------------------
     // Validaciones
     // ---------------------------------------------------------------------

@@ -65,6 +65,7 @@ class CatalogoController extends Controller
             'tarifas'         => $tarifas,
             'ocupadas'        => $ocupadas,
             'calendario'      => calendarioMes((string) ($_GET['mes'] ?? ''), $ocupadas),
+            'solicitud'       => Solicitud::actual(),
         ], 'cliente');
     }
 

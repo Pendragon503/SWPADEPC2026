@@ -7,7 +7,8 @@
  *   $equipo  fila con idEquipo, nombre, categoria, precioDiario, fotoPrincipal
  *            (y, en Disponibilidad, dias y subtotalEstimado)
  *   $accion  'ver'     -> botón "Solicitar alquiler" que lleva al detalle del equipo
- *            'agregar' -> formulario POST "Agregar a mi solicitud" con $inicio y $fin
+ *            'agregar' -> formulario POST "Agregar a mi solicitud" con $inicio, $fin y
+ *                         $volver (página a la que se regresa si hay un error)
  */
 $urlEquipo = url('/cliente/equipo?id=' . $equipo['idEquipo']);
 ?>
@@ -29,6 +30,7 @@ $urlEquipo = url('/cliente/equipo?id=' . $equipo['idEquipo']);
                 <input type="hidden" name="idEquipo" value="<?= e($equipo['idEquipo']) ?>">
                 <input type="hidden" name="inicio" value="<?= e($inicio) ?>">
                 <input type="hidden" name="fin" value="<?= e($fin) ?>">
+                <input type="hidden" name="volver" value="<?= e($volver) ?>">
                 <button type="submit" class="btn btn-primary btn-sm w-100"><i class="bi bi-cart-plus" aria-hidden="true"></i> Agregar a mi solicitud</button>
             </form>
         <?php else: ?>

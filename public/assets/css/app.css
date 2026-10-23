@@ -1926,6 +1926,81 @@ a.tarjeta-equipo-imagen {
     .consulta-fechas > .btn {
         grid-column: 1 / -1;
     }
+
+    .consulta-fechas-2 {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Variante con 2 fechas + botón ("Mi solicitud") */
+.consulta-fechas-2 {
+    grid-template-columns: repeat(2, minmax(150px, 1fr)) auto;
+}
+
+/* Fechas del detalle de un equipo, arriba de sus botones */
+.detalle-fechas {
+    display: grid;
+    flex-basis: 100%;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+/* Tabla de importe (componentes/importe.php) */
+.tabla-importe > tfoot > tr > th,
+.tabla-importe > tfoot > tr > td {
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 0;
+}
+
+.tabla-importe > tfoot > tr:first-child > * {
+    padding-top: 14px;
+    border-top: 1px solid var(--er-borde-suave);
+}
+
+.tabla-importe-total > * {
+    font-size: 15px !important;
+    font-weight: 800 !important;
+    color: var(--er-texto);
+}
+
+/* Resumen a la derecha de "Mi solicitud" */
+.resumen-datos {
+    display: grid;
+    gap: 8px;
+    margin: 0 0 14px;
+    font-size: 13.5px;
+}
+
+.resumen-datos div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.resumen-datos dt {
+    font-weight: 600;
+}
+
+.resumen-datos dd {
+    margin: 0;
+    text-align: right;
+}
+
+.resumen-total {
+    padding-top: 10px;
+    font-size: 16px;
+    font-weight: 800;
+    border-top: 1px solid var(--er-borde-suave);
+}
+
+.app-er .btn-confirmar {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    font-weight: 800;
+    letter-spacing: .4px;
+    text-transform: uppercase;
 }
 
 /* Botón oscuro (por ejemplo "Aplicar filtros" del catálogo) */

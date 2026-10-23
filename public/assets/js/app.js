@@ -12,6 +12,20 @@ $(function () {
         }
     });
 
+    // Evitar envíos dobles (RF-15): <form data-enviando="Enviando…">
+    // Al enviar, desactiva sus botones y cambia el texto del botón de envío.
+    // Va DESPUÉS de data-confirmar: si el usuario canceló la confirmación, no hace nada.
+    // (El servidor también se protege: ver Solicitud::enviar.)
+    $(document).on('submit', 'form[data-enviando]', function (evento) {
+        if (evento.isDefaultPrevented()) {
+            return;
+        }
+        var $formulario = $(this);
+        $formulario.find('button[type=submit]').prop('disabled', true)
+            .first().html('<span class="spinner-border spinner-border-sm" aria-hidden="true"></span> '
+                + $('<span>').text($formulario.data('enviando')).html());
+    });
+
     // ---------------------------------------------------------------------
     // Modales con formulario (.modal-er). Un mismo modal sirve para crear y editar.
     // El botón que lo abre lleva:

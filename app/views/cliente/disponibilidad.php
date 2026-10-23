@@ -63,10 +63,17 @@
                 </div>
             </section>
         <?php else: ?>
+            <?php
+            // Datos que necesita cada tarjeta para "Agregar a mi solicitud" con estas fechas.
+            $accion = 'agregar';
+            $inicio = $consulta['inicio'];
+            $fin = $consulta['fin'];
+            $volver = '/cliente/disponibilidad?' . http_build_query($consulta);
+            ?>
             <div class="row g-3">
                 <?php foreach ($equipos as $equipo): ?>
                     <div class="col-sm-6 col-lg-4 col-xl-3">
-                        <?php $accion = 'ver'; require RAIZ . '/app/views/componentes/tarjetaEquipo.php'; ?>
+                        <?php require RAIZ . '/app/views/componentes/tarjetaEquipo.php'; ?>
                     </div>
                 <?php endforeach; ?>
             </div>

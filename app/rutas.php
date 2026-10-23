@@ -43,6 +43,12 @@ $router->post('/admin/equipos/tarifas/guardar', 'TarifaController@guardar');
 $router->get('/cliente/catalogo', 'CatalogoController@index');
 $router->get('/cliente/equipo', 'CatalogoController@equipo');   // ?id=5&mes=2026-11
 $router->get('/cliente/disponibilidad', 'CatalogoController@disponibilidad');
+$router->get('/cliente/solicitud', 'SolicitudController@ver');
+$router->post('/cliente/solicitud/agregar', 'SolicitudController@agregar');
+$router->post('/cliente/solicitud/quitar', 'SolicitudController@quitar');
+$router->post('/cliente/solicitud/fechas', 'SolicitudController@fechas');
+$router->post('/cliente/solicitud/vaciar', 'SolicitudController@vaciar');
+$router->post('/cliente/solicitud/enviar', 'SolicitudController@enviar');
 
 // Administrador y Operador: clientes (RF-03). Sin /admin porque lo usan los dos roles.
 $router->get('/clientes', 'GestionClienteController@index');

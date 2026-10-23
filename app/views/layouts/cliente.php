@@ -18,8 +18,8 @@ $menuCliente = [
 ];
 $activo = $menuActivo ?? 'inicio';
 
-// Equipos agregados a la solicitud en curso (RF-06). Se llena en el módulo de Catálogo.
-$equiposEnSolicitud = 0;
+// Equipos agregados a la solicitud en curso (RF-06), guardada en la sesión.
+$equiposEnSolicitud = Solicitud::cantidad();
 ?>
 <!doctype html>
 <html lang="es">
@@ -41,7 +41,7 @@ $equiposEnSolicitud = 0;
         </a>
 
         <div class="acciones-cliente order-lg-3">
-            <a class="boton-solicitud" href="#" aria-label="Mi solicitud: <?= e($equiposEnSolicitud) ?> equipos">
+            <a class="boton-solicitud" href="<?= e(url('/cliente/solicitud')) ?>" aria-label="Mi solicitud: <?= e($equiposEnSolicitud) ?> equipos">
                 <span class="boton-solicitud-icono">
                     <i class="bi bi-cart3" aria-hidden="true"></i>
                     <span class="contador-solicitud"><?= e($equiposEnSolicitud) ?></span>

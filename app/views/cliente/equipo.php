@@ -9,6 +9,7 @@
  * @var array $tarifas          tarifas vigentes (día, semana, mes)
  * @var array $ocupadas         Catalogo::fechasOcupadas()
  * @var array $calendario       calendarioMes()
+ * @var array $solicitud        Solicitud::actual(): sus fechas llenan el formulario
  */
 $fotoPrincipal = $fotos[0] ?? null;
 ?>
@@ -58,9 +59,24 @@ $fotoPrincipal = $fotos[0] ?? null;
                         </ul>
                     <?php endif; ?>
 
-                    <div class="detalle-acciones" id="solicitar">
+                    <?php // Agregar a "Mi solicitud": las fechas se llenan con las de la solicitud, si ya tiene. ?>
+                    <form method="post" action="<?= e(url('/cliente/solicitud/agregar')) ?>" class="detalle-acciones" id="solicitar" novalidate>
+                        <?= csrfCampo() ?>
+                        <input type="hidden" name="idEquipo" value="<?= e($equipo['idEquipo']) ?>">
+                        <input type="hidden" name="volver" value="<?= e('/cliente/equipo?id=' . $equipo['idEquipo']) ?>">
+                        <div class="detalle-fechas">
+                            <div>
+                                <label for="inicio" class="form-label">Desde</label>
+                                <input type="date" id="inicio" name="inicio" min="<?= e(date('Y-m-d')) ?>" required class="form-control" value="<?= e($solicitud['inicio'] ?? '') ?>">
+                            </div>
+                            <div>
+                                <label for="fin" class="form-label">Hasta</label>
+                                <input type="date" id="fin" name="fin" min="<?= e(date('Y-m-d')) ?>" required class="form-control" value="<?= e($solicitud['fin'] ?? '') ?>">
+                            </div>
+                        </div>
                         <a href="#calendario" class="btn btn-claro"><i class="bi bi-calendar3" aria-hidden="true"></i> Ver disponibilidad</a>
-                    </div>
+                        <button type="submit" class="btn btn-primary"><i class="bi bi-cart-plus" aria-hidden="true"></i> Solicitar alquiler</button>
+                    </form>
                 </div>
             </div>
         </div>
