@@ -11,7 +11,7 @@ $usuario = Auth::usuario();
 // [clave, icono, texto, ruta]. Los módulos que todavía no existen llevan '#'.
 $menuCliente = [
     ['inicio', 'bi-house-door-fill', 'Inicio', '/cliente'],
-    ['catalogo', 'bi-grid-3x3-gap-fill', 'Catálogo', '#'],
+    ['catalogo', 'bi-grid-3x3-gap-fill', 'Catálogo', '/cliente/catalogo'],
     ['disponibilidad', 'bi-calendar-check-fill', 'Disponibilidad', '#'],
     ['alquileres', 'bi-clipboard-fill', 'Mis alquileres', '#'],
     ['perfil', 'bi-person-fill', 'Mi perfil', '#'],

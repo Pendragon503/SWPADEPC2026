@@ -39,6 +39,9 @@ $router->post('/admin/equipos/fotos/ordenar', 'FotografiaEquipoController@ordena
 $router->post('/admin/equipos/fotos/eliminar', 'FotografiaEquipoController@eliminar');
 $router->post('/admin/equipos/tarifas/guardar', 'TarifaController@guardar');
 
+// Cliente: catálogo, disponibilidad, solicitud y mis alquileres (RF-04 a RF-08)
+$router->get('/cliente/catalogo', 'CatalogoController@index');
+
 // Administrador y Operador: clientes (RF-03). Sin /admin porque lo usan los dos roles.
 $router->get('/clientes', 'GestionClienteController@index');
 $router->post('/clientes/guardar', 'GestionClienteController@guardar');

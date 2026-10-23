@@ -1711,6 +1711,57 @@
     color: var(--er-texto-2);
 }
 
+/* Categoría arriba del nombre, en naranja (Figma "Catalogo - Daniel") */
+.tarjeta-equipo-etiqueta {
+    margin: 12px 0 0;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .4px;
+    text-transform: uppercase;
+    color: #b45309;
+}
+
+.tarjeta-equipo-etiqueta + .tarjeta-equipo-nombre {
+    margin-top: 2px;
+}
+
+.tarjeta-equipo-nombre a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.tarjeta-equipo-nombre a:hover {
+    color: var(--er-naranja-texto);
+}
+
+a.tarjeta-equipo-imagen {
+    text-decoration: none;
+}
+
+.tarjeta-equipo-subtotal {
+    margin: 2px 0 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--er-texto-2);
+}
+
+/* Botón oscuro (por ejemplo "Aplicar filtros" del catálogo) */
+.app-er .btn-oscuro {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: #0f172a;
+    --bs-btn-border-color: #0f172a;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #1e293b;
+    --bs-btn-hover-border-color: #1e293b;
+    --bs-btn-active-bg: #020617;
+    --bs-btn-focus-shadow-rgb: 15, 23, 42;
+}
+
+.filtro-catalogo .form-check {
+    margin-bottom: 6px;
+    font-size: 13.5px;
+}
+
 .tarjeta-equipo-precio {
     margin: 8px 0 0;
     font-size: 15px;

@@ -9,6 +9,81 @@ declare(strict_types=1);
 class Catalogo
 {
     /**
+     * Un equipo se puede ALQUILAR (aparece en el catálogo del cliente) si está activo,
+     * tiene tarifa diaria vigente, está Disponible o Alquilado (puede estar libre en
+     * otras fechas) y no tiene un mantenimiento abierto. Es el mismo criterio de
+     * sp_equiposDisponibles, sin las fechas. Se usa con el alias "v" de v_catalogoEquipo.
+     */
+    public const CONDICION_ALQUILABLE = "v.activo = TRUE
+                AND v.estado IN ('Disponible', 'Alquilado')
+                AND v.precioDiario IS NOT NULL
+                AND NOT EXISTS (SELECT 1 FROM mantenimiento m
+                                 WHERE m.idEquipo = v.idEquipo AND m.estado NOT IN ('Finalizado', 'Cancelado'))";
+
+    /** Columnas que necesita una tarjeta del catálogo (componentes/tarjetaEquipo.php). */
+    private const COLUMNAS_TARJETA = 'v.idEquipo, v.nombre, v.marca, v.modelo, v.idCategoria, v.categoria, v.precioDiario, v.fotoPrincipal';
+
+    /**
+     * WHERE del catálogo: siempre los alquilables, más el texto y la categoría.
+     * Los valores del usuario van en $parametros, nunca dentro del SQL.
+     *
+     * @param array $filtros ['buscar' => string, 'idCategoria' => int]
+     */
+    private static function condicionesCatalogo(array $filtros): array
+    {
+        $condiciones = [self::CONDICION_ALQUILABLE];
+        $parametros = [];
+        if ($filtros['buscar'] !== '') {
+            $condiciones[] = '(v.nombre LIKE ? OR v.marca LIKE ? OR v.modelo LIKE ? OR v.categoria LIKE ?)';
+            $patron = '%' . $filtros['buscar'] . '%';
+            array_push($parametros, $patron, $patron, $patron, $patron);
+        }
+        if ($filtros['idCategoria'] > 0) {
+            $condiciones[] = 'v.idCategoria = ?';
+            $parametros[] = $filtros['idCategoria'];
+        }
+        return ['WHERE ' . implode(' AND ', $condiciones), $parametros];
+    }
+
+    public static function contar(array $filtros): int
+    {
+        [$where, $parametros] = self::condicionesCatalogo($filtros);
+        $sentencia = Database::conexion()->prepare("SELECT COUNT(*) FROM v_catalogoEquipo v $where");
+        $sentencia->execute($parametros);
+        return (int) $sentencia->fetchColumn();
+    }
+
+    /** Una página del catálogo (solo las columnas de la tarjeta). */
+    public static function listar(array $filtros, int $limite, int $desplazamiento): array
+    {
+        [$where, $parametros] = self::condicionesCatalogo($filtros);
+        $sentencia = Database::conexion()->prepare(
+            'SELECT ' . self::COLUMNAS_TARJETA . " FROM v_catalogoEquipo v $where
+              ORDER BY v.categoria, v.nombre, v.codigoInventario
+              LIMIT ? OFFSET ?"
+        );
+        $posicion = 1;
+        foreach ($parametros as $valor) {
+            $sentencia->bindValue($posicion++, $valor);
+        }
+        $sentencia->bindValue($posicion++, $limite, PDO::PARAM_INT);
+        $sentencia->bindValue($posicion, $desplazamiento, PDO::PARAM_INT);
+        $sentencia->execute();
+        return $sentencia->fetchAll();
+    }
+
+    /** Categorías con cuántos equipos alquilables tienen, en una sola consulta (panel de filtros). */
+    public static function categoriasConTotal(): array
+    {
+        return Database::conexion()->query(
+            'SELECT v.idCategoria, v.categoria, COUNT(*) AS total
+               FROM v_catalogoEquipo v
+              WHERE ' . self::CONDICION_ALQUILABLE . '
+              GROUP BY v.idCategoria, v.categoria
+              ORDER BY v.categoria'
+        )->fetchAll();
+    }
+    /**
      * Categorías activas con más equipos que se pueden alquilar (los que no están fuera de servicio).
      */
     public static function categoriasPopulares(int $limite): array

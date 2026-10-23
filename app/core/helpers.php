@@ -147,6 +147,63 @@ function fechaCorta(?string $fecha, bool $conHora = false): string
     return $marca === false ? $fecha : date($conHora ? 'd/m/Y H:i' : 'd/m/Y', $marca);
 }
 
+/** Período de un alquiler: periodo('2026-11-03', '2026-11-05') -> '03/11/2026 – 05/11/2026'. */
+function periodo(string $inicio, string $fin): string
+{
+    return fechaCorta($inicio) . ' – ' . fechaCorta($fin);
+}
+
+/**
+ * Icono (Bootstrap Icons) de una categoría, para tarjetas y marcadores sin foto.
+ * Las categorías que no estén aquí usan bi-tools.
+ */
+function iconoCategoria(?string $categoria): string
+{
+    $iconos = [
+        'Minicargadores'        => 'bi-truck-front-fill',
+        'Excavadoras'           => 'bi-cone-striped',
+        'Martillos Hidráulicos' => 'bi-hammer',
+        'Compactadores'         => 'bi-layers-fill',
+        'Generadores Diésel'    => 'bi-lightning-charge-fill',
+        'Retroexcavadoras'      => 'bi-truck-flatbed',
+    ];
+    return $iconos[$categoria] ?? 'bi-tools';
+}
+
+/**
+ * Separa "Motor: 49 HP; Capacidad: 860 kg" en filas [['Motor', '49 HP'], ['Capacidad', '860 kg']].
+ * Una parte sin ":" queda con etiqueta vacía.
+ */
+function especificaciones(?string $texto): array
+{
+    $filas = [];
+    foreach (preg_split('/[;\n]+/', (string) $texto) as $parte) {
+        $parte = trim($parte);
+        if ($parte !== '') {
+            $dosPuntos = strpos($parte, ':');
+            $filas[] = $dosPuntos === false
+                ? ['', $parte]
+                : [trim(substr($parte, 0, $dosPuntos)), trim(substr($parte, $dosPuntos + 1))];
+        }
+    }
+    return $filas;
+}
+
+/**
+ * Cálculo común de la paginación: ajusta la página pedida al rango válido.
+ * paginacion(23, 9, 10) -> ['pagina' => 3, 'totalPaginas' => 3, 'desplazamiento' => 20]
+ */
+function paginacion(int $total, int $paginaPedida, int $porPagina): array
+{
+    $totalPaginas = max(1, (int) ceil($total / $porPagina));
+    $pagina = min(max(1, $paginaPedida), $totalPaginas);
+    return [
+        'pagina'         => $pagina,
+        'totalPaginas'   => $totalPaginas,
+        'desplazamiento' => ($pagina - 1) * $porPagina,
+    ];
+}
+
 /** Monto en dólares: dinero(1500) -> '$1,500.00'. */
 function dinero($monto): string
 {
