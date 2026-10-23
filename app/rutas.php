@@ -49,6 +49,9 @@ $router->post('/cliente/solicitud/quitar', 'SolicitudController@quitar');
 $router->post('/cliente/solicitud/fechas', 'SolicitudController@fechas');
 $router->post('/cliente/solicitud/vaciar', 'SolicitudController@vaciar');
 $router->post('/cliente/solicitud/enviar', 'SolicitudController@enviar');
+$router->get('/cliente/alquileres', 'MisAlquileresController@index');
+$router->get('/cliente/alquiler', 'MisAlquileresController@detalle');   // ?id=9
+$router->post('/cliente/alquiler/cancelar', 'MisAlquileresController@cancelar');
 
 // Administrador y Operador: clientes (RF-03). Sin /admin porque lo usan los dos roles.
 $router->get('/clientes', 'GestionClienteController@index');

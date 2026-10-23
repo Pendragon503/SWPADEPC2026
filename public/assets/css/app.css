@@ -2003,6 +2003,57 @@ a.tarjeta-equipo-imagen {
     text-transform: uppercase;
 }
 
+/* Barra de progreso de un contrato (componentes/progresoContrato.php) */
+.progreso-contrato {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.progreso-paso {
+    position: relative;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    max-width: 150px;
+    gap: 6px;
+    font-size: 12.5px;
+    text-align: center;
+    color: var(--er-texto-2);
+}
+
+/* Línea entre un paso y el siguiente */
+.progreso-paso + .progreso-paso::before {
+    content: "";
+    position: absolute;
+    top: 14px;
+    right: calc(50% + 18px);
+    width: calc(100% - 28px);
+    height: 2px;
+    background: var(--er-borde-suave);
+}
+
+.progreso-icono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+    color: #64748b;
+    background: #e2e8f0;
+    border-radius: 50%;
+}
+
+.progreso-hecho .progreso-icono  { color: #fff; background: var(--er-verde); }
+.progreso-actual .progreso-icono { color: var(--er-texto-boton); background: var(--er-naranja); }
+.progreso-actual .progreso-texto { font-weight: 700; color: var(--er-texto); }
+.progreso-hecho + .progreso-paso::before { background: var(--er-verde); }
+
 /* Botón oscuro (por ejemplo "Aplicar filtros" del catálogo) */
 .app-er .btn-oscuro {
     --bs-btn-color: #fff;
