@@ -147,6 +147,13 @@ function fechaCorta(?string $fecha, bool $conHora = false): string
     return $marca === false ? $fecha : date($conHora ? 'd/m/Y H:i' : 'd/m/Y', $marca);
 }
 
+/** ¿Es una fecha real en formato AAAA-MM-DD? esFecha('2026-02-30') -> false. */
+function esFecha(string $valor): bool
+{
+    $fecha = DateTime::createFromFormat('Y-m-d', $valor);
+    return $fecha !== false && $fecha->format('Y-m-d') === $valor;
+}
+
 /** Período de un alquiler: periodo('2026-11-03', '2026-11-05') -> '03/11/2026 – 05/11/2026'. */
 function periodo(string $inicio, string $fin): string
 {

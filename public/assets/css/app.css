@@ -2148,6 +2148,35 @@ a.tarjeta-equipo-imagen {
     --bs-btn-focus-shadow-rgb: 249, 168, 37;
 }
 
+/* Filtros de Contratos (Figma "Alquiler - Remberto"): campos con etiqueta, 4 por fila */
+.filtros-contratos {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px 16px;
+    align-items: end;
+}
+
+.filtros-contratos-botones {
+    grid-column: span 2;
+    justify-content: flex-end;
+}
+
+@media (max-width: 991.98px) {
+    .filtros-contratos {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 575.98px) {
+    .filtros-contratos {
+        grid-template-columns: 1fr;
+    }
+
+    .filtros-contratos-botones {
+        grid-column: auto;
+    }
+}
+
 /* ---------------------------------------------------------------------
    6. Pantallas de acceso (layout simple: login y errores)
    --------------------------------------------------------------------- */

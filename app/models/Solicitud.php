@@ -387,13 +387,13 @@ class Solicitud
     public static function validarFechas(string $inicio, string $fin): array
     {
         $errores = [];
-        if (!self::esFecha($inicio)) {
+        if (!esFecha($inicio)) {
             $errores['inicio'] = 'Elige la fecha de inicio.';
         } elseif ($inicio < date('Y-m-d')) {
             $errores['inicio'] = 'La fecha de inicio no puede ser anterior a hoy.';
         }
 
-        if (!self::esFecha($fin)) {
+        if (!esFecha($fin)) {
             $errores['fin'] = 'Elige la fecha de fin.';
         } elseif (!isset($errores['inicio']) && $fin < $inicio) {
             $errores['fin'] = 'La fecha de fin no puede ser anterior a la de inicio.';
@@ -407,11 +407,5 @@ class Solicitud
     public static function dias(string $inicio, string $fin): int
     {
         return (int) (new DateTime($inicio))->diff(new DateTime($fin))->format('%a') + 1;
-    }
-
-    private static function esFecha(string $valor): bool
-    {
-        $fecha = DateTime::createFromFormat('Y-m-d', $valor);
-        return $fecha !== false && $fecha->format('Y-m-d') === $valor;
     }
 }
