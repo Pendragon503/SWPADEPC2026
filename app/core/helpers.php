@@ -147,6 +147,122 @@ function fechaCorta(?string $fecha, bool $conHora = false): string
     return $marca === false ? $fecha : date($conHora ? 'd/m/Y H:i' : 'd/m/Y', $marca);
 }
 
+/** Período de un alquiler: periodo('2026-11-03', '2026-11-05') -> '03/11/2026 – 05/11/2026'. */
+function periodo(string $inicio, string $fin): string
+{
+    return fechaCorta($inicio) . ' – ' . fechaCorta($fin);
+}
+
+/**
+ * Icono (Bootstrap Icons) de una categoría, para tarjetas y marcadores sin foto.
+ * Las categorías que no estén aquí usan bi-tools.
+ */
+function iconoCategoria(?string $categoria): string
+{
+    $iconos = [
+        'Minicargadores'        => 'bi-truck-front-fill',
+        'Excavadoras'           => 'bi-cone-striped',
+        'Martillos Hidráulicos' => 'bi-hammer',
+        'Compactadores'         => 'bi-layers-fill',
+        'Generadores Diésel'    => 'bi-lightning-charge-fill',
+        'Retroexcavadoras'      => 'bi-truck-flatbed',
+    ];
+    return $iconos[$categoria] ?? 'bi-tools';
+}
+
+/**
+ * Separa "Motor: 49 HP; Capacidad: 860 kg" en filas [['Motor', '49 HP'], ['Capacidad', '860 kg']].
+ * Una parte sin ":" queda con etiqueta vacía.
+ */
+function especificaciones(?string $texto): array
+{
+    $filas = [];
+    foreach (preg_split('/[;\n]+/', (string) $texto) as $parte) {
+        $parte = trim($parte);
+        if ($parte !== '') {
+            $dosPuntos = strpos($parte, ':');
+            $filas[] = $dosPuntos === false
+                ? ['', $parte]
+                : [trim(substr($parte, 0, $dosPuntos)), trim(substr($parte, $dosPuntos + 1))];
+        }
+    }
+    return $filas;
+}
+
+/**
+ * Datos para dibujar un mes (componentes/calendario.php), semanas de domingo a sábado.
+ *
+ * @param string $mes     'AAAA-MM'; si no es válido o es anterior al mes actual, se usa el mes actual
+ * @param array  $rangos  [['desde' => 'AAAA-MM-DD', 'hasta' => 'AAAA-MM-DD' | null], ...] días ocupados
+ *                        (hasta = null: ocupado sin fecha de fin, por ejemplo un alquiler atrasado)
+ * @return array ['titulo', 'anterior' (o null), 'siguiente', 'semanas' => [[día, ...], ...]]
+ *               cada día: ['numero', 'fecha', 'estado' => 'fuera' | 'pasado' | 'ocupado' | 'libre']
+ */
+function calendarioMes(string $mes, array $rangos): array
+{
+    $mesActual = date('Y-m');
+    if (!preg_match('/^\d{4}-(0[1-9]|1[0-2])$/', $mes) || $mes < $mesActual) {
+        $mes = $mesActual;
+    }
+    $nombres = ['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto',
+                'septiembre', 'octubre', 'noviembre', 'diciembre'];
+    $primerDia = new DateTimeImmutable($mes . '-01');
+    $hoy = date('Y-m-d');
+
+    // Desde el domingo de la primera semana hasta el sábado de la última.
+    $dia = $primerDia->modify('-' . $primerDia->format('w') . ' days');
+    $ultimo = $primerDia->modify('last day of this month');
+    $fin = $ultimo->modify('+' . (6 - (int) $ultimo->format('w')) . ' days');
+
+    $semanas = [];
+    $numeroDia = 0; // posición del día en la cuadrícula: cada 7 días empieza otra semana
+    while ($dia <= $fin) {
+        $fecha = $dia->format('Y-m-d');
+        if ($dia->format('Y-m') !== $mes) {
+            $estado = 'fuera';
+        } elseif ($fecha < $hoy) {
+            $estado = 'pasado';
+        } else {
+            $estado = 'libre';
+            foreach ($rangos as $rango) {
+                if ($fecha >= $rango['desde'] && ($rango['hasta'] === null || $fecha <= $rango['hasta'])) {
+                    $estado = 'ocupado';
+                    break;
+                }
+            }
+        }
+        $semanas[intdiv($numeroDia, 7)][] = [
+            'numero' => (int) $dia->format('j'),
+            'fecha'  => $fecha,
+            'estado' => $estado,
+        ];
+        $numeroDia++;
+        $dia = $dia->modify('+1 day');
+    }
+
+    return [
+        'titulo'    => ucfirst($nombres[(int) $primerDia->format('n') - 1]) . ' ' . $primerDia->format('Y'),
+        'anterior'  => $mes > $mesActual ? $primerDia->modify('-1 month')->format('Y-m') : null,
+        'siguiente' => $primerDia->modify('+1 month')->format('Y-m'),
+        'semanas'   => $semanas,
+    ];
+}
+
+/**
+ * Cálculo común de la paginación: ajusta la página pedida al rango válido.
+ * paginacion(23, 9, 10) -> ['pagina' => 3, 'totalPaginas' => 3, 'desplazamiento' => 20]
+ */
+function paginacion(int $total, int $paginaPedida, int $porPagina): array
+{
+    $totalPaginas = max(1, (int) ceil($total / $porPagina));
+    $pagina = min(max(1, $paginaPedida), $totalPaginas);
+    return [
+        'pagina'         => $pagina,
+        'totalPaginas'   => $totalPaginas,
+        'desplazamiento' => ($pagina - 1) * $porPagina,
+    ];
+}
+
 /** Monto en dólares: dinero(1500) -> '$1,500.00'. */
 function dinero($monto): string
 {

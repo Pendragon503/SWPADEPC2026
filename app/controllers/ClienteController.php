@@ -14,12 +14,16 @@ class ClienteController extends Controller
     /** GET /cliente */
     public function dashboard(): void
     {
+        // Una sola consulta de categorías sirve para el buscador y para "Categorías populares".
+        $categorias = Catalogo::categoriasConTotal();
+
         $this->view('cliente/dashboard', [
-            'titulo'            => 'Inicio',
-            'menuActivo'        => 'inicio',
-            'categorias'        => Catalogo::categoriasPopulares(4),
-            'destacados'        => Catalogo::equiposDestacados(4),
-            'opcionesCategoria' => Catalogo::categoriasActivas(),
+            'titulo'      => 'Inicio',
+            'menuActivo'  => 'inicio',
+            'categorias'  => $categorias,
+            'populares'   => Catalogo::populares($categorias, 4),
+            'destacados'  => Catalogo::equiposDestacados(4),
+            'alquileres'  => Contrato::listarDelCliente((int) Auth::idCliente(), '', 3, 0),
         ], 'cliente');
     }
 }

@@ -1711,6 +1711,407 @@
     color: var(--er-texto-2);
 }
 
+/* Categoría arriba del nombre, en naranja (Figma "Catalogo - Daniel") */
+.tarjeta-equipo-etiqueta {
+    margin: 12px 0 0;
+    font-size: 10.5px;
+    font-weight: 700;
+    letter-spacing: .4px;
+    text-transform: uppercase;
+    color: #b45309;
+}
+
+.tarjeta-equipo-etiqueta + .tarjeta-equipo-nombre {
+    margin-top: 2px;
+}
+
+.tarjeta-equipo-nombre a {
+    color: inherit;
+    text-decoration: none;
+}
+
+.tarjeta-equipo-nombre a:hover {
+    color: var(--er-naranja-texto);
+}
+
+a.tarjeta-equipo-imagen {
+    text-decoration: none;
+}
+
+.tarjeta-equipo-subtotal {
+    margin: 2px 0 0;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--er-texto-2);
+}
+
+/* Detalle de un equipo para el cliente (Figma "Detalle - Daniel") */
+.detalle-foto-principal {
+    height: 320px;
+    overflow: hidden;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+.detalle-foto-principal .foto-equipo-vacia {
+    font-size: 56px;
+}
+
+.detalle-miniaturas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 8px;
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.detalle-miniatura {
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+}
+
+.detalle-equipo-nombre {
+    margin: 4px 0 6px;
+    font-size: 26px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.detalle-equipo-precio {
+    margin: 0 0 4px;
+    font-size: 26px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.detalle-equipo-precio span {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--er-texto-2);
+}
+
+.detalle-tarifas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    margin: 12px 0 0;
+    padding: 0;
+    font-size: 13px;
+    list-style: none;
+}
+
+.detalle-subtitulo {
+    margin: 18px 0 8px;
+    padding-top: 16px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .4px;
+    text-transform: uppercase;
+    color: #0f172a;
+    border-top: 1px solid var(--er-borde-suave);
+}
+
+.detalle-especificaciones {
+    margin: 0;
+    padding: 0;
+    font-size: 13px;
+    line-height: 1.9;
+    list-style: none;
+}
+
+.detalle-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--er-borde-suave);
+}
+
+/* Calendario de ocupación (componentes/calendario.php) */
+.calendario-cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.calendario-titulo {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.calendario-tabla {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 4px;
+}
+
+.calendario-tabla th {
+    padding-bottom: 4px;
+    font-size: 11.5px;
+    font-weight: 500;
+    text-align: center;
+    color: var(--er-texto-2);
+}
+
+.calendario-dia {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 30px;
+    font-size: 12.5px;
+    font-weight: 600;
+    border-radius: 5px;
+}
+
+.calendario-libre   { color: #15803d; background: #ecfdf3; }
+.calendario-ocupado { color: #fff; background: var(--er-rojo); }
+.calendario-pasado  { color: #94a3b8; background: #f1f5f9; }
+.calendario-fuera   { visibility: hidden; }
+
+.calendario-leyenda {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    margin: 10px 0 0;
+    padding: 0;
+    font-size: 12px;
+    list-style: none;
+    color: var(--er-texto-2);
+}
+
+.calendario-leyenda li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.calendario-leyenda .calendario-dia {
+    width: 14px;
+    min-height: 14px;
+}
+
+.lista-ocupadas {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 13px;
+}
+
+/* Formulario de rango de fechas (Disponibilidad y Mi solicitud) */
+.consulta-fechas {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(160px, 1fr)) auto;
+    align-items: end;
+    gap: 12px;
+}
+
+.consulta-fechas > .btn {
+    min-height: 42px;
+}
+
+@media (max-width: 767.98px) {
+    .consulta-fechas {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .consulta-fechas > :nth-child(3),
+    .consulta-fechas > .btn {
+        grid-column: 1 / -1;
+    }
+
+    .consulta-fechas-2 {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+/* Variante con 2 fechas + botón ("Mi solicitud") */
+.consulta-fechas-2 {
+    grid-template-columns: repeat(2, minmax(150px, 1fr)) auto;
+}
+
+/* Fechas del detalle de un equipo, arriba de sus botones */
+.detalle-fechas {
+    display: grid;
+    flex-basis: 100%;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+
+/* Tabla de importe (componentes/importe.php) */
+.tabla-importe > tfoot > tr > th,
+.tabla-importe > tfoot > tr > td {
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    border: 0;
+}
+
+.tabla-importe > tfoot > tr:first-child > * {
+    padding-top: 14px;
+    border-top: 1px solid var(--er-borde-suave);
+}
+
+.tabla-importe-total > * {
+    font-size: 15px !important;
+    font-weight: 800 !important;
+    color: var(--er-texto);
+}
+
+/* Resumen a la derecha de "Mi solicitud" */
+.resumen-datos {
+    display: grid;
+    gap: 8px;
+    margin: 0 0 14px;
+    font-size: 13.5px;
+}
+
+.resumen-datos div {
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+}
+
+.resumen-datos dt {
+    font-weight: 600;
+}
+
+.resumen-datos dd {
+    margin: 0;
+    text-align: right;
+}
+
+.resumen-total {
+    padding-top: 10px;
+    font-size: 16px;
+    font-weight: 800;
+    border-top: 1px solid var(--er-borde-suave);
+}
+
+.app-er .btn-confirmar {
+    padding-top: 12px;
+    padding-bottom: 12px;
+    font-weight: 800;
+    letter-spacing: .4px;
+    text-transform: uppercase;
+}
+
+/* Barra de progreso de un contrato (componentes/progresoContrato.php) */
+.progreso-contrato {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.progreso-paso {
+    position: relative;
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    max-width: 150px;
+    gap: 6px;
+    font-size: 12.5px;
+    text-align: center;
+    color: var(--er-texto-2);
+}
+
+/* Línea entre un paso y el siguiente */
+.progreso-paso + .progreso-paso::before {
+    content: "";
+    position: absolute;
+    top: 14px;
+    right: calc(50% + 18px);
+    width: calc(100% - 28px);
+    height: 2px;
+    background: var(--er-borde-suave);
+}
+
+.progreso-icono {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    font-size: 13px;
+    color: #64748b;
+    background: #e2e8f0;
+    border-radius: 50%;
+}
+
+.progreso-hecho .progreso-icono  { color: #fff; background: var(--er-verde); }
+.progreso-actual .progreso-icono { color: var(--er-texto-boton); background: var(--er-naranja); }
+.progreso-actual .progreso-texto { font-weight: 700; color: var(--er-texto); }
+.progreso-hecho + .progreso-paso::before { background: var(--er-verde); }
+
+/* "Mis alquileres" del Inicio del cliente (Figma "Inicio - Daniel") */
+.lista-alquileres {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.lista-alquileres-enlace {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2px 8px;
+    padding: 8px;
+    color: inherit;
+    text-decoration: none;
+    background: #f8fafc;
+    border-radius: 6px;
+}
+
+.lista-alquileres-enlace:hover {
+    background: #f1f5f9;
+}
+
+.lista-alquileres-enlace .estado {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+}
+
+.lista-alquileres-nombre {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.lista-alquileres-fechas {
+    font-size: 11px;
+    color: var(--er-texto-2);
+}
+
+/* Botón oscuro (por ejemplo "Aplicar filtros" del catálogo) */
+.app-er .btn-oscuro {
+    --bs-btn-color: #fff;
+    --bs-btn-bg: #0f172a;
+    --bs-btn-border-color: #0f172a;
+    --bs-btn-hover-color: #fff;
+    --bs-btn-hover-bg: #1e293b;
+    --bs-btn-hover-border-color: #1e293b;
+    --bs-btn-active-bg: #020617;
+    --bs-btn-focus-shadow-rgb: 15, 23, 42;
+}
+
+.filtro-catalogo .form-check {
+    margin-bottom: 6px;
+    font-size: 13.5px;
+}
+
 .tarjeta-equipo-precio {
     margin: 8px 0 0;
     font-size: 15px;
