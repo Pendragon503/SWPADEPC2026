@@ -284,9 +284,9 @@ class Solicitud
      */
     public static function enviar(int $idCliente, array $solicitud, array $datos): string
     {
-        $numero = self::registrar($idCliente, $solicitud, $datos, null);
+        $contrato = self::registrar($idCliente, $solicitud, $datos, null);
         self::vaciar();
-        return $numero;
+        return $contrato['numeroContrato'];
     }
 
     /**
@@ -299,9 +299,9 @@ class Solicitud
      * Si el trigger de detalleContrato encuentra un traslape (alguien reservó primero),
      * se hace rollback y se lanza EquipoNoDisponible con el equipo que ya no está libre.
      *
-     * @return string numeroContrato
+     * @return array ['idContrato' => 15, 'numeroContrato' => 'ALQ-2026-00015']
      */
-    public static function registrar(int $idCliente, array $solicitud, array $datos, ?int $idGestor): string
+    public static function registrar(int $idCliente, array $solicitud, array $datos, ?int $idGestor): array
     {
         $importe = self::importe($solicitud);
         $conexion = Database::conexion();
@@ -326,7 +326,7 @@ class Solicitud
             ]);
             $idContrato = (int) $conexion->lastInsertId();
 
-            // Un solo INSERT con una fila "(?, ?, ?, ?)" por equipo.
+            // Un solo INSERT con una fila "(?, ?, ?, ?, ?)" por equipo.
             $filas = [];
             $valores = [];
             foreach ($importe['lineas'] as $linea) {
@@ -353,7 +353,7 @@ class Solicitud
             }
             throw $e;
         }
-        return $numero;
+        return ['idContrato' => $idContrato, 'numeroContrato' => $numero];
     }
 
     // ---------------------------------------------------------------------

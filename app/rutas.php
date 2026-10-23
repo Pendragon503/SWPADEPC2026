@@ -65,3 +65,6 @@ $router->post('/contratos/aprobar', 'ContratoController@aprobar');
 $router->post('/contratos/rechazar', 'ContratoController@rechazar');
 $router->get('/contratos', 'ContratoController@index');
 $router->get('/contratos/detalle', 'ContratoController@detalle');   // ?id=9
+$router->get('/contratos/nuevo', 'RegistroAlquilerController@nuevo');
+$router->get('/contratos/nuevo/revisar', 'RegistroAlquilerController@revisar');
+$router->post('/contratos/registrar', 'RegistroAlquilerController@registrar');
