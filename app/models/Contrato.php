@@ -314,7 +314,7 @@ class Contrato
             $sentencia->execute([$idUsuario, $idContrato]);
             if ($sentencia->rowCount() !== 1) {
                 $conexion->rollBack();
-                return "La solicitud {$contrato['numeroContrato']} ya no está Pendiente: otro usuario la gestionó primero.";
+                return self::mensajeYaGestionada($contrato);
             }
 
             $ocupados = Solicitud::conflictos(array_column(self::lineas($idContrato), 'idEquipo'),
@@ -340,15 +340,21 @@ class Contrato
     /**
      * Rechaza la solicitud con su motivo (ya validado). Mismo UPDATE condicionado que
      * aprobar(). Las fechas quedan libres solas: fn_conflictosEquipo no cuenta los
-     * contratos Rechazados. Devuelve true si se rechazó.
+     * contratos Rechazados. Devuelve null si se rechazó, o el mensaje de por qué no.
      */
-    public static function rechazar(int $idContrato, int $idUsuario, string $motivo): bool
+    public static function rechazar(array $contrato, int $idUsuario, string $motivo): ?string
     {
         $sentencia = Database::conexion()->prepare(
             "UPDATE contrato SET estado = 'Rechazado', motivoRechazo = ?, idGestionadoPor = ?
               WHERE idContrato = ? AND estado = 'Pendiente'"
         );
-        $sentencia->execute([$motivo, $idUsuario, $idContrato]);
-        return $sentencia->rowCount() === 1;
+        $sentencia->execute([$motivo, $idUsuario, $contrato['idContrato']]);
+        return $sentencia->rowCount() === 1 ? null : self::mensajeYaGestionada($contrato);
+    }
+
+    /** Otro usuario aprobó, rechazó (o el cliente canceló) entre que se abrió la página y se envió. */
+    private static function mensajeYaGestionada(array $contrato): string
+    {
+        return "La solicitud {$contrato['numeroContrato']} ya no está Pendiente: otro usuario la gestionó primero.";
     }
 }

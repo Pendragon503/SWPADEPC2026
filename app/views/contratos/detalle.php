@@ -7,7 +7,9 @@
  *
  * @var array $contrato  Contrato::detalle()
  * @var array $pasos     Contrato::pasosProgreso() ([] si está Rechazado o Cancelado)
- * @var array $importe   Contrato::importe()
+ * @var array      $importe            Contrato::importe()
+ * @var bool       $puedeGestionar     true si sigue Pendiente (aprobar o rechazar)
+ * @var array|null $formularioRechazo  modal de rechazo con errores (o null)
  */
 ?>
 <a href="<?= e(url('/contratos')) ?>" class="enlace-volver"><i class="bi bi-arrow-left" aria-hidden="true"></i> Volver a contratos</a>
@@ -21,6 +23,24 @@
             <span class="ms-1">Solicitado el <?= e(fechaCorta($contrato['fechaSolicitud'], true)) ?></span>
         </p>
     </div>
+    <?php if ($puedeGestionar): ?>
+        <div class="acciones-pagina">
+            <button type="button" class="btn btn-danger"
+                    data-bs-toggle="modal" data-bs-target="#modalRechazo"
+                    data-accion="<?= e(url('/contratos/rechazar')) ?>" data-titulo="Rechazar solicitud"
+                    data-campos="<?= e(json_encode(['idContrato' => $contrato['idContrato'], 'numeroContrato' => $contrato['numeroContrato'], 'motivoRechazo' => ''])) ?>">
+                <i class="bi bi-x-octagon" aria-hidden="true"></i> Rechazar
+            </button>
+            <form method="post" action="<?= e(url('/contratos/aprobar')) ?>"
+                  data-confirmar="¿Aprobar <?= e($contrato['numeroContrato']) ?>? Se revisará otra vez que cada equipo siga libre."
+                  data-enviando="Aprobando…">
+                <?= csrfCampo() ?>
+                <input type="hidden" name="idContrato" value="<?= e($contrato['idContrato']) ?>">
+                <input type="hidden" name="volver" value="detalle">
+                <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle" aria-hidden="true"></i> Aprobar</button>
+            </form>
+        </div>
+    <?php endif; ?>
 </div>
 
 <?php if ($contrato['estado'] === 'Rechazado'): ?>
@@ -88,3 +108,7 @@
         <?php $puedeQuitar = false; require RAIZ . '/app/views/componentes/importe.php'; ?>
     </div>
 </section>
+
+<?php if ($puedeGestionar): ?>
+    <?php $volver = 'detalle'; require RAIZ . '/app/views/contratos/_modalRechazo.php'; ?>
+<?php endif; ?>
