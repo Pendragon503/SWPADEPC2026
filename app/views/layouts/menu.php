@@ -14,7 +14,7 @@ $menus = [
         // Las tarifas se administran dentro del detalle de cada equipo (Inventario).
         ['bi-box-seam-fill', 'Inventario', '/admin/equipos'],
         ['bi-tags-fill', 'Categorías', '/admin/categorias'],
-        ['bi-person-vcard-fill', 'Clientes', '#'],
+        ['bi-person-vcard-fill', 'Clientes', '/clientes'],
         ['bi-file-earmark-text-fill', 'Contratos', '#'],
         ['bi-gear-fill', 'Configuración', '#'],
         ['bi-bar-chart-fill', 'Reportes', '#'],
@@ -22,6 +22,7 @@ $menus = [
     'Operador' => [
         ['bi-speedometer2', 'Panel', '/operador'],
         ['bi-inbox-fill', 'Solicitudes', '#'],
+        ['bi-person-vcard-fill', 'Clientes', '/clientes'], // RF-03: también lo usa el operador
         ['bi-truck', 'Entregas', '#'],
         ['bi-arrow-left-right', 'Devoluciones', '#'],
         ['bi-exclamation-triangle-fill', 'Daños', '#'],
