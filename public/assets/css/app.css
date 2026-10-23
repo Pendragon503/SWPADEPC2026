@@ -2054,6 +2054,47 @@ a.tarjeta-equipo-imagen {
 .progreso-actual .progreso-texto { font-weight: 700; color: var(--er-texto); }
 .progreso-hecho + .progreso-paso::before { background: var(--er-verde); }
 
+/* "Mis alquileres" del Inicio del cliente (Figma "Inicio - Daniel") */
+.lista-alquileres {
+    display: grid;
+    gap: 10px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.lista-alquileres-enlace {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 2px 8px;
+    padding: 8px;
+    color: inherit;
+    text-decoration: none;
+    background: #f8fafc;
+    border-radius: 6px;
+}
+
+.lista-alquileres-enlace:hover {
+    background: #f1f5f9;
+}
+
+.lista-alquileres-enlace .estado {
+    grid-column: 2;
+    grid-row: 1 / span 2;
+    align-self: center;
+}
+
+.lista-alquileres-nombre {
+    font-size: 12.5px;
+    font-weight: 700;
+    color: #1e293b;
+}
+
+.lista-alquileres-fechas {
+    font-size: 11px;
+    color: var(--er-texto-2);
+}
+
 /* Botón oscuro (por ejemplo "Aplicar filtros" del catálogo) */
 .app-er .btn-oscuro {
     --bs-btn-color: #fff;

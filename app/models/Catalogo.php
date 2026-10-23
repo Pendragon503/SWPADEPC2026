@@ -140,43 +140,33 @@ class Catalogo
               ORDER BY v.categoria'
         )->fetchAll();
     }
+
     /**
-     * Categorías activas con más equipos que se pueden alquilar (los que no están fuera de servicio).
+     * Las $limite categorías con más equipos alquilables, a partir del resultado de
+     * categoriasConTotal() (así el Inicio no hace otra consulta para lo mismo).
      */
-    public static function categoriasPopulares(int $limite): array
+    public static function populares(array $categorias, int $limite): array
     {
-        $sentencia = Database::conexion()->prepare(
-            "SELECT c.idCategoria, c.nombre, COUNT(e.idEquipo) AS equipos
-               FROM categoria c
-               JOIN equipo e ON e.idCategoria = c.idCategoria
-              WHERE c.activa = TRUE
-                AND e.activo = TRUE
-                AND e.estado <> 'FueraServicio'
-              GROUP BY c.idCategoria, c.nombre
-              ORDER BY equipos DESC, c.nombre
-              LIMIT ?"
-        );
-        $sentencia->bindValue(1, $limite, PDO::PARAM_INT);
-        $sentencia->execute();
-        return $sentencia->fetchAll();
+        usort($categorias, function (array $a, array $b): int {
+            return [$b['total'], $a['categoria']] <=> [$a['total'], $b['categoria']]; // más equipos primero; empate: por nombre
+        });
+        return array_slice($categorias, 0, $limite);
     }
 
     /**
-     * Un equipo por categoría (el primero registrado), para mostrar en "Equipos destacados".
+     * Un equipo alquilable por categoría (el primero registrado), para "Equipos destacados".
+     * ROW_NUMBER() numera los equipos de cada categoría en una sola pasada; se queda el 1.
      */
     public static function equiposDestacados(int $limite): array
     {
         $sentencia = Database::conexion()->prepare(
-            "SELECT v.idEquipo, v.nombre, v.categoria, v.precioDiario, v.fotoPrincipal
-               FROM v_catalogoEquipo v
-              WHERE v.activo = TRUE
-                AND v.estado <> 'FueraServicio'
-                AND v.idEquipo = (SELECT MIN(v2.idEquipo)
-                                    FROM v_catalogoEquipo v2
-                                   WHERE v2.idCategoria = v.idCategoria
-                                     AND v2.activo = TRUE
-                                     AND v2.estado <> 'FueraServicio')
-              ORDER BY v.categoria
+            "SELECT idEquipo, nombre, marca, modelo, idCategoria, categoria, precioDiario, fotoPrincipal
+               FROM (SELECT " . self::COLUMNAS_TARJETA . ",
+                            ROW_NUMBER() OVER (PARTITION BY v.idCategoria ORDER BY v.idEquipo) AS numero
+                       FROM v_catalogoEquipo v
+                      WHERE " . self::CONDICION_ALQUILABLE . ") primeros
+              WHERE numero = 1
+              ORDER BY categoria
               LIMIT ?"
         );
         $sentencia->bindValue(1, $limite, PDO::PARAM_INT);
@@ -198,15 +188,6 @@ class Catalogo
         );
         $sentencia->bindValue(1, $limite, PDO::PARAM_INT);
         $sentencia->execute();
-        return $sentencia->fetchAll();
-    }
-
-    /** Categorías activas para listas desplegables. */
-    public static function categoriasActivas(): array
-    {
-        $sentencia = Database::conexion()->query(
-            'SELECT idCategoria, nombre FROM categoria WHERE activa = TRUE ORDER BY nombre'
-        );
         return $sentencia->fetchAll();
     }
 }

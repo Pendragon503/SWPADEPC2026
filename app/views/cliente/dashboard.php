@@ -1,23 +1,13 @@
 <?php
 /**
- * Inicio del Cliente: portada con buscador, categorías populares, equipos
- * destacados (datos reales de v_catalogoEquipo) y "Mis alquileres".
- * El buscador y los botones se activan con el módulo de Catálogo.
+ * Inicio del Cliente (Figma "Inicio - Daniel"): portada con buscador (lleva al
+ * catálogo), categorías populares, equipos destacados y sus últimos alquileres.
  *
- * @var array $categorias
- * @var array $destacados
- * @var array $opcionesCategoria
+ * @var array $categorias  Catalogo::categoriasConTotal() (para la lista del buscador)
+ * @var array $populares   las 4 categorías con más equipos
+ * @var array $destacados  Catalogo::equiposDestacados()
+ * @var array $alquileres  los 3 contratos más recientes del cliente
  */
-
-// Icono por categoría; las que no estén aquí usan bi-tools.
-$iconosCategoria = [
-    'Minicargadores'        => 'bi-truck-front-fill',
-    'Excavadoras'           => 'bi-cone-striped',
-    'Martillos Hidráulicos' => 'bi-hammer',
-    'Compactadores'         => 'bi-layers-fill',
-    'Generadores Diésel'    => 'bi-lightning-charge-fill',
-    'Retroexcavadoras'      => 'bi-truck-flatbed',
-];
 ?>
 <section class="portada-cliente">
     <div class="contenedor-cliente">
@@ -28,24 +18,27 @@ $iconosCategoria = [
             de forma fácil, rápida y segura.
         </p>
 
-        <form class="buscador-portada" role="search" action="#">
-            <fieldset disabled class="buscador-portada-campos">
+        <?php // Búsqueda con GET al catálogo: los mismos nombres de campo que su filtro. ?>
+        <form class="buscador-portada" role="search" method="get" action="<?= e(url('/cliente/catalogo')) ?>">
+            <div class="buscador-portada-campos">
                 <div class="buscador-portada-texto">
                     <i class="bi bi-search" aria-hidden="true"></i>
                     <label for="buscarEquipo" class="visually-hidden">Buscar equipos</label>
-                    <input type="search" id="buscarEquipo" class="form-control" placeholder="Buscar equipos, maquinaria...">
+                    <input type="search" id="buscarEquipo" name="buscar" class="form-control" placeholder="Buscar equipos, maquinaria...">
                 </div>
                 <label for="buscarCategoria" class="visually-hidden">Categoría</label>
-                <select id="buscarCategoria" class="form-select">
-                    <option>Todas las categorías</option>
-                    <?php foreach ($opcionesCategoria as $opcion): ?>
-                        <option value="<?= e($opcion['idCategoria']) ?>"><?= e($opcion['nombre']) ?></option>
+                <select id="buscarCategoria" name="idCategoria" class="form-select">
+                    <option value="0">Todas las categorías</option>
+                    <?php foreach ($categorias as $categoria): ?>
+                        <option value="<?= e($categoria['idCategoria']) ?>"><?= e($categoria['categoria']) ?></option>
                     <?php endforeach; ?>
                 </select>
                 <button type="submit" class="btn btn-primary">Buscar</button>
-            </fieldset>
+            </div>
         </form>
-        <p class="portada-nota"><i class="bi bi-info-circle" aria-hidden="true"></i> La búsqueda estará disponible con el módulo de Catálogo.</p>
+        <p class="portada-nota">
+            ¿Ya tienes fechas? <a href="<?= e(url('/cliente/disponibilidad')) ?>" class="link-light">Busca los equipos libres en tu período</a>.
+        </p>
     </div>
 </section>
 
@@ -55,14 +48,14 @@ $iconosCategoria = [
             <section class="mb-4">
                 <h2 class="titulo-seccion">Categorías populares</h2>
                 <div class="row g-3">
-                    <?php foreach ($categorias as $categoria): ?>
+                    <?php foreach ($populares as $categoria): ?>
                         <div class="col-6 col-md-3">
-                            <a href="#" class="tarjeta-categoria">
+                            <a href="<?= e(url('/cliente/catalogo?idCategoria=' . $categoria['idCategoria'])) ?>" class="tarjeta-categoria">
                                 <span class="tarjeta-categoria-icono">
-                                    <i class="bi <?= e($iconosCategoria[$categoria['nombre']] ?? 'bi-tools') ?>" aria-hidden="true"></i>
+                                    <i class="bi <?= e(iconoCategoria($categoria['categoria'])) ?>" aria-hidden="true"></i>
                                 </span>
-                                <span class="tarjeta-categoria-nombre"><?= e($categoria['nombre']) ?></span>
-                                <span class="tarjeta-categoria-total"><?= e($categoria['equipos']) ?> <?= (int) $categoria['equipos'] === 1 ? 'equipo' : 'equipos' ?></span>
+                                <span class="tarjeta-categoria-nombre"><?= e($categoria['categoria']) ?></span>
+                                <span class="tarjeta-categoria-total"><?= e($categoria['total']) ?> <?= (int) $categoria['total'] === 1 ? 'equipo' : 'equipos' ?></span>
                             </a>
                         </div>
                     <?php endforeach; ?>
@@ -72,25 +65,9 @@ $iconosCategoria = [
             <section>
                 <h2 class="titulo-seccion">Equipos destacados</h2>
                 <div class="row g-3">
-                    <?php foreach ($destacados as $equipo): ?>
+                    <?php $accion = 'ver'; foreach ($destacados as $equipo): ?>
                         <div class="col-sm-6 col-md-3">
-                            <article class="tarjeta-equipo">
-                                <div class="tarjeta-equipo-imagen">
-                                    <?php // Foto principal, o el marcador gris con el icono de la categoría si no hay archivo. ?>
-                                    <?= imagenEquipo($equipo['fotoPrincipal'], $equipo['nombre'], $iconosCategoria[$equipo['categoria']] ?? 'bi-tools') ?>
-                                </div>
-                                <h3 class="tarjeta-equipo-nombre"><?= e($equipo['nombre']) ?></h3>
-                                <p class="tarjeta-equipo-categoria"><?= e($equipo['categoria']) ?></p>
-                                <p class="tarjeta-equipo-precio">
-                                    $<?= e(number_format((float) $equipo['precioDiario'], 2)) ?> <span>/día</span>
-                                </p>
-                                <div class="tarjeta-equipo-acciones">
-                                    <a href="#" class="btn btn-claro btn-sm">Ver detalle</a>
-                                    <a href="#" class="btn btn-calendario btn-sm" title="Ver disponibilidad" aria-label="Ver disponibilidad de <?= e($equipo['nombre']) ?>">
-                                        <i class="bi bi-calendar3" aria-hidden="true"></i>
-                                    </a>
-                                </div>
-                            </article>
+                            <?php require RAIZ . '/app/views/componentes/tarjetaEquipo.php'; ?>
                         </div>
                     <?php endforeach; ?>
                 </div>
@@ -99,18 +76,37 @@ $iconosCategoria = [
 
         <div class="col-lg-3">
             <aside>
-            <section class="panel">
-                <div class="panel-cabecera panel-cabecera-linea">
-                    <h2 class="panel-titulo panel-titulo-mayus">Mis alquileres</h2>
-                </div>
-                <div class="panel-cuerpo">
-                    <div class="estado-vacio">
-                        <span class="estado-vacio-icono"><i class="bi bi-clipboard" aria-hidden="true"></i></span>
-                        <p class="estado-vacio-titulo">Aún no hay alquileres para mostrar</p>
-                        <p class="estado-vacio-texto">Se conectará en el módulo "Mis alquileres".</p>
+                <section class="panel">
+                    <div class="panel-cabecera panel-cabecera-linea">
+                        <h2 class="panel-titulo panel-titulo-mayus">Mis alquileres</h2>
+                        <?php if ($alquileres): ?>
+                            <a href="<?= e(url('/cliente/alquileres')) ?>" class="small">Ver todos</a>
+                        <?php endif; ?>
                     </div>
-                </div>
-            </section>
+                    <div class="panel-cuerpo">
+                        <?php if (!$alquileres): ?>
+                            <div class="estado-vacio">
+                                <span class="estado-vacio-icono"><i class="bi bi-clipboard" aria-hidden="true"></i></span>
+                                <p class="estado-vacio-titulo">Aún no tienes alquileres</p>
+                                <p class="estado-vacio-texto">Cuando envíes una solicitud aparecerá aquí.</p>
+                            </div>
+                        <?php else: ?>
+                            <ul class="lista-alquileres">
+                                <?php foreach ($alquileres as $alquiler): ?>
+                                    <li>
+                                        <a href="<?= e(url('/cliente/alquiler?id=' . $alquiler['idContrato'])) ?>" class="lista-alquileres-enlace">
+                                            <span class="lista-alquileres-nombre">
+                                                <?= e($alquiler['primerEquipo']) ?><?= $alquiler['equipos'] > 1 ? ' +' . e($alquiler['equipos'] - 1) : '' ?>
+                                            </span>
+                                            <span class="lista-alquileres-fechas"><?= e(periodo($alquiler['fechaInicio'], $alquiler['fechaFin'])) ?></span>
+                                            <?= estadoBadge($alquiler['estado']) ?>
+                                        </a>
+                                    </li>
+                                <?php endforeach; ?>
+                            </ul>
+                        <?php endif; ?>
+                    </div>
+                </section>
             </aside>
         </div>
     </div>
