@@ -23,7 +23,7 @@ class ClienteController extends Controller
             'categorias'  => $categorias,
             'populares'   => Catalogo::populares($categorias, 4),
             'destacados'  => Catalogo::equiposDestacados(4),
-            'alquileres'  => Contrato::listarDelCliente((int) Auth::idCliente(), '', 3, 0),
+            'alquileres'  => Contrato::buscar(['idCliente' => (int) Auth::idCliente()], 'recientes', 3, 0),
         ], 'cliente');
     }
 }

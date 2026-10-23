@@ -2,7 +2,7 @@
 /**
  * Mis alquileres (Figma "Mis-alquileres - Daniel"), con filtro por estado (RF-08).
  *
- * @var array  $contratos  Contrato::listarDelCliente()
+ * @var array  $contratos  Contrato::buscar()
  * @var string $estado     filtro actual ('' = todos)
  * @var int    $total, $pagina, $totalPaginas, $desplazamiento
  */
@@ -52,10 +52,7 @@
                             <tr>
                                 <td><span class="codigo"><?= e($contrato['numeroContrato']) ?></span></td>
                                 <td>
-                                    <span class="texto-fuerte"><?= e($contrato['primerEquipo']) ?></span>
-                                    <?php if ($contrato['equipos'] > 1): ?>
-                                        <span class="texto-suave small">+<?= e($contrato['equipos'] - 1) ?> más</span>
-                                    <?php endif; ?>
+                                    <span class="texto-fuerte"><?= resumenEquipos($contrato['primerEquipo'], (int) $contrato['equipos']) ?></span>
                                 </td>
                                 <td class="d-none d-md-table-cell texto-suave text-nowrap"><?= e(periodo($contrato['fechaInicio'], $contrato['fechaFin'])) ?></td>
                                 <td class="text-end texto-fuerte"><?= dinero($contrato['totalEstimado']) ?></td>

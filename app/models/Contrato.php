@@ -2,9 +2,10 @@
 /**
  * EquipRent - Modelo de contratos (tablas contrato + detalleContrato).
  *
- * Por ahora lo usa "Mis alquileres" del cliente (RF-08). Todas las consultas del
- * cliente filtran por idCliente: un cliente nunca ve ni cancela contratos ajenos.
- * El módulo de Operación lo ampliará (aprobar, rechazar, entregas...).
+ * Lo usan "Mis alquileres" del cliente y Operación (solicitudes, contratos; RF-06, RF-08).
+ * Las consultas del cliente filtran por idCliente: un cliente nunca ve ni cancela
+ * contratos ajenos. Aprobar, rechazar y cancelar son UPDATE condicionados al estado
+ * Pendiente: si dos personas lo intentan a la vez, solo la primera lo cambia.
  */
 declare(strict_types=1);
 
@@ -12,6 +13,26 @@ class Contrato
 {
     /** Estados de la base, en el orden en que se muestran en el filtro. */
     public const ESTADOS = ['Pendiente', 'Aprobado', 'Activo', 'Finalizado', 'Rechazado', 'Cancelado'];
+
+    /** Filtros de buscar() y contar(), con su valor "sin filtro". */
+    public const FILTROS = [
+        'numero'    => '',  // número de contrato (parte)
+        'cliente'   => '',  // código, nombre o razón social (parte)
+        'equipo'    => '',  // nombre o código de inventario de alguno de sus equipos (parte)
+        'desde'     => '',  // AAAA-MM-DD: contratos cuyo período se cruza con [desde, hasta]
+        'hasta'     => '',
+        'estado'    => '',
+        'idCliente' => 0,   // solo los de ese cliente ("Mis alquileres")
+    ];
+
+    /** Órdenes de buscar(): las solicitudes se atienden de la más antigua a la más reciente. */
+    private const ORDENES = [
+        'recientes' => 'c.fechaSolicitud DESC, c.idContrato DESC',
+        'antiguos'  => 'c.fechaSolicitud, c.idContrato',
+    ];
+
+    /** Largo máximo de contrato.motivoRechazo. */
+    private const LARGO_MOTIVO = 300;
 
     // ---------------------------------------------------------------------
     // Reglas
@@ -23,6 +44,43 @@ class Contrato
         return $contrato['estado'] === 'Pendiente'
             ? null
             : "Solo se puede cancelar una solicitud Pendiente. Su estado actual es {$contrato['estado']}.";
+    }
+
+    /** ¿Se puede aprobar o rechazar? Solo mientras está Pendiente. Devuelve null o el motivo. */
+    public static function validarGestion(array $contrato): ?string
+    {
+        return $contrato['estado'] === 'Pendiente'
+            ? null
+            : "La solicitud {$contrato['numeroContrato']} ya no está Pendiente: su estado es {$contrato['estado']}.";
+    }
+
+    /**
+     * ¿Se puede aprobar? Además de seguir Pendiente, su fecha de inicio no puede haber
+     * pasado. (La disponibilidad de los equipos se revisa dentro de aprobar()).
+     */
+    public static function validarAprobacion(array $contrato): ?string
+    {
+        $error = self::validarGestion($contrato);
+        if ($error === null && $contrato['fechaInicio'] < date('Y-m-d')) {
+            $error = "No se puede aprobar {$contrato['numeroContrato']}: su fecha de inicio ("
+                . fechaCorta($contrato['fechaInicio']) . ') ya pasó. Recházala y pide al cliente que solicite otras fechas.';
+        }
+        return $error;
+    }
+
+    /** Motivo del rechazo: obligatorio. Devuelve ['motivoRechazo' => 'mensaje']; vacío = válido. */
+    public static function validarMotivoRechazo(string $motivo): array
+    {
+        if (!mb_check_encoding($motivo, 'UTF-8')) {
+            return ['motivoRechazo' => 'El texto tiene caracteres no válidos. Escríbelo de nuevo.'];
+        }
+        if ($motivo === '') {
+            return ['motivoRechazo' => 'Escribe el motivo del rechazo: el cliente lo verá en "Mis alquileres".'];
+        }
+        if (mb_strlen($motivo) > self::LARGO_MOTIVO) {
+            return ['motivoRechazo' => 'El motivo no puede tener más de ' . self::LARGO_MOTIVO . ' caracteres.'];
+        }
+        return [];
     }
 
     /**
@@ -54,64 +112,144 @@ class Contrato
         return $resultado;
     }
 
+    /**
+     * Importe guardado del contrato, con el mismo formato que Solicitud::importe(),
+     * para reutilizar componentes/importe.php.
+     */
+    public static function importe(array $contrato): array
+    {
+        return [
+            'lineas'   => self::lineas((int) $contrato['idContrato']),
+            'subtotal' => $contrato['subtotal'],
+            'deposito' => $contrato['depositoGarantia'],
+            'total'    => $contrato['totalEstimado'],
+        ];
+    }
+
     // ---------------------------------------------------------------------
-    // Consultas del cliente
+    // Consultas
     // ---------------------------------------------------------------------
 
-    public static function contarDelCliente(int $idCliente, string $estado): int
+    /**
+     * WHERE de buscar() y contar(). Las condiciones son textos fijos; los valores van
+     * en $parametros. Alias: c (contrato), cl (cliente), u (usuario del cliente).
+     */
+    private static function condiciones(array $filtros): array
     {
+        $filtros += self::FILTROS;
+        $condiciones = [];
+        $parametros = [];
+
+        if ($filtros['idCliente'] > 0) {
+            $condiciones[] = 'c.idCliente = ?';
+            $parametros[] = $filtros['idCliente'];
+        }
+        if ($filtros['estado'] !== '') {
+            $condiciones[] = 'c.estado = ?';
+            $parametros[] = $filtros['estado'];
+        }
+        if ($filtros['numero'] !== '') {
+            $condiciones[] = 'c.numeroContrato LIKE ?';
+            $parametros[] = '%' . $filtros['numero'] . '%';
+        }
+        if ($filtros['cliente'] !== '') {
+            $condiciones[] = "(cl.codigoCliente LIKE ? OR cl.razonSocial LIKE ? OR CONCAT(u.nombres, ' ', u.apellidos) LIKE ?)";
+            $patron = '%' . $filtros['cliente'] . '%';
+            array_push($parametros, $patron, $patron, $patron);
+        }
+        if ($filtros['equipo'] !== '') {
+            // EXISTS: el contrato sale una sola vez aunque varios de sus equipos coincidan.
+            $condiciones[] = 'EXISTS (SELECT 1 FROM detalleContrato dcf JOIN equipo ef ON ef.idEquipo = dcf.idEquipo
+                                       WHERE dcf.idContrato = c.idContrato AND (ef.nombre LIKE ? OR ef.codigoInventario LIKE ?))';
+            $patron = '%' . $filtros['equipo'] . '%';
+            array_push($parametros, $patron, $patron);
+        }
+        // Período que se cruza con el rango: termina después de "desde" y empieza antes de "hasta".
+        if ($filtros['desde'] !== '') {
+            $condiciones[] = 'c.fechaFin >= ?';
+            $parametros[] = $filtros['desde'];
+        }
+        if ($filtros['hasta'] !== '') {
+            $condiciones[] = 'c.fechaInicio <= ?';
+            $parametros[] = $filtros['hasta'];
+        }
+
+        $where = $condiciones ? 'WHERE ' . implode(' AND ', $condiciones) : '';
+        return [$where, $parametros];
+    }
+
+    public static function contar(array $filtros): int
+    {
+        [$where, $parametros] = self::condiciones($filtros);
         $sentencia = Database::conexion()->prepare(
-            'SELECT COUNT(*) FROM contrato WHERE idCliente = ? AND (? = \'\' OR estado = ?)'
+            "SELECT COUNT(*)
+               FROM contrato c
+               JOIN cliente cl ON cl.idCliente = c.idCliente
+               JOIN usuario u ON u.idUsuario = cl.idUsuario
+               $where"
         );
-        $sentencia->execute([$idCliente, $estado, $estado]);
+        $sentencia->execute($parametros);
         return (int) $sentencia->fetchColumn();
     }
 
     /**
-     * Contratos del cliente, del más reciente al más antiguo, en UNA consulta: con el
-     * nombre del primer equipo (por orden alfabético) y cuántos equipos tiene.
+     * Una página de contratos en UNA consulta: con el cliente, el nombre del primer
+     * equipo (por orden alfabético) y cuántos equipos tiene.
+     * GROUP BY c.idContrato basta: las demás columnas dependen de él (MySQL lo acepta).
      *
-     * @param string $estado '' = todos
+     * @param string $orden 'recientes' | 'antiguos'
      */
-    public static function listarDelCliente(int $idCliente, string $estado, int $limite, int $desplazamiento): array
+    public static function buscar(array $filtros, string $orden, int $limite, int $desplazamiento): array
     {
+        [$where, $parametros] = self::condiciones($filtros);
         $sentencia = Database::conexion()->prepare(
-            "SELECT c.idContrato, c.numeroContrato, c.estado, c.fechaInicio, c.fechaFin, c.totalEstimado,
+            'SELECT c.idContrato, c.numeroContrato, c.estado, c.fechaSolicitud, c.fechaInicio, c.fechaFin,
+                    c.destino, c.totalEstimado, DATEDIFF(c.fechaFin, c.fechaInicio) + 1 AS dias,
+                    cl.codigoCliente, ' . Cliente::NOMBRE_SQL . " AS cliente,
                     MIN(e.nombre) AS primerEquipo, COUNT(dc.idDetalleContrato) AS equipos
                FROM contrato c
+               JOIN cliente cl ON cl.idCliente = c.idCliente
+               JOIN usuario u ON u.idUsuario = cl.idUsuario
                JOIN detalleContrato dc ON dc.idContrato = c.idContrato
                JOIN equipo e ON e.idEquipo = dc.idEquipo
-              WHERE c.idCliente = ? AND (? = '' OR c.estado = ?)
-              GROUP BY c.idContrato, c.numeroContrato, c.estado, c.fechaInicio, c.fechaFin, c.totalEstimado
-              ORDER BY c.fechaSolicitud DESC, c.idContrato DESC
-              LIMIT ? OFFSET ?"
+               $where
+              GROUP BY c.idContrato
+              ORDER BY " . (self::ORDENES[$orden] ?? self::ORDENES['recientes']) . '
+              LIMIT ? OFFSET ?'
         );
-        $sentencia->bindValue(1, $idCliente, PDO::PARAM_INT);
-        $sentencia->bindValue(2, $estado);
-        $sentencia->bindValue(3, $estado);
-        $sentencia->bindValue(4, $limite, PDO::PARAM_INT);
-        $sentencia->bindValue(5, $desplazamiento, PDO::PARAM_INT);
+        $posicion = 1;
+        foreach ($parametros as $valor) {
+            $sentencia->bindValue($posicion++, $valor);
+        }
+        $sentencia->bindValue($posicion++, $limite, PDO::PARAM_INT);
+        $sentencia->bindValue($posicion, $desplazamiento, PDO::PARAM_INT);
         $sentencia->execute();
         return $sentencia->fetchAll();
     }
 
     /**
-     * Un contrato del cliente, con quién recibió la primera entrega (si ya hubo), o null
-     * si no existe o es de otro cliente.
+     * Un contrato con su cliente, quién lo gestionó y quién recibió la primera entrega
+     * (si ya hubo), o null si no existe. Con $idCliente, solo si es de ese cliente.
      */
-    public static function detalleDelCliente(int $idContrato, int $idCliente): ?array
+    public static function detalle(int $idContrato, ?int $idCliente = null): ?array
     {
         $sentencia = Database::conexion()->prepare(
             'SELECT c.idContrato, c.numeroContrato, c.estado, c.fechaSolicitud, c.fechaInicio, c.fechaFin,
                     c.destino, c.observaciones, c.motivoRechazo, c.fechaAprobacion,
-                    c.subtotal, c.depositoGarantia, c.totalEstimado,
+                    c.subtotal, c.depositoGarantia, c.totalEstimado, DATEDIFF(c.fechaFin, c.fechaInicio) + 1 AS dias,
+                    c.idCliente, cl.codigoCliente, cl.tipoPersona, ' . Cliente::NOMBRE_SQL . ' AS cliente,
+                    COALESCE(cl.documentoTributario, u.documentoIdentidad) AS documento, u.correo, u.telefono,
+                    CONCAT(g.nombres, \' \', g.apellidos) AS gestionadoPor,
                     (SELECT en.nombreReceptor FROM entrega en WHERE en.idContrato = c.idContrato
                       ORDER BY en.fechaEntrega LIMIT 1) AS recibidoPor,
                     (SELECT MIN(en.fechaEntrega) FROM entrega en WHERE en.idContrato = c.idContrato) AS fechaEntrega
                FROM contrato c
-              WHERE c.idContrato = ? AND c.idCliente = ?'
+               JOIN cliente cl ON cl.idCliente = c.idCliente
+               JOIN usuario u ON u.idUsuario = cl.idUsuario
+               LEFT JOIN usuario g ON g.idUsuario = c.idGestionadoPor
+              WHERE c.idContrato = ?' . ($idCliente === null ? '' : ' AND c.idCliente = ?')
         );
-        $sentencia->execute([$idContrato, $idCliente]);
+        $sentencia->execute($idCliente === null ? [$idContrato] : [$idContrato, $idCliente]);
         $fila = $sentencia->fetch();
         return $fila === false ? null : $fila;
     }
@@ -149,6 +287,68 @@ class Contrato
             "UPDATE contrato SET estado = 'Cancelado' WHERE idContrato = ? AND idCliente = ? AND estado = 'Pendiente'"
         );
         $sentencia->execute([$idContrato, $idCliente]);
+        return $sentencia->rowCount() === 1;
+    }
+
+    /**
+     * Aprueba la solicitud (ya validada con validarAprobacion), en UNA transacción:
+     *   1. UPDATE condicionado a estado = 'Pendiente'. Si otro operador la aprobó o
+     *      rechazó primero, no cambia ninguna fila. Además deja la fila bloqueada hasta
+     *      el commit: una segunda aprobación simultánea espera y luego no encuentra
+     *      la solicitud Pendiente.
+     *   2. Se vuelve a revisar cada equipo (Solicitud::conflictos, sin contar este
+     *      contrato): pudo entrar a mantenimiento, darse de baja o quedar retenido por
+     *      un alquiler vencido sin devolver. Si alguno ya no está libre, rollback.
+     * Devuelve null si se aprobó, o el mensaje de por qué no.
+     */
+    public static function aprobar(array $contrato, int $idUsuario): ?string
+    {
+        $idContrato = (int) $contrato['idContrato'];
+        $conexion = Database::conexion();
+        $conexion->beginTransaction();
+        try {
+            $sentencia = $conexion->prepare(
+                "UPDATE contrato SET estado = 'Aprobado', fechaAprobacion = CURRENT_TIMESTAMP, idGestionadoPor = ?
+                  WHERE idContrato = ? AND estado = 'Pendiente'"
+            );
+            $sentencia->execute([$idUsuario, $idContrato]);
+            if ($sentencia->rowCount() !== 1) {
+                $conexion->rollBack();
+                return "La solicitud {$contrato['numeroContrato']} ya no está Pendiente: otro usuario la gestionó primero.";
+            }
+
+            $ocupados = Solicitud::conflictos(array_column(self::lineas($idContrato), 'idEquipo'),
+                $contrato['fechaInicio'], $contrato['fechaFin'], $idContrato);
+            if ($ocupados) {
+                $conexion->rollBack();
+                $verbo = count($ocupados) > 1 ? 'ya no están libres' : 'ya no está libre';
+                return "No se puede aprobar {$contrato['numeroContrato']}: " . implode(', ', $ocupados) . " $verbo del "
+                    . periodo($contrato['fechaInicio'], $contrato['fechaFin'])
+                    . ' (está en mantenimiento, se dio de baja o tiene un alquiler vencido sin devolver). Recházala indicando el motivo.';
+            }
+
+            $conexion->commit();
+            return null;
+        } catch (Throwable $e) {
+            if ($conexion->inTransaction()) {
+                $conexion->rollBack();
+            }
+            throw $e;
+        }
+    }
+
+    /**
+     * Rechaza la solicitud con su motivo (ya validado). Mismo UPDATE condicionado que
+     * aprobar(). Las fechas quedan libres solas: fn_conflictosEquipo no cuenta los
+     * contratos Rechazados. Devuelve true si se rechazó.
+     */
+    public static function rechazar(int $idContrato, int $idUsuario, string $motivo): bool
+    {
+        $sentencia = Database::conexion()->prepare(
+            "UPDATE contrato SET estado = 'Rechazado', motivoRechazo = ?, idGestionadoPor = ?
+              WHERE idContrato = ? AND estado = 'Pendiente'"
+        );
+        $sentencia->execute([$motivo, $idUsuario, $idContrato]);
         return $sentencia->rowCount() === 1;
     }
 }

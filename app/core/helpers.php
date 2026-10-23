@@ -263,6 +263,15 @@ function paginacion(int $total, int $paginaPedida, int $porPagina): array
     ];
 }
 
+/**
+ * Equipos de un contrato en una línea, ya escapado: el primero y cuántos más.
+ * resumenEquipos('Minicargador Bobcat S70', 3) -> 'Minicargador Bobcat S70 <span ...>+2 más</span>'
+ */
+function resumenEquipos(string $primero, int $cantidad): string
+{
+    return e($primero) . ($cantidad > 1 ? ' <span class="texto-suave small">+' . ($cantidad - 1) . ' más</span>' : '');
+}
+
 /** Monto en dólares: dinero(1500) -> '$1,500.00'. */
 function dinero($monto): string
 {
