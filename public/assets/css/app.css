@@ -161,6 +161,13 @@
     --bs-btn-focus-shadow-rgb: 148, 163, 184;
 }
 
+/* Pila de bloques con .d-grid: una sola columna que puede encogerse. Sin esto, la
+   columna toma el ancho de la tabla más ancha que tenga dentro y en celular todo
+   el contenido se sale por la derecha (la tabla ya tiene su propio scroll). */
+.app-er .d-grid {
+    grid-template-columns: minmax(0, 1fr);
+}
+
 /* Formularios */
 .app-er .form-label {
     margin-bottom: 6px;
