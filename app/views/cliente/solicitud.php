@@ -41,7 +41,9 @@ $errores = $formulario['errores'] ?? [];
     <?php else: ?>
         <div class="row g-4">
             <div class="col-lg-8">
-                <section class="panel mb-4">
+                <?php // Varios paneles en la columna: van dentro de un contenedor para que no se estiren al alto de la fila. ?>
+                <div class="d-grid gap-4">
+                <section class="panel">
                     <div class="panel-cabecera panel-cabecera-linea">
                         <h2 class="panel-titulo panel-titulo-mayus">Fechas del alquiler</h2>
                     </div>
@@ -62,7 +64,7 @@ $errores = $formulario['errores'] ?? [];
                     </div>
                 </section>
 
-                <section class="panel mb-4">
+                <section class="panel">
                     <div class="panel-cabecera panel-cabecera-linea">
                         <h2 class="panel-titulo panel-titulo-mayus">Equipos e importe</h2>
                         <a href="<?= e(url('/cliente/disponibilidad?inicio=' . $solicitud['inicio'] . '&fin=' . $solicitud['fin'])) ?>" class="btn btn-claro btn-sm">
@@ -107,9 +109,11 @@ $errores = $formulario['errores'] ?? [];
                         </form>
                     </div>
                 </section>
+                </div>
             </div>
 
             <div class="col-lg-4">
+                <div>
                 <aside class="panel resumen-alquiler">
                     <div class="panel-cabecera panel-cabecera-linea">
                         <h2 class="panel-titulo panel-titulo-mayus">Resumen del alquiler</h2>
@@ -126,6 +130,7 @@ $errores = $formulario['errores'] ?? [];
                         <p class="form-text mb-0">El depósito se devuelve al regresar los equipos en buen estado. La solicitud queda Pendiente hasta que la apruebe un operador.</p>
                     </div>
                 </aside>
+                </div>
             </div>
         </div>
     <?php endif; ?>
