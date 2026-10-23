@@ -1905,6 +1905,29 @@ a.tarjeta-equipo-imagen {
     font-size: 13px;
 }
 
+/* Formulario de rango de fechas (Disponibilidad y Mi solicitud) */
+.consulta-fechas {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(160px, 1fr)) auto;
+    align-items: end;
+    gap: 12px;
+}
+
+.consulta-fechas > .btn {
+    min-height: 42px;
+}
+
+@media (max-width: 767.98px) {
+    .consulta-fechas {
+        grid-template-columns: 1fr 1fr;
+    }
+
+    .consulta-fechas > :nth-child(3),
+    .consulta-fechas > .btn {
+        grid-column: 1 / -1;
+    }
+}
+
 /* Botón oscuro (por ejemplo "Aplicar filtros" del catálogo) */
 .app-er .btn-oscuro {
     --bs-btn-color: #fff;

@@ -112,6 +112,23 @@ class Catalogo
         return $sentencia->fetchAll();
     }
 
+    /**
+     * Equipos libres en un rango (RF-05), con el procedimiento de la base
+     * sp_equiposDisponibles, que ya usa fn_conflictosEquipo y calcula días y subtotal.
+     * Las fechas deben venir validadas (Solicitud::validarFechas).
+     */
+    public static function disponibles(string $inicio, string $fin, int $idCategoria): array
+    {
+        $sentencia = Database::conexion()->prepare('CALL sp_equiposDisponibles(?, ?, ?)');
+        $sentencia->bindValue(1, $inicio);
+        $sentencia->bindValue(2, $fin);
+        $sentencia->bindValue(3, $idCategoria > 0 ? $idCategoria : null, $idCategoria > 0 ? PDO::PARAM_INT : PDO::PARAM_NULL);
+        $sentencia->execute();
+        $filas = $sentencia->fetchAll();
+        $sentencia->closeCursor(); // un CALL deja resultados pendientes: se liberan antes de la siguiente consulta
+        return $filas;
+    }
+
     /** Categorías con cuántos equipos alquilables tienen, en una sola consulta (panel de filtros). */
     public static function categoriasConTotal(): array
     {
