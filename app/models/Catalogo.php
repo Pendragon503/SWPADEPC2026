@@ -72,6 +72,46 @@ class Catalogo
         return $sentencia->fetchAll();
     }
 
+    /**
+     * Un equipo alquilable con todo lo que muestra su detalle, o null si no existe o
+     * no se puede alquilar (por ejemplo, dado de baja o en mantenimiento).
+     */
+    public static function equipo(int $idEquipo): ?array
+    {
+        $sentencia = Database::conexion()->prepare(
+            'SELECT ' . self::COLUMNAS_TARJETA . ', v.codigoInventario, v.descripcion, v.caracteristicasTecnicas,
+                    v.condicionesUso, v.depositoSugerido
+               FROM v_catalogoEquipo v
+              WHERE v.idEquipo = ? AND ' . self::CONDICION_ALQUILABLE
+        );
+        $sentencia->execute([$idEquipo]);
+        $fila = $sentencia->fetch();
+        return $fila === false ? null : $fila;
+    }
+
+    /**
+     * Rangos ocupados del equipo desde hoy, con el mismo criterio de fn_conflictosEquipo:
+     * contratos Pendiente, Aprobado o Activo cuya línea no se ha devuelto. Un Activo
+     * vencido sin devolución bloquea sin fecha de fin (hasta = NULL).
+     * Solo fechas: el cliente no ve contratos ni datos de otros clientes.
+     */
+    public static function fechasOcupadas(int $idEquipo): array
+    {
+        $sentencia = Database::conexion()->prepare(
+            "SELECT c.fechaInicio AS desde,
+                    CASE WHEN c.estado = 'Activo' AND c.fechaFin < CURDATE() THEN NULL ELSE c.fechaFin END AS hasta
+               FROM detalleContrato dc
+               JOIN contrato c ON c.idContrato = dc.idContrato
+              WHERE dc.idEquipo = ?
+                AND c.estado IN ('Pendiente', 'Aprobado', 'Activo')
+                AND (c.fechaFin >= CURDATE() OR c.estado = 'Activo')
+                AND NOT EXISTS (SELECT 1 FROM detalleDevolucion dd WHERE dd.idDetalleContrato = dc.idDetalleContrato)
+              ORDER BY c.fechaInicio"
+        );
+        $sentencia->execute([$idEquipo]);
+        return $sentencia->fetchAll();
+    }
+
     /** Categorías con cuántos equipos alquilables tienen, en una sola consulta (panel de filtros). */
     public static function categoriasConTotal(): array
     {

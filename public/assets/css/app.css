@@ -1745,6 +1745,166 @@ a.tarjeta-equipo-imagen {
     color: var(--er-texto-2);
 }
 
+/* Detalle de un equipo para el cliente (Figma "Detalle - Daniel") */
+.detalle-foto-principal {
+    height: 320px;
+    overflow: hidden;
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+}
+
+.detalle-foto-principal .foto-equipo-vacia {
+    font-size: 56px;
+}
+
+.detalle-miniaturas {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(90px, 1fr));
+    gap: 8px;
+    margin: 8px 0 0;
+    padding: 0;
+    list-style: none;
+}
+
+.detalle-miniatura {
+    aspect-ratio: 4 / 3;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+}
+
+.detalle-equipo-nombre {
+    margin: 4px 0 6px;
+    font-size: 26px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.detalle-equipo-precio {
+    margin: 0 0 4px;
+    font-size: 26px;
+    font-weight: 800;
+    color: #0f172a;
+}
+
+.detalle-equipo-precio span {
+    font-size: 13px;
+    font-weight: 400;
+    color: var(--er-texto-2);
+}
+
+.detalle-tarifas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    margin: 12px 0 0;
+    padding: 0;
+    font-size: 13px;
+    list-style: none;
+}
+
+.detalle-subtitulo {
+    margin: 18px 0 8px;
+    padding-top: 16px;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: .4px;
+    text-transform: uppercase;
+    color: #0f172a;
+    border-top: 1px solid var(--er-borde-suave);
+}
+
+.detalle-especificaciones {
+    margin: 0;
+    padding: 0;
+    font-size: 13px;
+    line-height: 1.9;
+    list-style: none;
+}
+
+.detalle-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--er-borde-suave);
+}
+
+/* Calendario de ocupación (componentes/calendario.php) */
+.calendario-cabecera {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.calendario-titulo {
+    margin: 0;
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+}
+
+.calendario-tabla {
+    width: 100%;
+    table-layout: fixed;
+    border-collapse: separate;
+    border-spacing: 4px;
+}
+
+.calendario-tabla th {
+    padding-bottom: 4px;
+    font-size: 11.5px;
+    font-weight: 500;
+    text-align: center;
+    color: var(--er-texto-2);
+}
+
+.calendario-dia {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 30px;
+    font-size: 12.5px;
+    font-weight: 600;
+    border-radius: 5px;
+}
+
+.calendario-libre   { color: #15803d; background: #ecfdf3; }
+.calendario-ocupado { color: #fff; background: var(--er-rojo); }
+.calendario-pasado  { color: #94a3b8; background: #f1f5f9; }
+.calendario-fuera   { visibility: hidden; }
+
+.calendario-leyenda {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px 16px;
+    margin: 10px 0 0;
+    padding: 0;
+    font-size: 12px;
+    list-style: none;
+    color: var(--er-texto-2);
+}
+
+.calendario-leyenda li {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.calendario-leyenda .calendario-dia {
+    width: 14px;
+    min-height: 14px;
+}
+
+.lista-ocupadas {
+    margin: 0;
+    padding-left: 18px;
+    font-size: 13px;
+}
+
 /* Botón oscuro (por ejemplo "Aplicar filtros" del catálogo) */
 .app-er .btn-oscuro {
     --bs-btn-color: #fff;

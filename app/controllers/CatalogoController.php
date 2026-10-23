@@ -4,6 +4,7 @@
  *
  * Rutas (app/rutas.php):
  *   GET /cliente/catalogo?buscar=&idCategoria=&pagina=   -> index
+ *   GET /cliente/equipo?id=5&mes=2026-11                 -> equipo  (detalle y calendario)
  *
  * Controlador delgado: lee los filtros, pide los datos al modelo Catalogo y muestra la vista.
  */
@@ -37,6 +38,32 @@ class CatalogoController extends Controller
             'equipos'          => Catalogo::listar($filtros, self::POR_PAGINA, $paginas['desplazamiento']),
             'categorias'       => $categorias,
             'totalAlquilables' => array_sum(array_column($categorias, 'total')), // "Todas (N)"
+        ], 'cliente');
+    }
+
+    /** GET /cliente/equipo?id=5&mes=AAAA-MM */
+    public function equipo(): void
+    {
+        $idEquipo = (int) ($_GET['id'] ?? 0);
+        $equipo = Catalogo::equipo($idEquipo);
+        if ($equipo === null) {
+            throw new ErrorHttp('Equipo no encontrado', 404);
+        }
+
+        $ocupadas = Catalogo::fechasOcupadas($idEquipo);
+        $tarifas = array_filter(Tarifa::listarPorEquipo($idEquipo), function (array $tarifa): bool {
+            return $tarifa['situacion'] === 'Vigente';
+        });
+
+        $this->view('cliente/equipo', [
+            'titulo'          => $equipo['nombre'],
+            'menuActivo'      => 'catalogo',
+            'equipo'          => $equipo,
+            'fotos'           => FotografiaEquipo::listarPorEquipo($idEquipo),
+            'especificaciones' => especificaciones($equipo['caracteristicasTecnicas']),
+            'tarifas'         => $tarifas,
+            'ocupadas'        => $ocupadas,
+            'calendario'      => calendarioMes((string) ($_GET['mes'] ?? ''), $ocupadas),
         ], 'cliente');
     }
 }

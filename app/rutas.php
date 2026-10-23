@@ -41,6 +41,7 @@ $router->post('/admin/equipos/tarifas/guardar', 'TarifaController@guardar');
 
 // Cliente: catálogo, disponibilidad, solicitud y mis alquileres (RF-04 a RF-08)
 $router->get('/cliente/catalogo', 'CatalogoController@index');
+$router->get('/cliente/equipo', 'CatalogoController@equipo');   // ?id=5&mes=2026-11
 
 // Administrador y Operador: clientes (RF-03). Sin /admin porque lo usan los dos roles.
 $router->get('/clientes', 'GestionClienteController@index');
