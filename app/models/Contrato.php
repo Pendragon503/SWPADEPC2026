@@ -27,7 +27,7 @@ class Contrato
     ];
 
     /** Condición de cada lista de pendientes (alias c = contrato). */
-    private const PENDIENTES = [
+    public const PENDIENTES = [
         // Aprobados, o Activos con una entrega parcial
         'entrega'    => "c.estado IN ('Aprobado', 'Activo') AND EXISTS (
                             SELECT 1 FROM detalleContrato p

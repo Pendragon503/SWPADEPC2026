@@ -18,6 +18,8 @@ class AdminController extends Controller
             'titulo'      => 'Panel del administrador',
             'indicadores' => Indicador::resumenGeneral(),
             'inventario'  => Catalogo::inventarioResumido(5),
+            // Atrasados y próximos a finalizar: la lista de devoluciones pendientes, del más atrasado.
+            'proximos'    => Contrato::buscar(['pendiente' => 'devolucion'], 'fin', 5, 0),
         ]);
     }
 }
