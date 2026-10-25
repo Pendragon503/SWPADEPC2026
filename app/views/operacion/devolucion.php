@@ -88,7 +88,7 @@ $atrasoHoy = diasAtraso($contrato['fechaFin']);
                                            class="form-control<?= isset($errores[$prefijo . '[descripcion]']) ? ' is-invalid' : '' ?>"
                                            placeholder="Daño <?= $n + 1 ?>: descripción" value="<?= e($dano['descripcion'] ?? '') ?>">
                                 </div>
-                                <div class="col-5 col-lg-2">
+                                <div class="col-6 col-lg-2">
                                     <select name="<?= e($prefijo) ?>[severidad]" aria-label="Severidad del daño <?= $n + 1 ?>"
                                             class="form-select<?= isset($errores[$prefijo . '[severidad]']) ? ' is-invalid' : '' ?>">
                                         <option value="">Severidad</option>
@@ -97,12 +97,12 @@ $atrasoHoy = diasAtraso($contrato['fechaFin']);
                                         <?php endforeach; ?>
                                     </select>
                                 </div>
-                                <div class="col-4 col-lg-2">
+                                <div class="col-6 col-lg-2">
                                     <input type="number" name="<?= e($prefijo) ?>[costo]" min="0" step="0.01" aria-label="Costo estimado del daño <?= $n + 1 ?>"
                                            class="form-control<?= isset($errores[$prefijo . '[costo]']) ? ' is-invalid' : '' ?>"
                                            placeholder="Costo $" value="<?= e($dano['costo'] ?? '') ?>">
                                 </div>
-                                <div class="col-3 col-lg-2 d-flex align-items-center">
+                                <div class="col-12 col-lg-2 d-flex align-items-center">
                                     <div class="form-check mb-0">
                                         <input type="checkbox" class="form-check-input" id="cobrar-<?= $id ?>-<?= $n ?>" name="<?= e($prefijo) ?>[cobrar]" value="1"<?= !empty($dano['cobrar']) ? ' checked' : '' ?>>
                                         <label class="form-check-label small" for="cobrar-<?= $id ?>-<?= $n ?>">Cobrar</label>
