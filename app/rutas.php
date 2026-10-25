@@ -74,6 +74,17 @@ $router->get('/entregas', 'OperacionController@entregas');
 $router->get('/entregas/registrar', 'OperacionController@formularioEntrega');   // ?id=9
 $router->post('/entregas/guardar', 'OperacionController@guardarEntrega');
 
+// Administrador: reportes (RF-14)
+$router->get('/admin/reportes', 'ReporteController@index');
+$router->get('/admin/reportes/equipo', 'ReporteController@equipo');   // ?id=4
+
+// Administrador y Operador: mantenimiento y daños (RF-12)
+$router->get('/mantenimiento', 'MantenimientoController@index');
+$router->post('/mantenimiento/guardar', 'MantenimientoController@guardar');
+$router->post('/mantenimiento/estado', 'MantenimientoController@estado');
+$router->post('/mantenimiento/cerrar', 'MantenimientoController@cerrar');
+$router->get('/danos', 'MantenimientoController@danos');
+
 // Administrador y Operador: devoluciones y daños (RF-10, RF-11)
 $router->get('/devoluciones', 'OperacionController@devoluciones');
 $router->get('/devoluciones/registrar', 'OperacionController@formularioDevolucion');   // ?id=9

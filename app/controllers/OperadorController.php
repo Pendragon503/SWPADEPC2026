@@ -17,6 +17,8 @@ class OperadorController extends Controller
         $this->view('operador/dashboard', [
             'titulo'      => 'Panel del operador',
             'indicadores' => Indicador::resumenGeneral(),
+            'entregasDia' => Indicador::entregasPorDia(),
+            'proximas'    => Contrato::buscar(['pendiente' => 'entrega'], 'inicio', 5, 0),
         ]);
     }
 }

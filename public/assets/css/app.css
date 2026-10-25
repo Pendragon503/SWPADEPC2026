@@ -2304,6 +2304,97 @@ a.tarjeta-equipo-imagen {
     color: var(--er-naranja);
 }
 
+/* Acciones de una orden de mantenimiento abierta: estado arriba, "Cerrar" abajo */
+.acciones-orden {
+    min-width: 190px;
+}
+
+/* Tarjeta de indicador que lleva a su módulo (componentes/indicadores.php) */
+.indicador-enlace {
+    color: inherit;
+    text-decoration: none;
+    transition: box-shadow .15s, transform .15s;
+}
+
+.indicador-enlace:hover {
+    color: inherit;
+    box-shadow: 0 6px 16px rgba(15, 23, 42, .1);
+    transform: translateY(-1px);
+}
+
+/* Contratos por estado en el panel del administrador: etiqueta, barra y número */
+.barras-estado {
+    display: grid;
+    gap: 12px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.barras-estado li {
+    display: grid;
+    grid-template-columns: 110px 1fr 32px;
+    align-items: center;
+    gap: 12px;
+    text-align: right;
+}
+
+.barras-estado a {
+    text-align: left;
+    text-decoration: none;
+}
+
+.barras-estado-barra {
+    height: 8px;
+    background: var(--er-fondo-tabla);
+    border-radius: 4px;
+}
+
+.barras-estado-barra span {
+    display: block;
+    height: 100%;
+    background: var(--er-naranja);
+    border-radius: 4px;
+}
+
+/* Equipos entregados por día en el panel del operador (barras verticales, solo CSS) */
+.actividad-semanal {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 12px;
+    height: 200px;
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.actividad-semanal li {
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 6px;
+    min-height: 0;
+}
+
+.actividad-barra {
+    width: 100%;
+    max-width: 44px;
+    min-height: 4px;
+    background: var(--er-naranja);
+    border-radius: 6px 6px 0 0;
+}
+
+.actividad-valor {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.actividad-dia {
+    font-size: 12px;
+    color: var(--er-texto-2);
+}
+
 /* Liquidación de la garantía en el detalle del contrato, a la derecha bajo la tabla */
 .liquidacion {
     max-width: 380px;
@@ -2754,5 +2845,40 @@ a.tarjeta-equipo-imagen {
 @media (max-width: 359.98px) {
     .pildora-usuario-oscura {
         display: none;
+    }
+}
+
+/* ---------------------------------------------------------------------
+   Impresión (reportes): solo el contenido, sin menú, barra ni botones
+   --------------------------------------------------------------------- */
+@media print {
+    .barra-lateral,
+    .barra-superior,
+    .franja-precaucion,
+    .no-imprimir,
+    .alert {
+        display: none !important;
+    }
+
+    body.app-er,
+    .app-contenido {
+        margin: 0;
+        padding: 0;
+        background: #fff;
+    }
+
+    .panel {
+        break-inside: avoid;
+        border: 1px solid #ddd;
+        box-shadow: none;
+    }
+
+    .table-responsive {
+        overflow: visible;
+    }
+
+    a {
+        color: inherit;
+        text-decoration: none;
     }
 }

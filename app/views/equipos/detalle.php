@@ -51,6 +51,9 @@ $parrafo = function (?string $texto): string {
         </p>
     </div>
     <div class="acciones-pagina">
+        <a href="<?= e(url('/admin/reportes/equipo?id=' . $idEquipo)) ?>" class="btn btn-secondary">
+            <i class="bi bi-clock-history" aria-hidden="true"></i> Historial
+        </a>
         <button type="button" class="btn btn-secondary"
                 data-bs-toggle="modal" data-bs-target="#modalEquipo"
                 data-accion="<?= e(url('/admin/equipos/actualizar')) ?>"

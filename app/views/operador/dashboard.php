@@ -1,18 +1,24 @@
 <?php
 /**
- * Panel del Operador. Los indicadores, la dona y los avisos son datos reales;
- * los paneles con "estado vacío" se conectan en sus módulos.
+ * Panel del Operador (RF-13): indicadores, entregas de la semana, estado de la
+ * flota, próximas entregas y avisos. Todo con datos reales.
  *
- * @var array $indicadores
+ * @var array $indicadores  Indicador::resumenGeneral()
+ * @var array $entregasDia  Indicador::entregasPorDia(): ['AAAA-MM-DD' => equipos]
+ * @var array $proximas     contratos con equipos por entregar, del que debía salir primero
  */
 
-// [etiqueta, valor, icono, color, nota, color de la nota]
+// [etiqueta, valor, icono, color, nota, color de la nota, ruta]
 $tarjetas = [
-    ['Solicitudes pendientes', $indicadores['pendientes'], 'bi-inbox-fill', 'naranja', 'por aprobar', 'naranja'],
-    ['Alquileres activos', $indicadores['alquileresActivos'], 'bi-truck', 'azul', 'equipos en obra', 'azul'],
-    ['Atrasados', $indicadores['atrasados'], 'bi-clock-history', 'rojo', 'sin devolver', 'rojo'],
-    ['En mantenimiento', $indicadores['enMantenimiento'], 'bi-wrench-adjustable', 'verde', 'equipos en taller', 'verde'],
+    ['Solicitudes', $indicadores['pendientes'], 'bi-inbox-fill', 'naranja', 'por aprobar', 'naranja', '/solicitudes'],
+    ['Entregas', $indicadores['entregasPendientes'], 'bi-truck', 'azul', 'contratos por entregar', 'azul', '/entregas'],
+    ['Devoluciones', $indicadores['devolucionesPendientes'], 'bi-arrow-left-right', 'verde', 'contratos por recibir', 'verde', '/devoluciones'],
+    ['Atrasados', $indicadores['atrasados'], 'bi-clock-history', 'rojo', 'sin devolver', 'rojo', '/devoluciones'],
+    ['Por finalizar', $indicadores['proximosAFinalizar'], 'bi-calendar-event', 'naranja', 'en los próximos 3 días', 'naranja', '/devoluciones'],
+    ['Mantenimiento', $indicadores['mantenimientosAbiertos'], 'bi-wrench-adjustable', 'azul', 'órdenes abiertas', 'azul', '/mantenimiento?estado=abiertas'],
 ];
+$columnas = 'col-6 col-md-4 col-xxl-2';
+$maximoDia = max(1, ...array_values($entregasDia));
 
 // Avisos que ya se pueden calcular con los indicadores.
 $avisos = [];
@@ -43,35 +49,24 @@ if ($enMantenimiento > 0) {
     <p class="saludo-texto">Resumen de la actividad de maquinaria, entregas y devoluciones.</p>
 </div>
 
-<div class="row g-3 mb-4">
-    <?php foreach ($tarjetas as [$etiqueta, $valor, $icono, $color, $nota, $colorNota]): ?>
-        <div class="col-6 col-xl-3">
-            <div class="indicador">
-                <div class="indicador-cabecera">
-                    <span class="indicador-etiqueta"><?= e($etiqueta) ?></span>
-                    <span class="indicador-icono icono-<?= e($color) ?>"><i class="bi <?= e($icono) ?>" aria-hidden="true"></i></span>
-                </div>
-                <div class="indicador-pie">
-                    <span class="indicador-valor"><?= e($valor) ?></span>
-                    <span class="indicador-nota nota-<?= e($colorNota) ?>"><?= e($nota) ?></span>
-                </div>
-            </div>
-        </div>
-    <?php endforeach; ?>
-</div>
+<?php require RAIZ . '/app/views/componentes/indicadores.php'; ?>
 
 <div class="row g-3 mb-4">
     <div class="col-xl-7">
         <section class="panel">
             <div class="panel-cabecera">
-                <h3 class="panel-titulo">Actividad semanal (alquileres entregados)</h3>
+                <h3 class="panel-titulo">Actividad semanal (equipos entregados)</h3>
             </div>
             <div class="panel-cuerpo">
-                <div class="estado-vacio">
-                    <span class="estado-vacio-icono"><i class="bi bi-bar-chart" aria-hidden="true"></i></span>
-                    <p class="estado-vacio-titulo">Sin datos todavía</p>
-                    <p class="estado-vacio-texto">Se conectará en el módulo de Reportes.</p>
-                </div>
+                <ol class="actividad-semanal">
+                    <?php foreach ($entregasDia as $dia => $equipos): ?>
+                        <li>
+                            <span class="actividad-valor"><?= e($equipos) ?></span>
+                            <span class="actividad-barra" style="height: <?= round($equipos * 100 / $maximoDia) ?>%"></span>
+                            <span class="actividad-dia"><?= e(date('d/m', strtotime($dia))) ?></span>
+                        </li>
+                    <?php endforeach; ?>
+                </ol>
             </div>
         </section>
     </div>
@@ -92,14 +87,10 @@ if ($enMantenimiento > 0) {
         <section class="panel">
             <div class="panel-cabecera">
                 <h3 class="panel-titulo">Próximas entregas programadas</h3>
-                <a href="#" class="btn btn-secondary btn-sm">Ver todas</a>
+                <a href="<?= e(url('/entregas')) ?>" class="btn btn-secondary btn-sm">Ver todas</a>
             </div>
             <div class="panel-cuerpo">
-                <div class="estado-vacio">
-                    <span class="estado-vacio-icono"><i class="bi bi-truck" aria-hidden="true"></i></span>
-                    <p class="estado-vacio-titulo">Sin datos todavía</p>
-                    <p class="estado-vacio-texto">Se conectará en el módulo de Entregas.</p>
-                </div>
+                <?php $contratos = $proximas; $tipo = 'entrega'; require RAIZ . '/app/views/componentes/contratosResumen.php'; ?>
             </div>
         </section>
     </div>
