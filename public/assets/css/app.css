@@ -2304,6 +2304,11 @@ a.tarjeta-equipo-imagen {
     color: var(--er-naranja);
 }
 
+/* Acciones de una orden de mantenimiento abierta: estado arriba, "Cerrar" abajo */
+.acciones-orden {
+    min-width: 190px;
+}
+
 /* Tarjeta de indicador que lleva a su módulo (componentes/indicadores.php) */
 .indicador-enlace {
     color: inherit;

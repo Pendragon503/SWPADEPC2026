@@ -138,9 +138,9 @@ $mensaje = function (?array $modal, string $campo): string {
                             </td>
                             <td class="text-end"><?= dinero($orden['costo']) ?></td>
                             <td><?= estadoBadge($orden['estado']) ?></td>
-                            <td class="col-acciones text-nowrap">
+                            <td class="col-acciones acciones-orden">
                                 <?php if ($abierta): ?>
-                                    <form method="post" action="<?= e(url('/mantenimiento/estado')) ?>" class="d-inline-flex gap-1" data-enviando="">
+                                    <form method="post" action="<?= e(url('/mantenimiento/estado')) ?>" class="d-flex gap-1" data-enviando="">
                                         <?= csrfCampo() ?>
                                         <input type="hidden" name="idMantenimiento" value="<?= e($orden['idMantenimiento']) ?>">
                                         <label class="visually-hidden" for="estado-<?= e($orden['idMantenimiento']) ?>">Estado</label>
@@ -151,7 +151,7 @@ $mensaje = function (?array $modal, string $campo): string {
                                         </select>
                                         <button type="submit" class="btn btn-secondary btn-sm" title="Cambiar estado" aria-label="Cambiar estado de la orden <?= e($orden['idMantenimiento']) ?>"><i class="bi bi-arrow-repeat" aria-hidden="true"></i></button>
                                     </form>
-                                    <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalCierre"
+                                    <button type="button" class="btn btn-primary btn-sm w-100 mt-1" data-bs-toggle="modal" data-bs-target="#modalCierre"
                                             data-accion="<?= e(url('/mantenimiento/cerrar')) ?>" data-titulo="Cerrar orden #<?= e($orden['idMantenimiento']) ?>"
                                             data-campos="<?= e(json_encode(['idMantenimiento' => $orden['idMantenimiento'], 'accion' => 'Finalizado', 'fechaSalidaReal' => $ahora, 'costo' => ''])) ?>">
                                         Cerrar
