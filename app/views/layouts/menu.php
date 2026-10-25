@@ -17,8 +17,9 @@ $menus = [
         ['bi-person-vcard-fill', 'Clientes', '/clientes'],
         ['bi-inbox-fill', 'Solicitudes', '/solicitudes'],
         ['bi-file-earmark-text-fill', 'Contratos', '/contratos'],
+        ['bi-wrench-adjustable', 'Mantenimiento', '/mantenimiento'], // RF-12: también lo usa el administrador
         ['bi-gear-fill', 'Configuración', '#'],
-        ['bi-bar-chart-fill', 'Reportes', '#'],
+        ['bi-bar-chart-fill', 'Reportes', '/admin/reportes'],
     ],
     'Operador' => [
         ['bi-speedometer2', 'Panel', '/operador'],
@@ -27,8 +28,8 @@ $menus = [
         ['bi-person-vcard-fill', 'Clientes', '/clientes'], // RF-03: también lo usa el operador
         ['bi-truck', 'Entregas', '/entregas'],
         ['bi-arrow-left-right', 'Devoluciones', '/devoluciones'],
-        ['bi-exclamation-triangle-fill', 'Daños', '#'],
-        ['bi-wrench-adjustable', 'Mantenimiento', '#'],
+        ['bi-exclamation-triangle-fill', 'Daños', '/danos'],
+        ['bi-wrench-adjustable', 'Mantenimiento', '/mantenimiento'],
     ],
 ];
 
