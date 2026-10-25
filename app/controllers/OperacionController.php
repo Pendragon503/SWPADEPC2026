@@ -7,6 +7,7 @@
  *   GET  /entregas                     -> entregas            contratos con equipos por entregar
  *   GET  /entregas/registrar?id=9      -> formularioEntrega
  *   POST /entregas/guardar             -> guardarEntrega
+ *   GET  /devoluciones                 -> devoluciones        contratos con equipos por recibir
  *   GET  /devoluciones/registrar?id=9  -> formularioDevolucion
  *   POST /devoluciones/guardar         -> guardarDevolucion
  */
@@ -51,6 +52,12 @@ class OperacionController extends Controller
 
         flash('success', 'Se entregaron ' . count($datos['equipos']) . " equipo(s) de {$contrato['numeroContrato']} a {$datos['nombreReceptor']}. Quedaron Alquilados.");
         $this->redirect('/contratos/detalle?id=' . $contrato['idContrato']);
+    }
+
+    /** GET /devoluciones */
+    public function devoluciones(): void
+    {
+        $this->pendientes('devolucion', 'Devoluciones pendientes', 'Devoluciones', 'fin');
     }
 
     /** GET /devoluciones/registrar?id=9 */
