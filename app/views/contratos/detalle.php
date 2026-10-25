@@ -42,11 +42,18 @@
                 <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle" aria-hidden="true"></i> Aprobar</button>
             </form>
         </div>
-    <?php elseif ($seguimiento['entregar']): ?>
+    <?php elseif ($seguimiento['entregar'] || $seguimiento['recibir']): ?>
         <div class="acciones-pagina">
-            <a href="<?= e(url('/entregas/registrar?id=' . $contrato['idContrato'])) ?>" class="btn btn-primary">
-                <i class="bi bi-truck" aria-hidden="true"></i> Registrar entrega
-            </a>
+            <?php if ($seguimiento['entregar']): ?>
+                <a href="<?= e(url('/entregas/registrar?id=' . $contrato['idContrato'])) ?>" class="btn btn-primary">
+                    <i class="bi bi-truck" aria-hidden="true"></i> Registrar entrega
+                </a>
+            <?php endif; ?>
+            <?php if ($seguimiento['recibir']): ?>
+                <a href="<?= e(url('/devoluciones/registrar?id=' . $contrato['idContrato'])) ?>" class="btn btn-primary">
+                    <i class="bi bi-arrow-repeat" aria-hidden="true"></i> Registrar devolución
+                </a>
+            <?php endif; ?>
         </div>
     <?php endif; ?>
 </div>
@@ -149,6 +156,20 @@
                     </tbody>
                 </table>
             </div>
+
+            <?php if ($seguimiento['devueltos'] > 0): ?>
+                <?php // Garantía = depósito − (penalización + daños cobrados), mínimo 0 (Contrato::liquidacion). ?>
+                <dl class="resumen-datos liquidacion">
+                    <div><dt>Depósito de garantía</dt><dd><?= dinero($contrato['depositoGarantia']) ?></dd></div>
+                    <div><dt>Penalización por atraso</dt><dd>− <?= dinero($contrato['penalizacion']) ?></dd></div>
+                    <div><dt>Daños cobrados al cliente</dt><dd>− <?= dinero($contrato['cargosDanos']) ?></dd></div>
+                    <?php if ($liquidacion['saldo'] > 0): ?>
+                        <div class="resumen-total text-danger"><dt>Saldo a pagar por el cliente</dt><dd><?= dinero($liquidacion['saldo']) ?></dd></div>
+                    <?php else: ?>
+                        <div class="resumen-total"><dt>Garantía a devolver</dt><dd><?= dinero($liquidacion['garantia']) ?></dd></div>
+                    <?php endif; ?>
+                </dl>
+            <?php endif; ?>
         </div>
     </section>
 <?php endif; ?>

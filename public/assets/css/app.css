@@ -2304,6 +2304,12 @@ a.tarjeta-equipo-imagen {
     color: var(--er-naranja);
 }
 
+/* Liquidación de la garantía en el detalle del contrato, a la derecha bajo la tabla */
+.liquidacion {
+    max-width: 380px;
+    margin: 16px 0 0 auto;
+}
+
 /* Un equipo dentro del formulario de entrega o devolución (recuadro naranja claro) */
 .equipo-operacion {
     display: grid;

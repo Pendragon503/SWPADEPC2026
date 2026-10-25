@@ -7,6 +7,8 @@
  *   GET  /entregas                     -> entregas            contratos con equipos por entregar
  *   GET  /entregas/registrar?id=9      -> formularioEntrega
  *   POST /entregas/guardar             -> guardarEntrega
+ *   GET  /devoluciones/registrar?id=9  -> formularioDevolucion
+ *   POST /devoluciones/guardar         -> guardarDevolucion
  */
 declare(strict_types=1);
 
@@ -51,6 +53,32 @@ class OperacionController extends Controller
         $this->redirect('/contratos/detalle?id=' . $contrato['idContrato']);
     }
 
+    /** GET /devoluciones/registrar?id=9 */
+    public function formularioDevolucion(): void
+    {
+        $this->formulario('operacion/devolucion', 'Registrar devolución', 'recibir');
+    }
+
+    /** POST /devoluciones/guardar: al terminar muestra el atraso y cuánto de la garantía se devuelve. */
+    public function guardarDevolucion(): void
+    {
+        [$contrato, $lineas, $datos] = $this->leerEnvio();
+        $this->siHayErroresVolver('/devoluciones/registrar', $contrato, $datos, Devolucion::validar($contrato, $lineas, $datos));
+        $error = Devolucion::registrar($contrato, $lineas, $datos, (int) Auth::id());
+        if ($error !== null) {
+            flash('danger', $error);
+            $this->redirect('/devoluciones/registrar?id=' . $contrato['idContrato']);
+        }
+
+        $contrato = Contrato::detalle((int) $contrato['idContrato']); // con la penalización y los daños nuevos
+        $liquidacion = Contrato::liquidacion($contrato);
+        flash('success', 'Se recibieron ' . count($datos['equipos']) . " equipo(s) de {$contrato['numeroContrato']}. "
+            . 'Días de atraso: ' . diasAtraso($contrato['fechaFin'], $datos['fecha']) . '. '
+            . ($liquidacion['saldo'] > 0 ? 'Saldo a pagar por el cliente: ' . dinero($liquidacion['saldo']) : 'Garantía a devolver: ' . dinero($liquidacion['garantia'])) . '.'
+            . ($contrato['estado'] === 'Finalizado' ? ' El contrato quedó Finalizado.' : ''));
+        $this->redirect('/contratos/detalle?id=' . $contrato['idContrato']);
+    }
+
     // ---------------------------------------------------------------------
     // Ayudantes privados (los comparten entregas y devoluciones)
     // ---------------------------------------------------------------------
@@ -91,12 +119,13 @@ class OperacionController extends Controller
         }
 
         $this->view($vista, [
-            'titulo'     => $titulo . ' ' . $contrato['numeroContrato'],
-            'menuActivo' => 'Contratos',
-            'contrato'   => $contrato,
-            'lineas'     => $lineas,
-            'valores'    => $formulario['valores'] ?? [],
-            'errores'    => $formulario['errores'] ?? [],
+            'titulo'      => $titulo . ' ' . $contrato['numeroContrato'],
+            'menuActivo'  => 'Contratos',
+            'contrato'    => $contrato,
+            'lineas'      => $lineas,
+            'liquidacion' => Contrato::liquidacion($contrato), // cargos de devoluciones anteriores
+            'valores'     => $formulario['valores'] ?? [],
+            'errores'     => $formulario['errores'] ?? [],
         ]);
     }
 

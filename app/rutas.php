@@ -72,3 +72,7 @@ $router->post('/contratos/registrar', 'RegistroAlquilerController@registrar');
 // Administrador y Operador: entregas (RF-09)
 $router->get('/entregas/registrar', 'OperacionController@formularioEntrega');   // ?id=9
 $router->post('/entregas/guardar', 'OperacionController@guardarEntrega');
+
+// Administrador y Operador: devoluciones y daños (RF-10, RF-11)
+$router->get('/devoluciones/registrar', 'OperacionController@formularioDevolucion');   // ?id=9
+$router->post('/devoluciones/guardar', 'OperacionController@guardarDevolucion');
