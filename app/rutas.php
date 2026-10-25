@@ -77,6 +77,7 @@ $router->post('/entregas/guardar', 'OperacionController@guardarEntrega');
 // Administrador: reportes (RF-14)
 $router->get('/admin/reportes', 'ReporteController@index');
 $router->get('/admin/reportes/equipo', 'ReporteController@equipo');   // ?id=4
+$router->get('/admin/reportes/excel', 'ReporteController@excel');
 
 // Administrador y Operador: mantenimiento y daños (RF-12)
 $router->get('/mantenimiento', 'MantenimientoController@index');

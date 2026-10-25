@@ -10,6 +10,10 @@
  * @var array      $mantenimientos  Mantenimiento::listar()
  * @var array      $bitacora        Equipo::historialEstados()
  */
+if ($equipo) {
+    $detalleImpresion = 'Historial del equipo ' . $equipo['codigoInventario'] . ' · ' . $equipo['nombre'];
+    require RAIZ . '/app/views/reportes/_encabezadoImpresion.php';
+}
 ?>
 <a href="<?= e(url('/admin/reportes')) ?>" class="enlace-volver no-imprimir"><i class="bi bi-arrow-left" aria-hidden="true"></i> Volver a reportes</a>
 
@@ -18,7 +22,7 @@
         <h2 class="encabezado-pagina-titulo">Historial de equipo<?= $equipo ? ': ' . e($equipo['codigoInventario'] . ' · ' . $equipo['nombre']) : '' ?></h2>
         <p class="encabezado-pagina-texto"><?= $equipo ? estadoBadge($equipo['estado']) . ' ' . e($equipo['categoria']) : 'Elige un equipo para ver todo lo que le ha pasado.' ?></p>
     </div>
-    <div class="acciones-pagina no-imprimir">
+    <div class="acciones-pagina no-imprimir align-items-start">
         <form method="get" action="<?= e(url('/admin/reportes/equipo')) ?>" class="d-flex gap-2">
             <label for="id" class="visually-hidden">Equipo</label>
             <select id="id" name="id" class="form-select">
@@ -30,7 +34,8 @@
             <button type="submit" class="btn btn-secondary">Ver</button>
         </form>
         <?php if ($equipo): ?>
-            <button type="button" class="btn btn-primary" data-imprimir><i class="bi bi-printer" aria-hidden="true"></i> Imprimir</button>
+            <?php $urlExcel = null; // el historial tiene varias tablas: solo PDF ?>
+            <?php require RAIZ . '/app/views/reportes/_descarga.php'; ?>
         <?php endif; ?>
     </div>
 </div>
