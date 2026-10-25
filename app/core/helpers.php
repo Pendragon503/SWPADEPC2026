@@ -154,6 +154,16 @@ function esFecha(string $valor): bool
     return $fecha !== false && $fecha->format('Y-m-d') === $valor;
 }
 
+/**
+ * Días de atraso contra la fecha de fin de un contrato, a la fecha dada (o a hoy).
+ * diasAtraso('2026-10-15', '2026-10-25 09:00') -> 10; a tiempo -> 0.
+ */
+function diasAtraso(string $fechaFin, ?string $fecha = null): int
+{
+    $dias = (new DateTime($fechaFin))->diff(new DateTime(substr($fecha ?? date('Y-m-d'), 0, 10)));
+    return $dias->invert ? 0 : (int) $dias->days;
+}
+
 /** Período de un alquiler: periodo('2026-11-03', '2026-11-05') -> '03/11/2026 – 05/11/2026'. */
 function periodo(string $inicio, string $fin): string
 {

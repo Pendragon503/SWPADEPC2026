@@ -25,8 +25,8 @@ $menus = [
         ['bi-inbox-fill', 'Solicitudes', '/solicitudes'],
         ['bi-file-earmark-text-fill', 'Contratos', '/contratos'], // RF-08: consulta y registro de alquileres
         ['bi-person-vcard-fill', 'Clientes', '/clientes'], // RF-03: también lo usa el operador
-        ['bi-truck', 'Entregas', '#'],
-        ['bi-arrow-left-right', 'Devoluciones', '#'],
+        ['bi-truck', 'Entregas', '/entregas'],
+        ['bi-arrow-left-right', 'Devoluciones', '/devoluciones'],
         ['bi-exclamation-triangle-fill', 'Daños', '#'],
         ['bi-wrench-adjustable', 'Mantenimiento', '#'],
     ],

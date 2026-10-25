@@ -2287,6 +2287,39 @@ a.tarjeta-equipo-imagen {
     color: var(--er-rojo);
 }
 
+/* Variante con cabecera oscura (Figma "Formulario Entrega" y devoluciones) */
+.panel-registro-oscuro .panel-registro-cabecera {
+    color: #fff;
+    background: var(--er-oscuro-2);
+}
+
+.panel-registro-oscuro .panel-registro-icono {
+    color: var(--er-texto-boton);
+    background: var(--er-naranja);
+}
+
+.panel-registro-oscuro .panel-registro-subtitulo {
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--er-naranja);
+}
+
+/* Liquidación de la garantía en el detalle del contrato, a la derecha bajo la tabla */
+.liquidacion {
+    max-width: 380px;
+    margin: 16px 0 0 auto;
+}
+
+/* Un equipo dentro del formulario de entrega o devolución (recuadro naranja claro) */
+.equipo-operacion {
+    display: grid;
+    gap: 10px;
+    padding: 14px 16px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: var(--er-radio-control);
+}
+
 /* ---------------------------------------------------------------------
    6. Pantallas de acceso (layout simple: login y errores)
    --------------------------------------------------------------------- */

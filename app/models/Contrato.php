@@ -23,12 +23,30 @@ class Contrato
         'hasta'     => '',
         'estado'    => '',
         'idCliente' => 0,   // solo los de ese cliente ("Mis alquileres")
+        'pendiente' => '',  // 'entrega' | 'devolucion': con equipos por entregar o por recibir
+    ];
+
+    /** Condición de cada lista de pendientes (alias c = contrato). */
+    private const PENDIENTES = [
+        // Aprobados, o Activos con una entrega parcial
+        'entrega'    => "c.estado IN ('Aprobado', 'Activo') AND EXISTS (
+                            SELECT 1 FROM detalleContrato p
+                             WHERE p.idContrato = c.idContrato
+                               AND NOT EXISTS (SELECT 1 FROM detalleEntrega x WHERE x.idDetalleContrato = p.idDetalleContrato))",
+        // Activos con algún equipo entregado que todavía no regresa
+        'devolucion' => "c.estado = 'Activo' AND EXISTS (
+                            SELECT 1 FROM detalleContrato p
+                              JOIN detalleEntrega x ON x.idDetalleContrato = p.idDetalleContrato
+                             WHERE p.idContrato = c.idContrato
+                               AND NOT EXISTS (SELECT 1 FROM detalleDevolucion y WHERE y.idDetalleContrato = p.idDetalleContrato))",
     ];
 
     /** Órdenes de buscar(): las solicitudes se atienden de la más antigua a la más reciente. */
     private const ORDENES = [
         'recientes' => 'c.fechaSolicitud DESC, c.idContrato DESC',
         'antiguos'  => 'c.fechaSolicitud, c.idContrato',
+        'inicio'    => 'c.fechaInicio, c.idContrato',  // entregas pendientes: la que debía salir primero
+        'fin'       => 'c.fechaFin, c.idContrato',     // devoluciones pendientes: la más atrasada primero
     ];
 
     /** Largo máximo de contrato.motivoRechazo. */
@@ -126,6 +144,47 @@ class Contrato
         ];
     }
 
+    /**
+     * Seguimiento de las líneas (Contrato::lineas()): si quedan equipos por entregar
+     * (contrato Aprobado o Activo), por recibir (Activo) y cuántos ya se devolvieron.
+     *
+     * @return array ['entregar' => bool, 'recibir' => bool, 'devueltos' => int]
+     */
+    public static function seguimiento(array $contrato, array $lineas): array
+    {
+        $sinEntregar = $sinRecibir = false;
+        $devueltos = 0;
+        foreach ($lineas as $linea) {
+            if ($linea['fechaEntrega'] === null) {
+                $sinEntregar = true;
+            } elseif ($linea['fechaDevolucion'] === null) {
+                $sinRecibir = true;
+            } else {
+                $devueltos++;
+            }
+        }
+        return [
+            'entregar'  => $sinEntregar && in_array($contrato['estado'], ['Aprobado', 'Activo'], true),
+            'recibir'   => $sinRecibir && $contrato['estado'] === 'Activo',
+            'devueltos' => $devueltos,
+        ];
+    }
+
+    /**
+     * Cuánto del depósito se devuelve (solo para mostrar; no se guarda):
+     * garantía = depósito − (penalización por atraso + daños cobrados al cliente), mínimo 0.
+     * Si los cargos pasan el depósito, el cliente debe pagar el saldo.
+     *
+     * @param array $contrato Contrato::detalle() (depositoGarantia, penalizacion, cargosDanos)
+     * @return array ['cargos', 'garantia', 'saldo']
+     */
+    public static function liquidacion(array $contrato): array
+    {
+        $cargos = round((float) $contrato['penalizacion'] + (float) $contrato['cargosDanos'], 2);
+        $diferencia = round((float) $contrato['depositoGarantia'] - $cargos, 2);
+        return ['cargos' => $cargos, 'garantia' => max(0, $diferencia), 'saldo' => max(0, -$diferencia)];
+    }
+
     // ---------------------------------------------------------------------
     // Consultas
     // ---------------------------------------------------------------------
@@ -147,6 +206,9 @@ class Contrato
         if ($filtros['estado'] !== '') {
             $condiciones[] = 'c.estado = ?';
             $parametros[] = $filtros['estado'];
+        }
+        if (isset(self::PENDIENTES[$filtros['pendiente']])) {
+            $condiciones[] = self::PENDIENTES[$filtros['pendiente']];
         }
         if ($filtros['numero'] !== '') {
             $condiciones[] = 'c.numeroContrato LIKE ?';
@@ -242,7 +304,12 @@ class Contrato
                     CONCAT(g.nombres, \' \', g.apellidos) AS gestionadoPor,
                     (SELECT en.nombreReceptor FROM entrega en WHERE en.idContrato = c.idContrato
                       ORDER BY en.fechaEntrega LIMIT 1) AS recibidoPor,
-                    (SELECT MIN(en.fechaEntrega) FROM entrega en WHERE en.idContrato = c.idContrato) AS fechaEntrega
+                    (SELECT MIN(en.fechaEntrega) FROM entrega en WHERE en.idContrato = c.idContrato) AS fechaEntrega,
+                    (SELECT COALESCE(SUM(dv.penalizacionTotal), 0) FROM devolucion dv WHERE dv.idContrato = c.idContrato) AS penalizacion,
+                    (SELECT COALESCE(SUM(d.costoEstimado), 0) FROM dano d
+                       JOIN detalleDevolucion dd ON dd.idDetalleDevolucion = d.idDetalleDevolucion
+                       JOIN devolucion dv ON dv.idDevolucion = dd.idDevolucion
+                      WHERE dv.idContrato = c.idContrato AND d.cargoAlCliente = TRUE) AS cargosDanos
                FROM contrato c
                JOIN cliente cl ON cl.idCliente = c.idCliente
                JOIN usuario u ON u.idUsuario = cl.idUsuario
@@ -256,17 +323,30 @@ class Contrato
 
     /**
      * Líneas del contrato con los nombres que usa componentes/importe.php
-     * (precioDiario, dias, subtotal).
+     * (precioDiario, dias, subtotal) y, por equipo, su entrega y su devolución:
+     * fechaEntrega / fechaDevolucion (NULL = todavía no), horómetro de salida,
+     * penalización, cuántos daños tuvo y si puede salir a obra (listoParaSalir:
+     * activo, Disponible y sin mantenimiento abierto).
      */
     public static function lineas(int $idContrato): array
     {
         $sentencia = Database::conexion()->prepare(
-            'SELECT e.idEquipo, e.codigoInventario, e.nombre,
-                    dc.precioDiarioAplicado AS precioDiario, dc.diasFacturados AS dias, dc.subtotalLinea AS subtotal
+            "SELECT dc.idDetalleContrato, e.idEquipo, e.codigoInventario, e.nombre, e.estado AS estadoEquipo,
+                    dc.precioDiarioAplicado AS precioDiario, dc.diasFacturados AS dias, dc.subtotalLinea AS subtotal,
+                    en.fechaEntrega, de.lecturaHorometro AS horometroSalida,
+                    dv.fechaDevolucion, dd.penalizacion,
+                    (SELECT COUNT(*) FROM dano d WHERE d.idDetalleDevolucion = dd.idDetalleDevolucion) AS danos,
+                    (e.activo = TRUE AND e.estado = 'Disponible'
+                     AND NOT EXISTS (SELECT 1 FROM mantenimiento m
+                                      WHERE m.idEquipo = e.idEquipo AND m.estado NOT IN ('Finalizado', 'Cancelado'))) AS listoParaSalir
                FROM detalleContrato dc
                JOIN equipo e ON e.idEquipo = dc.idEquipo
+               LEFT JOIN detalleEntrega de ON de.idDetalleContrato = dc.idDetalleContrato
+               LEFT JOIN entrega en ON en.idEntrega = de.idEntrega
+               LEFT JOIN detalleDevolucion dd ON dd.idDetalleContrato = dc.idDetalleContrato
+               LEFT JOIN devolucion dv ON dv.idDevolucion = dd.idDevolucion
               WHERE dc.idContrato = ?
-              ORDER BY e.nombre, e.codigoInventario'
+              ORDER BY e.nombre, e.codigoInventario"
         );
         $sentencia->execute([$idContrato]);
         return $sentencia->fetchAll();
@@ -275,6 +355,16 @@ class Contrato
     // ---------------------------------------------------------------------
     // Cambios
     // ---------------------------------------------------------------------
+
+    /**
+     * Dentro de una transacción, bloquea la fila del contrato hasta el commit: dos
+     * entregas o devoluciones del mismo contrato se hacen una después de la otra
+     * (sin esto, dos INSERT simultáneos de la misma línea terminan en un deadlock).
+     */
+    public static function bloquear(int $idContrato): void
+    {
+        Database::conexion()->prepare('SELECT idContrato FROM contrato WHERE idContrato = ? FOR UPDATE')->execute([$idContrato]);
+    }
 
     /**
      * Cancela la solicitud del cliente. El WHERE incluye idCliente y estado = 'Pendiente':

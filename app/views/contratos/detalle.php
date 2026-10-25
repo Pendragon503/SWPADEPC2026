@@ -3,11 +3,13 @@
  * Detalle de un contrato (GET /contratos/detalle?id=9), para Administrador y Operador:
  * cliente, entrega, seguimiento con su progreso y equipos con su importe. No tiene
  * frame en Figma: sigue el estilo del detalle de Inventario (panel, ficha-datos).
- * Las entregas y devoluciones (parte 2 de Operación) se agregarán aquí.
+ * Desde aquí se registran las entregas y devoluciones (botones del encabezado).
  *
- * @var array $contrato  Contrato::detalle()
- * @var array $pasos     Contrato::pasosProgreso() ([] si está Rechazado o Cancelado)
- * @var array      $importe            Contrato::importe()
+ * @var array      $contrato           Contrato::detalle()
+ * @var array      $pasos              Contrato::pasosProgreso() ([] si está Rechazado o Cancelado)
+ * @var array      $importe            Contrato::importe() (sus líneas traen la entrega y la devolución)
+ * @var array      $seguimiento        Contrato::seguimiento(): ['entregar', 'recibir', 'devueltos']
+ * @var array      $liquidacion        Contrato::liquidacion(): ['cargos', 'garantia', 'saldo']
  * @var bool       $puedeGestionar     true si sigue Pendiente (aprobar o rechazar)
  * @var array|null $formularioRechazo  modal de rechazo con errores (o null)
  */
@@ -39,6 +41,19 @@
                 <input type="hidden" name="volver" value="detalle">
                 <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle" aria-hidden="true"></i> Aprobar</button>
             </form>
+        </div>
+    <?php elseif ($seguimiento['entregar'] || $seguimiento['recibir']): ?>
+        <div class="acciones-pagina">
+            <?php if ($seguimiento['entregar']): ?>
+                <a href="<?= e(url('/entregas/registrar?id=' . $contrato['idContrato'])) ?>" class="btn btn-primary">
+                    <i class="bi bi-truck" aria-hidden="true"></i> Registrar entrega
+                </a>
+            <?php endif; ?>
+            <?php if ($seguimiento['recibir']): ?>
+                <a href="<?= e(url('/devoluciones/registrar?id=' . $contrato['idContrato'])) ?>" class="btn btn-primary">
+                    <i class="bi bi-arrow-repeat" aria-hidden="true"></i> Registrar devolución
+                </a>
+            <?php endif; ?>
         </div>
     <?php endif; ?>
 </div>
@@ -108,6 +123,56 @@
         <?php $puedeQuitar = false; require RAIZ . '/app/views/componentes/importe.php'; ?>
     </div>
 </section>
+
+<?php if (in_array($contrato['estado'], ['Aprobado', 'Activo', 'Finalizado'], true)): ?>
+    <section class="panel mt-4">
+        <div class="panel-cabecera">
+            <h3 class="panel-titulo">Entregas y devoluciones</h3>
+        </div>
+        <div class="panel-cuerpo">
+            <div class="table-responsive">
+                <table class="table tabla-er">
+                    <thead>
+                    <tr>
+                        <th scope="col">Equipo</th>
+                        <th scope="col">Estado actual</th>
+                        <th scope="col">Entregado</th>
+                        <th scope="col">Devuelto</th>
+                        <th scope="col" class="text-end">Daños</th>
+                        <th scope="col" class="text-end">Penalización</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <?php foreach ($importe['lineas'] as $linea): ?>
+                        <tr>
+                            <td><span class="texto-fuerte"><?= e($linea['nombre']) ?></span> <span class="codigo"><?= e($linea['codigoInventario']) ?></span></td>
+                            <td><?= estadoBadge($linea['estadoEquipo']) ?></td>
+                            <td class="text-nowrap"><?= $linea['fechaEntrega'] !== null ? e(fechaCorta($linea['fechaEntrega'], true)) : '<span class="texto-suave">Por entregar</span>' ?></td>
+                            <td class="text-nowrap"><?= $linea['fechaDevolucion'] !== null ? e(fechaCorta($linea['fechaDevolucion'], true)) : '<span class="texto-suave">—</span>' ?></td>
+                            <td class="text-end"><?= $linea['fechaDevolucion'] !== null ? e($linea['danos']) : '—' ?></td>
+                            <td class="text-end"><?= dinero($linea['penalizacion']) ?></td>
+                        </tr>
+                    <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+
+            <?php if ($seguimiento['devueltos'] > 0): ?>
+                <?php // Garantía = depósito − (penalización + daños cobrados), mínimo 0 (Contrato::liquidacion). ?>
+                <dl class="resumen-datos liquidacion">
+                    <div><dt>Depósito de garantía</dt><dd><?= dinero($contrato['depositoGarantia']) ?></dd></div>
+                    <div><dt>Penalización por atraso</dt><dd>− <?= dinero($contrato['penalizacion']) ?></dd></div>
+                    <div><dt>Daños cobrados al cliente</dt><dd>− <?= dinero($contrato['cargosDanos']) ?></dd></div>
+                    <?php if ($liquidacion['saldo'] > 0): ?>
+                        <div class="resumen-total text-danger"><dt>Saldo a pagar por el cliente</dt><dd><?= dinero($liquidacion['saldo']) ?></dd></div>
+                    <?php else: ?>
+                        <div class="resumen-total"><dt>Garantía a devolver</dt><dd><?= dinero($liquidacion['garantia']) ?></dd></div>
+                    <?php endif; ?>
+                </dl>
+            <?php endif; ?>
+        </div>
+    </section>
+<?php endif; ?>
 
 <?php if ($puedeGestionar): ?>
     <?php $volver = 'detalle'; require RAIZ . '/app/views/contratos/_modalRechazo.php'; ?>

@@ -110,12 +110,15 @@ class ContratoController extends Controller
             throw new ErrorHttp('Contrato no encontrado', 404);
         }
 
+        $importe = Contrato::importe($contrato);
         $this->view('contratos/detalle', [
             'titulo'            => 'Contrato ' . $contrato['numeroContrato'],
             'menuActivo'        => 'Contratos',
             'contrato'          => $contrato,
             'pasos'             => Contrato::pasosProgreso($contrato),
-            'importe'           => Contrato::importe($contrato),
+            'importe'           => $importe,
+            'seguimiento'       => Contrato::seguimiento($contrato, $importe['lineas']),
+            'liquidacion'       => Contrato::liquidacion($contrato),
             'puedeGestionar'    => Contrato::validarGestion($contrato) === null,
             'formularioRechazo' => $this->tomarFormularioRechazo(),
         ]);
