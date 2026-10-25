@@ -949,7 +949,9 @@ Copia esta lista en la descripción de tu Pull Request y márcala (`[x]`):
 | Mantenimiento y reportes: mantenimiento, bitácora, dashboards con indicadores, reportes y configuración | Operador / Administrador | RF-12, RF-13, RF-14, RF-15 | `feature/mantenimiento-reportes` | |
 
 Ya hechos y en `main`: login y control de acceso por rol (RF-01), layout y paneles de los tres roles,
-el módulo de ejemplo **Categorías**, **Inventario** (equipos, fotos, tarifas, estados y bitácora; RF-04) y **Clientes** (registro con usuario y contraseña temporal, edición y activación; RF-03, Administrador y Operador).
+el módulo de ejemplo **Categorías**, **Inventario** (equipos, fotos, tarifas, estados y bitácora; RF-04), **Clientes** (registro con usuario y contraseña temporal, edición y activación; RF-03, Administrador y Operador),
+**Catálogo y solicitud** (catálogo, disponibilidad, "Mi solicitud" con importe y "Mis alquileres"; RF-04 a RF-08, Cliente) y
+**Operación, parte 1** (solicitudes con aprobar y rechazar, consulta de contratos y registro de alquileres; RF-06 y RF-08, Administrador y Operador).
 Los RNF (seguridad, usabilidad, accesibilidad, compatibilidad…) aplican a todos los módulos.
 
 Resumen de los RF (texto completo en el documento de la Etapa 1, en `docs/`):
