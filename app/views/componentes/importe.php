@@ -8,7 +8,10 @@
  *   $importe      ['lineas' => [[nombre, codigoInventario, precioDiario, dias, subtotal, idEquipo], ...],
  *                  'subtotal', 'deposito', 'total']
  *   $puedeQuitar  true para mostrar el botón "Quitar" en cada línea ("Mi solicitud")
+ *   $conTotales   (opcional) false para no mostrar el pie con los totales, cuando la
+ *                 página los muestra aparte (revisión del registro de alquiler)
  */
+$conTotales = $conTotales ?? true;
 ?>
 <div class="table-responsive">
     <table class="table tabla-er tabla-importe">
@@ -45,10 +48,12 @@
             </tr>
         <?php endforeach; ?>
         </tbody>
+        <?php if ($conTotales): ?>
         <tfoot>
         <tr><th scope="row" colspan="3" class="text-end">Subtotal</th><td class="text-end"><?= dinero($importe['subtotal']) ?></td><?php if ($puedeQuitar): ?><td></td><?php endif; ?></tr>
         <tr><th scope="row" colspan="3" class="text-end">Depósito de garantía</th><td class="text-end"><?= dinero($importe['deposito']) ?></td><?php if ($puedeQuitar): ?><td></td><?php endif; ?></tr>
         <tr class="tabla-importe-total"><th scope="row" colspan="3" class="text-end">Total</th><td class="text-end"><?= dinero($importe['total']) ?></td><?php if ($puedeQuitar): ?><td></td><?php endif; ?></tr>
         </tfoot>
+        <?php endif; ?>
     </table>
 </div>

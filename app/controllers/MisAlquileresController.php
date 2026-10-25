@@ -26,7 +26,8 @@ class MisAlquileresController extends Controller
     {
         $idCliente = (int) Auth::idCliente();
         $estado = in_array($_GET['estado'] ?? '', Contrato::ESTADOS, true) ? $_GET['estado'] : '';
-        $total = Contrato::contarDelCliente($idCliente, $estado);
+        $filtros = ['idCliente' => $idCliente, 'estado' => $estado];
+        $total = Contrato::contar($filtros);
         $paginas = paginacion($total, (int) ($_GET['pagina'] ?? 1), self::POR_PAGINA);
 
         $this->view('cliente/alquileres', $paginas + [
@@ -34,14 +35,14 @@ class MisAlquileresController extends Controller
             'menuActivo' => 'alquileres',
             'estado'     => $estado,
             'total'      => $total,
-            'contratos'  => Contrato::listarDelCliente($idCliente, $estado, self::POR_PAGINA, $paginas['desplazamiento']),
+            'contratos'  => Contrato::buscar($filtros, 'recientes', self::POR_PAGINA, $paginas['desplazamiento']),
         ], 'cliente');
     }
 
     /** GET /cliente/alquiler?id=9 */
     public function detalle(): void
     {
-        $contrato = Contrato::detalleDelCliente((int) ($_GET['id'] ?? 0), (int) Auth::idCliente());
+        $contrato = Contrato::detalle((int) ($_GET['id'] ?? 0), (int) Auth::idCliente());
         if ($contrato === null) {
             throw new ErrorHttp('Alquiler no encontrado', 404);
         }
@@ -51,13 +52,7 @@ class MisAlquileresController extends Controller
             'menuActivo' => 'alquileres',
             'contrato'   => $contrato,
             'pasos'      => Contrato::pasosProgreso($contrato),
-            // Mismo formato que Solicitud::importe(), para reutilizar componentes/importe.php.
-            'importe'    => [
-                'lineas'   => Contrato::lineas((int) $contrato['idContrato']),
-                'subtotal' => $contrato['subtotal'],
-                'deposito' => $contrato['depositoGarantia'],
-                'total'    => $contrato['totalEstimado'],
-            ],
+            'importe'    => Contrato::importe($contrato),
             'puedeCancelar' => Contrato::validarCancelacion($contrato) === null,
         ], 'cliente');
     }
@@ -66,7 +61,7 @@ class MisAlquileresController extends Controller
     public function cancelar(): void
     {
         $idContrato = (int) ($_POST['idContrato'] ?? 0);
-        $contrato = Contrato::detalleDelCliente($idContrato, (int) Auth::idCliente());
+        $contrato = Contrato::detalle($idContrato, (int) Auth::idCliente());
         if ($contrato === null) {
             throw new ErrorHttp('Alquiler no encontrado', 404);
         }

@@ -147,6 +147,13 @@ function fechaCorta(?string $fecha, bool $conHora = false): string
     return $marca === false ? $fecha : date($conHora ? 'd/m/Y H:i' : 'd/m/Y', $marca);
 }
 
+/** ¿Es una fecha real en formato AAAA-MM-DD? esFecha('2026-02-30') -> false. */
+function esFecha(string $valor): bool
+{
+    $fecha = DateTime::createFromFormat('Y-m-d', $valor);
+    return $fecha !== false && $fecha->format('Y-m-d') === $valor;
+}
+
 /** Período de un alquiler: periodo('2026-11-03', '2026-11-05') -> '03/11/2026 – 05/11/2026'. */
 function periodo(string $inicio, string $fin): string
 {
@@ -261,6 +268,15 @@ function paginacion(int $total, int $paginaPedida, int $porPagina): array
         'totalPaginas'   => $totalPaginas,
         'desplazamiento' => ($pagina - 1) * $porPagina,
     ];
+}
+
+/**
+ * Equipos de un contrato en una línea, ya escapado: el primero y cuántos más.
+ * resumenEquipos('Minicargador Bobcat S70', 3) -> 'Minicargador Bobcat S70 <span ...>+2 más</span>'
+ */
+function resumenEquipos(string $primero, int $cantidad): string
+{
+    return e($primero) . ($cantidad > 1 ? ' <span class="texto-suave small">+' . ($cantidad - 1) . ' más</span>' : '');
 }
 
 /** Monto en dólares: dinero(1500) -> '$1,500.00'. */

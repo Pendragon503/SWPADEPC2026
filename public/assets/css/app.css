@@ -161,6 +161,13 @@
     --bs-btn-focus-shadow-rgb: 148, 163, 184;
 }
 
+/* Pila de bloques con .d-grid: una sola columna que puede encogerse. Sin esto, la
+   columna toma el ancho de la tabla más ancha que tenga dentro y en celular todo
+   el contenido se sale por la derecha (la tabla ya tiene su propio scroll). */
+.app-er .d-grid {
+    grid-template-columns: minmax(0, 1fr);
+}
+
 /* Formularios */
 .app-er .form-label {
     margin-bottom: 6px;
@@ -2146,6 +2153,138 @@ a.tarjeta-equipo-imagen {
     --bs-btn-active-bg: #fde68a;
     --bs-btn-active-border-color: #fcd34d;
     --bs-btn-focus-shadow-rgb: 249, 168, 37;
+}
+
+/* Filtros de Contratos (Figma "Alquiler - Remberto"): campos con etiqueta, 4 por fila */
+.filtros-contratos {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 12px 16px;
+    align-items: end;
+}
+
+.filtros-contratos-botones {
+    grid-column: span 2;
+    justify-content: flex-end;
+}
+
+@media (max-width: 991.98px) {
+    .filtros-contratos {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 575.98px) {
+    .filtros-contratos {
+        grid-template-columns: 1fr;
+    }
+
+    .filtros-contratos-botones {
+        grid-column: auto;
+    }
+}
+
+/* Registro de alquiler (diseño "Nuevo registro de alquiler"): cabecera naranja,
+   campos calculados de solo lectura y recuadro oscuro con el total */
+.panel-registro {
+    overflow: hidden;
+}
+
+.panel-registro-cabecera {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 18px 24px;
+    background: var(--er-naranja);
+    color: var(--er-texto-boton);
+}
+
+.panel-registro-icono {
+    display: inline-flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
+    width: 38px;
+    height: 38px;
+    font-size: 18px;
+    background: rgba(255, 255, 255, .35);
+    border-radius: var(--er-radio-logo);
+}
+
+.panel-registro-titulo {
+    margin: 0;
+    font-size: 16px;
+    font-weight: 800;
+    letter-spacing: .5px;
+    text-transform: uppercase;
+}
+
+.panel-registro-subtitulo {
+    margin: 2px 0 0;
+    font-size: 12.5px;
+    font-weight: 600;
+}
+
+.panel-registro > .panel-cuerpo {
+    padding: 24px;
+}
+
+.app-er .campo-calculado[readonly] {
+    font-weight: 700;
+    background: var(--er-fondo-tabla);
+}
+
+.app-er .campo-resaltado[readonly] {
+    color: #b45309;
+    background: #fff7e0;
+    border-color: #fde3a7;
+}
+
+.total-estimado {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 12px 18px;
+    color: #fff;
+    background: var(--er-oscuro-2);
+    border-radius: var(--er-radio-control);
+}
+
+.total-estimado-etiqueta {
+    font-size: 12px;
+    font-weight: 800;
+    line-height: 1.2;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--er-naranja);
+}
+
+.total-estimado-etiqueta small {
+    font-size: 10.5px;
+    font-weight: 600;
+    letter-spacing: 0;
+    text-transform: none;
+    color: #cbd5e1;
+}
+
+.total-estimado-monto {
+    font-size: 26px;
+    font-weight: 800;
+}
+
+.pie-registro {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding-top: 16px;
+    border-top: 1px solid var(--er-borde-suave);
+}
+
+.marca-obligatoria {
+    color: var(--er-rojo);
 }
 
 /* ---------------------------------------------------------------------

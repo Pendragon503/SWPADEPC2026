@@ -15,13 +15,15 @@ $menus = [
         ['bi-box-seam-fill', 'Inventario', '/admin/equipos'],
         ['bi-tags-fill', 'Categorías', '/admin/categorias'],
         ['bi-person-vcard-fill', 'Clientes', '/clientes'],
-        ['bi-file-earmark-text-fill', 'Contratos', '#'],
+        ['bi-inbox-fill', 'Solicitudes', '/solicitudes'],
+        ['bi-file-earmark-text-fill', 'Contratos', '/contratos'],
         ['bi-gear-fill', 'Configuración', '#'],
         ['bi-bar-chart-fill', 'Reportes', '#'],
     ],
     'Operador' => [
         ['bi-speedometer2', 'Panel', '/operador'],
-        ['bi-inbox-fill', 'Solicitudes', '#'],
+        ['bi-inbox-fill', 'Solicitudes', '/solicitudes'],
+        ['bi-file-earmark-text-fill', 'Contratos', '/contratos'], // RF-08: consulta y registro de alquileres
         ['bi-person-vcard-fill', 'Clientes', '/clientes'], // RF-03: también lo usa el operador
         ['bi-truck', 'Entregas', '#'],
         ['bi-arrow-left-right', 'Devoluciones', '#'],

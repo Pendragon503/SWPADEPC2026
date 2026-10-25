@@ -58,3 +58,13 @@ $router->get('/clientes', 'GestionClienteController@index');
 $router->post('/clientes/guardar', 'GestionClienteController@guardar');
 $router->post('/clientes/actualizar', 'GestionClienteController@actualizar');
 $router->post('/clientes/cambiar-estado', 'GestionClienteController@cambiarEstado');
+
+// Administrador y Operador: operación de contratos (RF-06, RF-08)
+$router->get('/solicitudes', 'ContratoController@solicitudes');
+$router->post('/contratos/aprobar', 'ContratoController@aprobar');
+$router->post('/contratos/rechazar', 'ContratoController@rechazar');
+$router->get('/contratos', 'ContratoController@index');
+$router->get('/contratos/detalle', 'ContratoController@detalle');   // ?id=9
+$router->get('/contratos/nuevo', 'RegistroAlquilerController@nuevo');
+$router->get('/contratos/nuevo/revisar', 'RegistroAlquilerController@revisar');
+$router->post('/contratos/registrar', 'RegistroAlquilerController@registrar');

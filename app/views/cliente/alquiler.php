@@ -3,7 +3,7 @@
  * Detalle de un alquiler del cliente (Figma "Detalle - alquiler - Daniel"): progreso,
  * equipos con su importe, entrega en obra y cancelación mientras esté Pendiente.
  *
- * @var array $contrato       Contrato::detalleDelCliente()
+ * @var array $contrato       Contrato::detalle()
  * @var array $pasos          Contrato::pasosProgreso() ([] si está Rechazado o Cancelado)
  * @var array $importe        líneas y totales (formato de componentes/importe.php)
  * @var bool  $puedeCancelar

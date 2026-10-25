@@ -96,7 +96,7 @@
                                     <li>
                                         <a href="<?= e(url('/cliente/alquiler?id=' . $alquiler['idContrato'])) ?>" class="lista-alquileres-enlace">
                                             <span class="lista-alquileres-nombre">
-                                                <?= e($alquiler['primerEquipo']) ?><?= $alquiler['equipos'] > 1 ? ' +' . e($alquiler['equipos'] - 1) : '' ?>
+                                                <?= resumenEquipos($alquiler['primerEquipo'], (int) $alquiler['equipos']) ?>
                                             </span>
                                             <span class="lista-alquileres-fechas"><?= e(periodo($alquiler['fechaInicio'], $alquiler['fechaFin'])) ?></span>
                                             <?= estadoBadge($alquiler['estado']) ?>

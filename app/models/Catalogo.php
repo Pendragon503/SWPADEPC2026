@@ -1,24 +1,28 @@
 <?php
 /**
- * EquipRent - Consultas del catálogo que ve el cliente (vista v_catalogoEquipo).
- * Por ahora solo lo que usa la página de inicio del cliente; el resto llega
- * con el módulo de Catálogo.
+ * EquipRent - Consultas del catálogo de equipos (vista v_catalogoEquipo): las usan
+ * el catálogo del cliente, su Inicio y el registro de alquileres del operador.
  */
 declare(strict_types=1);
 
 class Catalogo
 {
     /**
-     * Un equipo se puede ALQUILAR (aparece en el catálogo del cliente) si está activo,
-     * tiene tarifa diaria vigente, está Disponible o Alquilado (puede estar libre en
-     * otras fechas) y no tiene un mantenimiento abierto. Es el mismo criterio de
-     * sp_equiposDisponibles, sin las fechas. Se usa con el alias "v" de v_catalogoEquipo.
+     * Un equipo puede SALIR a una obra si está activo, Disponible o Alquilado (puede
+     * estar libre en otras fechas) y no tiene un mantenimiento abierto. Es lo que se
+     * vuelve a revisar al aprobar un contrato (su precio ya quedó guardado).
+     * Se usa con el alias "v" de v_catalogoEquipo.
      */
-    public const CONDICION_ALQUILABLE = "v.activo = TRUE
+    public const CONDICION_OPERATIVA = "v.activo = TRUE
                 AND v.estado IN ('Disponible', 'Alquilado')
-                AND v.precioDiario IS NOT NULL
                 AND NOT EXISTS (SELECT 1 FROM mantenimiento m
                                  WHERE m.idEquipo = v.idEquipo AND m.estado NOT IN ('Finalizado', 'Cancelado'))";
+
+    /**
+     * Un equipo se puede ALQUILAR (aparece en el catálogo del cliente) si además tiene
+     * tarifa diaria vigente. Es el mismo criterio de sp_equiposDisponibles, sin las fechas.
+     */
+    public const CONDICION_ALQUILABLE = self::CONDICION_OPERATIVA . ' AND v.precioDiario IS NOT NULL';
 
     /** Columnas que necesita una tarjeta del catálogo (componentes/tarjetaEquipo.php). */
     private const COLUMNAS_TARJETA = 'v.idEquipo, v.nombre, v.marca, v.modelo, v.idCategoria, v.categoria, v.precioDiario, v.fotoPrincipal';

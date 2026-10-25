@@ -39,6 +39,14 @@ class Cliente
         'observaciones'       => 500,
     ];
 
+    /**
+     * nombreVisible() en SQL, para las consultas de otros módulos (contratos...):
+     * la razón social si es jurídica; si no, nombres y apellidos.
+     * Usa los alias "cl" (cliente) y "u" (usuario).
+     */
+    public const NOMBRE_SQL = "CASE WHEN cl.tipoPersona = 'Juridica' AND cl.razonSocial <> ''
+                                    THEN cl.razonSocial ELSE CONCAT(u.nombres, ' ', u.apellidos) END";
+
     /** Mensajes del error 1062 según el UNIQUE que lo produjo (ver esValorDuplicado()). */
     public const DUPLICADOS = [
         'uq_usuario_correo'          => ['correo', 'Ya hay un usuario con ese correo.'],
@@ -245,6 +253,18 @@ class Cliente
         $sentencia->execute([$idCliente]);
         $fila = $sentencia->fetch();
         return $fila === false ? null : $fila;
+    }
+
+    /** Clientes activos para una lista desplegable (registro de alquiler): id, código y nombre. */
+    public static function listarActivos(): array
+    {
+        return Database::conexion()->query(
+            'SELECT cl.idCliente, cl.codigoCliente, ' . self::NOMBRE_SQL . ' AS nombre
+               FROM cliente cl
+               JOIN usuario u ON u.idUsuario = cl.idUsuario
+              WHERE u.activo = TRUE
+              ORDER BY nombre'
+        )->fetchAll();
     }
 
     /**
