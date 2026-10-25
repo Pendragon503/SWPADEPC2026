@@ -4,9 +4,13 @@
  * Apto para imprimir: lo marcado con .no-imprimir no sale en papel (ver @media print).
  *
  * @var array $filtros  ['desde', 'hasta', 'agrupar', 'estado']
- * @var array $reporte  Reporte::resumen(): ['filas', 'total']
+ * @var array  $reporte   Reporte::resumen(): ['filas', 'total']
+ * @var string $urlExcel  el mismo reporte en CSV
  */
 [$tituloGrupo] = Reporte::AGRUPACIONES[$filtros['agrupar']];
+$detalleImpresion = 'Alquileres por ' . mb_strtolower($tituloGrupo) . ' · del ' . periodo($filtros['desde'], $filtros['hasta'])
+    . ' · ' . ($filtros['estado'] === '' ? 'sin Rechazados ni Cancelados' : 'solo ' . $filtros['estado']);
+require RAIZ . '/app/views/reportes/_encabezadoImpresion.php';
 ?>
 <div class="encabezado-pagina">
     <div>
@@ -16,9 +20,9 @@
             <?= $filtros['estado'] === '' ? 'sin Rechazados ni Cancelados' : 'solo ' . e($filtros['estado']) ?>
         </p>
     </div>
-    <div class="acciones-pagina no-imprimir">
+    <div class="acciones-pagina no-imprimir align-items-start">
         <a href="<?= e(url('/admin/reportes/equipo')) ?>" class="btn btn-secondary"><i class="bi bi-clock-history" aria-hidden="true"></i> Historial de un equipo</a>
-        <button type="button" class="btn btn-primary" data-imprimir><i class="bi bi-printer" aria-hidden="true"></i> Imprimir</button>
+        <?php require RAIZ . '/app/views/reportes/_descarga.php'; ?>
     </div>
 </div>
 

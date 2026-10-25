@@ -2851,7 +2851,30 @@ a.tarjeta-equipo-imagen {
 /* ---------------------------------------------------------------------
    Impresión (reportes): solo el contenido, sin menú, barra ni botones
    --------------------------------------------------------------------- */
+/* Encabezado que solo sale en el PDF (reportes/_encabezadoImpresion.php) */
+.solo-imprimir {
+    display: none;
+}
+
 @media print {
+    .solo-imprimir {
+        display: block;
+    }
+
+    .encabezado-impresion {
+        margin-bottom: 16px;
+        padding-bottom: 10px;
+        font-size: 13px;
+        border-bottom: 2px solid var(--er-naranja);
+    }
+
+    .encabezado-impresion-sistema {
+        margin: 0 0 4px;
+        font-size: 16px;
+        font-weight: 800;
+        letter-spacing: .5px;
+    }
+
     .barra-lateral,
     .barra-superior,
     .franja-precaucion,
