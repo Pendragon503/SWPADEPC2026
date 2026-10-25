@@ -2842,3 +2842,38 @@ a.tarjeta-equipo-imagen {
         display: none;
     }
 }
+
+/* ---------------------------------------------------------------------
+   Impresión (reportes): solo el contenido, sin menú, barra ni botones
+   --------------------------------------------------------------------- */
+@media print {
+    .barra-lateral,
+    .barra-superior,
+    .franja-precaucion,
+    .no-imprimir,
+    .alert {
+        display: none !important;
+    }
+
+    body.app-er,
+    .app-contenido {
+        margin: 0;
+        padding: 0;
+        background: #fff;
+    }
+
+    .panel {
+        break-inside: avoid;
+        border: 1px solid #ddd;
+        box-shadow: none;
+    }
+
+    .table-responsive {
+        overflow: visible;
+    }
+
+    a {
+        color: inherit;
+        text-decoration: none;
+    }
+}

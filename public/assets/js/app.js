@@ -97,6 +97,11 @@ $(function () {
         bootstrap.Modal.getOrCreateInstance(this).show();
     });
 
+    // Botón de imprimir (reportes): <button data-imprimir>. Lo que no sale en papel lleva .no-imprimir.
+    $(document).on('click', '[data-imprimir]', function () {
+        window.print();
+    });
+
     // Mostrar u ocultar la contraseña: <button data-ver-clave="#idDelInput">
     $('[data-ver-clave]').on('click', function () {
         var $boton = $(this);

@@ -126,11 +126,18 @@ class Mantenimiento
         )->fetchAll(PDO::FETCH_UNIQUE);
     }
 
-    /** WHERE del listado: equipo (nombre o código), tipo y estado ('abiertas' = las tres abiertas). */
+    /**
+     * WHERE del listado: equipo (nombre o código), tipo, estado ('abiertas' = las tres
+     * abiertas) e idEquipo (opcional, para el historial de un equipo).
+     */
     private static function condiciones(array $filtros): array
     {
         $condiciones = [];
         $parametros = [];
+        if (!empty($filtros['idEquipo'])) {
+            $condiciones[] = 'm.idEquipo = ?';
+            $parametros[] = $filtros['idEquipo'];
+        }
         if ($filtros['equipo'] !== '') {
             $condiciones[] = '(e.nombre LIKE ? OR e.codigoInventario LIKE ?)';
             array_push($parametros, "%{$filtros['equipo']}%", "%{$filtros['equipo']}%");
@@ -182,8 +189,8 @@ class Mantenimiento
         return $sentencia->fetch() ?: null;
     }
 
-    /** Daños registrados en las devoluciones, del más reciente; $estado '' = todos. */
-    public static function danos(string $estado): array
+    /** Daños registrados en las devoluciones, del más reciente; $estado '' = todos; $idEquipo 0 = todos. */
+    public static function danos(string $estado, int $idEquipo = 0): array
     {
         $sentencia = Database::conexion()->prepare(
             "SELECT d.*, e.idEquipo, e.codigoInventario, e.nombre, e.estado AS estadoEquipo,
@@ -194,10 +201,10 @@ class Mantenimiento
                JOIN detalleContrato dc ON dc.idDetalleContrato = dd.idDetalleContrato
                JOIN contrato c ON c.idContrato = dc.idContrato
                JOIN equipo e ON e.idEquipo = dc.idEquipo
-              WHERE ? = '' OR d.estado = ?
+              WHERE (? = '' OR d.estado = ?) AND (? = 0 OR e.idEquipo = ?)
               ORDER BY d.fechaRegistro DESC, d.idDano DESC"
         );
-        $sentencia->execute([$estado, $estado]);
+        $sentencia->execute([$estado, $estado, $idEquipo, $idEquipo]);
         return $sentencia->fetchAll();
     }
 
