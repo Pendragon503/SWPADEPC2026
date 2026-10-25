@@ -45,6 +45,8 @@ class Contrato
     private const ORDENES = [
         'recientes' => 'c.fechaSolicitud DESC, c.idContrato DESC',
         'antiguos'  => 'c.fechaSolicitud, c.idContrato',
+        'inicio'    => 'c.fechaInicio, c.idContrato',  // entregas pendientes: la que debía salir primero
+        'fin'       => 'c.fechaFin, c.idContrato',     // devoluciones pendientes: la más atrasada primero
     ];
 
     /** Largo máximo de contrato.motivoRechazo. */
@@ -139,6 +141,32 @@ class Contrato
             'subtotal' => $contrato['subtotal'],
             'deposito' => $contrato['depositoGarantia'],
             'total'    => $contrato['totalEstimado'],
+        ];
+    }
+
+    /**
+     * Seguimiento de las líneas (Contrato::lineas()): si quedan equipos por entregar
+     * (contrato Aprobado o Activo), por recibir (Activo) y cuántos ya se devolvieron.
+     *
+     * @return array ['entregar' => bool, 'recibir' => bool, 'devueltos' => int]
+     */
+    public static function seguimiento(array $contrato, array $lineas): array
+    {
+        $sinEntregar = $sinRecibir = false;
+        $devueltos = 0;
+        foreach ($lineas as $linea) {
+            if ($linea['fechaEntrega'] === null) {
+                $sinEntregar = true;
+            } elseif ($linea['fechaDevolucion'] === null) {
+                $sinRecibir = true;
+            } else {
+                $devueltos++;
+            }
+        }
+        return [
+            'entregar'  => $sinEntregar && in_array($contrato['estado'], ['Aprobado', 'Activo'], true),
+            'recibir'   => $sinRecibir && $contrato['estado'] === 'Activo',
+            'devueltos' => $devueltos,
         ];
     }
 
@@ -327,6 +355,16 @@ class Contrato
     // ---------------------------------------------------------------------
     // Cambios
     // ---------------------------------------------------------------------
+
+    /**
+     * Dentro de una transacción, bloquea la fila del contrato hasta el commit: dos
+     * entregas o devoluciones del mismo contrato se hacen una después de la otra
+     * (sin esto, dos INSERT simultáneos de la misma línea terminan en un deadlock).
+     */
+    public static function bloquear(int $idContrato): void
+    {
+        Database::conexion()->prepare('SELECT idContrato FROM contrato WHERE idContrato = ? FOR UPDATE')->execute([$idContrato]);
+    }
 
     /**
      * Cancela la solicitud del cliente. El WHERE incluye idCliente y estado = 'Pendiente':
