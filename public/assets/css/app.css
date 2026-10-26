@@ -1205,6 +1205,30 @@ a.pildora-usuario:hover {
     margin: 0;
 }
 
+/* Un solo botón en el pie: ocupa todo el ancho */
+.modal-er .modal-footer > :only-child {
+    grid-column: 1 / -1;
+}
+
+/* Contraseña temporal en grande con su botón "Copiar" (componentes/claveTemporal.php) */
+.clave-temporal {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--er-fondo-tabla);
+    border: 1px dashed var(--er-gris-claro);
+    border-radius: var(--er-radio-control);
+}
+
+.clave-temporal code {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--er-texto);
+}
+
 .modal-er .modal-footer .btn {
     padding-top: 12px;
     padding-bottom: 12px;

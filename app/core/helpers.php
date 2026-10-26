@@ -358,6 +358,23 @@ function flash(string $tipo, string $mensaje): void
     $_SESSION['flash'][] = ['tipo' => $tipo, 'mensaje' => $mensaje];
 }
 
+/**
+ * Contraseña temporal recién generada (usuario nuevo o restablecida): viaja en la sesión
+ * hasta la siguiente página, que la muestra en el cuadro componentes/claveTemporal.php.
+ */
+function flashClaveTemporal(string $nombre, string $correo, string $clave): void
+{
+    $_SESSION['claveTemporal'] = ['nombre' => $nombre, 'correo' => $correo, 'clave' => $clave];
+}
+
+/** Toma la contraseña temporal y la BORRA de la sesión: al recargar ya no aparece. */
+function tomarClaveTemporal(): ?array
+{
+    $dato = $_SESSION['claveTemporal'] ?? null;
+    unset($_SESSION['claveTemporal']);
+    return $dato;
+}
+
 function flashes(): array
 {
     $mensajes = $_SESSION['flash'] ?? [];

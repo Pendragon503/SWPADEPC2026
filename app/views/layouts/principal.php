@@ -61,6 +61,7 @@ $usuario = Auth::usuario();
 
         <main class="app-contenido">
             <?php require RAIZ . '/app/views/layouts/mensajes.php'; ?>
+            <?php require RAIZ . '/app/views/componentes/claveTemporal.php'; // solo si hay una recién generada ?>
             <?= $contenido ?>
         </main>
     </div>

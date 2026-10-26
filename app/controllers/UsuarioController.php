@@ -51,8 +51,8 @@ class UsuarioController extends Controller
         $this->siEsDuplicadoVolver(function () use ($datos, $clave): void {
             Usuario::crear($datos, $clave);
         }, $datos);
-        flash('success', "Se creó el usuario {$datos['correo']} ({$datos['rol']}). Su contraseña temporal es $clave. "
-            . 'Entrégasela: no se volverá a mostrar. Puede cambiarla en "Mi perfil".');
+        flash('success', "Se creó el usuario {$datos['correo']} ({$datos['rol']}). Podrá cambiar su contraseña en \"Mi perfil\".");
+        flashClaveTemporal("{$datos['nombres']} {$datos['apellidos']}", $datos['correo'], $clave);
         $this->redirect($this->urlVolver());
     }
 
@@ -95,8 +95,8 @@ class UsuarioController extends Controller
         } else {
             $clave = Usuario::generarClaveTemporal();
             Usuario::actualizarClaveHash((int) $usuario['idUsuario'], password_hash($clave, PASSWORD_DEFAULT));
-            flash('success', "Se restableció la contraseña de {$usuario['correo']}. Su contraseña temporal es $clave. "
-                . 'Entrégasela: no se volverá a mostrar.');
+            flash('success', "Se restableció la contraseña de {$usuario['correo']}: la anterior ya no funciona.");
+            flashClaveTemporal("{$usuario['nombres']} {$usuario['apellidos']}", $usuario['correo'], $clave);
         }
         $this->redirect($this->urlVolver());
     }
