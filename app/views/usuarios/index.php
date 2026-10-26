@@ -172,8 +172,12 @@ $campos = [
                         </select>
                         <?php if (isset($errores['rol'])): ?><div class="invalid-feedback"><?= e($errores['rol']) ?></div><?php endif; ?>
                     </div>
-                    <div class="col-md-6 d-flex align-items-end" data-solo-al-crear<?= $editando ? ' hidden' : '' ?>>
+                    <?php // Solo al crear (data-solo-al-crear). Sin d-flex: su display !important le gana a "hidden". ?>
+                    <div class="col-md-6 pt-md-4" data-solo-al-crear<?= $editando ? ' hidden' : '' ?>>
                         <p class="form-text mb-0">Se generará una contraseña temporal que verás una sola vez al guardar.</p>
+                    </div>
+                    <div class="col-12" data-solo-al-editar<?= $editando ? '' : ' hidden' ?>>
+                        <p class="form-text mb-0">Editar no cambia la contraseña.</p>
                     </div>
                 </div>
             </div>
