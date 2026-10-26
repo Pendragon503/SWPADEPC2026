@@ -2501,6 +2501,24 @@ a.tarjeta-equipo-imagen {
 }
 
 /* Tarjeta del login */
+/* Registro de clientes: la misma tarjeta, más ancha para dos columnas */
+.tarjeta-registro.tarjeta-acceso {
+    max-width: 720px;
+}
+
+/* Enlace al pie de la tarjeta ("Crear una cuenta", "Inicia sesión") */
+.pie-acceso {
+    margin: 18px 0 0;
+    font-size: 13.5px;
+    text-align: center;
+    color: var(--er-texto-2);
+}
+
+.pie-acceso a {
+    font-weight: 700;
+    color: var(--er-naranja-texto);
+}
+
 .tarjeta-acceso {
     width: 100%;
     max-width: 420px;

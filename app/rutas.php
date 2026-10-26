@@ -13,6 +13,10 @@ $router->get('/login', 'AuthController@mostrarLogin');
 $router->post('/login', 'AuthController@login');
 $router->post('/logout', 'AuthController@logout');
 
+// Registro de clientes desde el login (público)
+$router->get('/registro', 'RegistroController@mostrar');
+$router->post('/registro', 'RegistroController@guardar');
+
 // Paneles por rol
 $router->get('/admin', 'AdminController@dashboard');
 $router->get('/operador', 'OperadorController@dashboard');
