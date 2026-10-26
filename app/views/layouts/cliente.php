@@ -14,7 +14,7 @@ $menuCliente = [
     ['catalogo', 'bi-grid-3x3-gap-fill', 'Catálogo', '/cliente/catalogo'],
     ['disponibilidad', 'bi-calendar-check-fill', 'Disponibilidad', '/cliente/disponibilidad'],
     ['alquileres', 'bi-clipboard-fill', 'Mis alquileres', '/cliente/alquileres'],
-    ['perfil', 'bi-person-fill', 'Mi perfil', '#'],
+    ['perfil', 'bi-person-fill', 'Mi perfil', '/perfil'],
 ];
 $activo = $menuActivo ?? 'inicio';
 
