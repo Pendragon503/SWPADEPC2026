@@ -60,6 +60,36 @@ final class Auth
         return null;
     }
 
+    /**
+     * Se llama en CADA petición (app/bootstrap.php). Antes, activo solo se revisaba al
+     * iniciar sesión: un usuario desactivado seguía trabajando hasta salir. Ahora, si hay
+     * sesión, UNA consulta corta por clave primaria revisa que el usuario y su rol sigan
+     * activos y que el rol no haya cambiado; si no, cierra la sesión y manda al login.
+     */
+    public static function verificarVigencia(): void
+    {
+        if (!self::estaAutenticado()) {
+            return;
+        }
+        $sentencia = Database::conexion()->prepare(
+            'SELECT u.activo AND r.activo AS vigente, r.nombre AS rol
+               FROM usuario u JOIN rol r ON r.idRol = u.idRol
+              WHERE u.idUsuario = ?'
+        );
+        $sentencia->execute([self::id()]);
+        $fila = $sentencia->fetch();
+        if ($fila !== false && $fila['vigente'] && $fila['rol'] === self::rol()) {
+            return;
+        }
+
+        self::cerrarSesion();
+        flash('warning', $fila !== false && $fila['vigente']
+            ? 'Tu rol cambió. Inicia sesión de nuevo.'
+            : 'Tu cuenta fue desactivada. Contacta al administrador.');
+        header('Location: ' . url('/login'));
+        exit;
+    }
+
     public static function cerrarSesion(): void
     {
         destruirSesion();
