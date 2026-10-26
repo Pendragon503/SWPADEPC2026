@@ -140,6 +140,23 @@ class Usuario
     }
 
     /**
+     * Cambio de contraseña desde "Mi perfil": la actual debe ser correcta y la nueva
+     * válida, confirmada y distinta. Devuelve ['claveActual' | 'clave' | 'confirmacion' => 'mensaje'].
+     */
+    public static function validarCambioClave(int $idUsuario, string $actual, string $nueva, string $confirmacion): array
+    {
+        $sentencia = Database::conexion()->prepare('SELECT claveHash FROM usuario WHERE idUsuario = ?');
+        $sentencia->execute([$idUsuario]);
+        if (!password_verify($actual, (string) $sentencia->fetchColumn())) {
+            return ['claveActual' => 'La contraseña actual no es correcta.'];
+        }
+        if ($nueva === $actual) {
+            return ['clave' => 'La nueva contraseña debe ser distinta de la actual.'];
+        }
+        return self::validarClave($nueva, $confirmacion);
+    }
+
+    /**
      * Contraseña temporal legible para entregar a la persona: 10 caracteres sin los que
      * se confunden (0/O, 1/l/I), con mayúsculas, minúsculas y números.
      */

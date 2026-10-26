@@ -13,6 +13,11 @@ $router->get('/login', 'AuthController@mostrarLogin');
 $router->post('/login', 'AuthController@login');
 $router->post('/logout', 'AuthController@logout');
 
+// Mi perfil (los tres roles)
+$router->get('/perfil', 'PerfilController@index');
+$router->post('/perfil/datos', 'PerfilController@datos');
+$router->post('/perfil/clave', 'PerfilController@clave');
+
 // Registro de clientes desde el login (público)
 $router->get('/registro', 'RegistroController@mostrar');
 $router->post('/registro', 'RegistroController@guardar');

@@ -90,6 +90,14 @@ final class Auth
         exit;
     }
 
+    /** Después de editar "Mi perfil": el nombre y el correo de la sesión se actualizan. */
+    public static function refrescarDatos(array $datos): void
+    {
+        foreach (['nombres', 'apellidos', 'correo'] as $campo) {
+            $_SESSION['usuario'][$campo] = $datos[$campo];
+        }
+    }
+
     public static function cerrarSesion(): void
     {
         destruirSesion();
