@@ -24,14 +24,8 @@ class Cliente
         'tipoPersona', 'razonSocial', 'documentoTributario', 'contactoAlterno', 'telefonoAlterno', 'observaciones',
     ];
 
-    /** Largo máximo de cada campo, igual que en database/01_schema.sql. */
+    /** Largo máximo de los campos propios del cliente (los de la persona están en Usuario). */
     private const LARGOS = [
-        'nombres'             => 80,
-        'apellidos'           => 80,
-        'correo'              => 120,
-        'telefono'            => 20,
-        'documentoIdentidad'  => 25,
-        'direccion'           => 250,
         'razonSocial'         => 150,
         'documentoTributario' => 25,
         'contactoAlterno'     => 120,
@@ -48,10 +42,8 @@ class Cliente
                                     THEN cl.razonSocial ELSE CONCAT(u.nombres, ' ', u.apellidos) END";
 
     /** Mensajes del error 1062 según el UNIQUE que lo produjo (ver esValorDuplicado()). */
-    public const DUPLICADOS = [
-        'uq_usuario_correo'          => ['correo', 'Ya hay un usuario con ese correo.'],
-        'uq_usuario_documento'       => ['documentoIdentidad', 'Ya hay un usuario con ese documento de identidad.'],
-        'uq_cliente_doctributario'   => ['documentoTributario', 'Ya hay un cliente con ese documento tributario.'],
+    public const DUPLICADOS = Usuario::DUPLICADOS + [
+        'uq_cliente_doctributario' => ['documentoTributario', 'Ya hay un cliente con ese documento tributario.'],
     ];
 
     // ---------------------------------------------------------------------
@@ -66,27 +58,14 @@ class Cliente
      */
     public static function validar(array $datos, ?array $actual): array
     {
-        $errores = [];
-        $idUsuario = $actual === null ? 0 : (int) $actual['idUsuario'];
         $idCliente = $actual === null ? 0 : (int) $actual['idCliente'];
 
-        foreach ($datos as $valor) {
-            if (is_string($valor) && !mb_check_encoding($valor, 'UTF-8')) {
-                return ['nombres' => 'El texto tiene caracteres no válidos. Escríbelo de nuevo.'];
-            }
-        }
+        // Persona (o contacto, si es jurídica): nombres, documento, correo y teléfono (Usuario).
+        $errores = Usuario::validarPersona($datos, $actual === null ? 0 : (int) $actual['idUsuario']);
         foreach (self::LARGOS as $campo => $largo) {
             if (mb_strlen($datos[$campo]) > $largo) {
                 $errores[$campo] = "No puede tener más de $largo caracteres.";
             }
-        }
-
-        // Nombre de la persona (o del contacto, si es jurídica): lo pide la tabla usuario.
-        if ($datos['nombres'] === '' && !isset($errores['nombres'])) {
-            $errores['nombres'] = 'Escribe los nombres.';
-        }
-        if ($datos['apellidos'] === '' && !isset($errores['apellidos'])) {
-            $errores['apellidos'] = 'Escribe los apellidos.';
         }
 
         // Tipo de persona. Si es jurídica, la razón social y el documento tributario son obligatorios.
@@ -101,15 +80,6 @@ class Cliente
             }
         }
 
-        // Documento de identidad: obligatorio (RF-03) y único.
-        if ($datos['documentoIdentidad'] === '') {
-            $errores['documentoIdentidad'] = 'Escribe el documento de identidad (DUI o pasaporte).';
-        } elseif (!isset($errores['documentoIdentidad']) && !preg_match('/^[0-9A-Za-z-]+$/', $datos['documentoIdentidad'])) {
-            $errores['documentoIdentidad'] = 'Usa solo números, letras y guiones (por ejemplo 01234567-8).';
-        } elseif (!isset($errores['documentoIdentidad']) && self::existeEnUsuario('documentoIdentidad', $datos['documentoIdentidad'], $idUsuario)) {
-            $errores['documentoIdentidad'] = self::DUPLICADOS['uq_usuario_documento'][1];
-        }
-
         $nit = $datos['documentoTributario'];
         if ($nit !== '' && !isset($errores['documentoTributario'])) {
             if (!preg_match('/^[0-9A-Za-z-]+$/', $nit)) {
@@ -119,21 +89,10 @@ class Cliente
             }
         }
 
-        // Medio de contacto: el correo es obligatorio (con él inicia sesión) y único;
-        // los teléfonos son opcionales, pero si se escriben deben tener formato de teléfono.
-        if ($datos['correo'] === '') {
-            $errores['correo'] = 'Escribe el correo: es el medio de contacto y el usuario para iniciar sesión.';
-        } elseif (!isset($errores['correo']) && !filter_var($datos['correo'], FILTER_VALIDATE_EMAIL)) {
-            $errores['correo'] = 'Escribe un correo válido, por ejemplo nombre@empresa.com.';
-        } elseif (!isset($errores['correo']) && self::existeEnUsuario('correo', $datos['correo'], $idUsuario)) {
-            $errores['correo'] = self::DUPLICADOS['uq_usuario_correo'][1];
+        // El correo (medio de contacto de RF-03) ya lo validó Usuario; aquí, el teléfono alterno.
+        if ($datos['telefonoAlterno'] !== '' && !isset($errores['telefonoAlterno']) && !Usuario::esTelefono($datos['telefonoAlterno'])) {
+            $errores['telefonoAlterno'] = 'El teléfono alterno no es válido. Ejemplo: 2222-0000 o +503 7000-0000.';
         }
-        foreach (['telefono' => 'El teléfono', 'telefonoAlterno' => 'El teléfono alterno'] as $campo => $texto) {
-            if ($datos[$campo] !== '' && !isset($errores[$campo]) && !preg_match('/^\+?[0-9][0-9 ()-]{6,18}$/', $datos[$campo])) {
-                $errores[$campo] = "$texto no es válido. Ejemplo: 2222-0000 o +503 7000-0000.";
-            }
-        }
-
         return $errores;
     }
 
@@ -377,36 +336,9 @@ class Cliente
             ->execute([$activar ? 1 : 0, $cliente['idUsuario']]);
     }
 
-    /**
-     * Contraseña temporal legible para entregar al cliente: 10 caracteres sin los que
-     * se confunden (0/O, 1/l/I), con mayúsculas, minúsculas y números.
-     */
-    public static function generarClaveTemporal(): string
-    {
-        $letras = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghjkmnpqrstuvwxyz';
-        $numeros = '23456789';
-        $todos = $letras . $numeros;
-        $clave = $letras[random_int(0, 23)] . $letras[random_int(24, strlen($letras) - 1)] . $numeros[random_int(0, 7)];
-        for ($i = 0; $i < 7; $i++) {
-            $clave .= $todos[random_int(0, strlen($todos) - 1)];
-        }
-        return str_shuffle($clave);
-    }
-
     // ---------------------------------------------------------------------
     // Ayudantes privados
     // ---------------------------------------------------------------------
-
-    /** ¿Otro usuario (distinto de $excepto) ya usa ese valor en la columna? Solo columnas fijas. */
-    private static function existeEnUsuario(string $columna, string $valor, int $excepto): bool
-    {
-        $columnas = ['correo' => 'correo', 'documentoIdentidad' => 'documentoIdentidad'];
-        $sentencia = Database::conexion()->prepare(
-            "SELECT COUNT(*) FROM usuario WHERE {$columnas[$columna]} = ? AND idUsuario <> ?"
-        );
-        $sentencia->execute([$valor, $excepto]);
-        return (int) $sentencia->fetchColumn() > 0;
-    }
 
     private static function existeTributario(string $nit, int $excepto): bool
     {

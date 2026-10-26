@@ -70,7 +70,7 @@ class GestionClienteController extends Controller
             $this->volverConErrores('crear', 0, $datos, $errores);
         }
 
-        $claveTemporal = Cliente::generarClaveTemporal();
+        $claveTemporal = Usuario::generarClaveTemporal();
         try {
             $nuevo = Cliente::crear($datos, $claveTemporal);
         } catch (PDOException $e) {
