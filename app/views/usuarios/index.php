@@ -106,7 +106,16 @@ $campos = [
                                         title="Editar" aria-label="Editar <?= e($usuario['correo']) ?>">
                                     <i class="bi bi-pencil-fill" aria-hidden="true"></i>
                                 </button>
-                                <?php if (!$esYo): // no puedes desactivarte a ti mismo ?>
+                                <?php if (!$esYo): // ni desactivarte ni restablecer tu contraseña (para eso está "Mi perfil") ?>
+                                    <form method="post" action="<?= e(url('/admin/usuarios/restablecer-clave')) ?>" class="d-inline"
+                                          data-confirmar="¿Restablecer la contraseña de <?= e($usuario['correo']) ?>? Su contraseña actual dejará de funcionar.">
+                                        <?= csrfCampo() ?>
+                                        <input type="hidden" name="idUsuario" value="<?= e($usuario['idUsuario']) ?>">
+                                        <input type="hidden" name="volver" value="<?= e($volver) ?>">
+                                        <button type="submit" class="btn btn-secondary btn-sm" title="Restablecer contraseña" aria-label="Restablecer la contraseña de <?= e($usuario['correo']) ?>">
+                                            <i class="bi bi-key-fill" aria-hidden="true"></i>
+                                        </button>
+                                    </form>
                                     <form method="post" action="<?= e(url('/admin/usuarios/cambiar-estado')) ?>" class="d-inline"
                                         <?= $usuario['activo'] ? 'data-confirmar="¿Desactivar a ' . e($usuario['correo']) . '? Perderá el acceso de inmediato."' : '' ?>>
                                         <?= csrfCampo() ?>
@@ -177,7 +186,7 @@ $campos = [
                         <p class="form-text mb-0">Se generará una contraseña temporal que verás una sola vez al guardar.</p>
                     </div>
                     <div class="col-12" data-solo-al-editar<?= $editando ? '' : ' hidden' ?>>
-                        <p class="form-text mb-0">Editar no cambia la contraseña.</p>
+                        <p class="form-text mb-0">Editar no cambia la contraseña. Para darle una nueva, usa "Restablecer contraseña" (icono de llave).</p>
                     </div>
                 </div>
             </div>

@@ -8,6 +8,7 @@
  *   POST /admin/usuarios/guardar                          -> guardar        crear (contraseña temporal)
  *   POST /admin/usuarios/actualizar                       -> actualizar     editar datos y rol
  *   POST /admin/usuarios/cambiar-estado                   -> cambiarEstado  activar / desactivar
+ *   POST /admin/usuarios/restablecer-clave                -> restablecerClave  contraseña temporal nueva
  */
 declare(strict_types=1);
 
@@ -80,6 +81,22 @@ class UsuarioController extends Controller
         } else {
             Usuario::cambiarActivo((int) $usuario['idUsuario'], $activar);
             flash('success', $activar ? "Se activó {$usuario['correo']}." : "Se desactivó {$usuario['correo']}: su sesión se cerrará en su siguiente clic.");
+        }
+        $this->redirect($this->urlVolver());
+    }
+
+    /** POST /admin/usuarios/restablecer-clave: contraseña temporal nueva, mostrada una sola vez. */
+    public function restablecerClave(): void
+    {
+        $usuario = $this->usuario((int) ($_POST['idUsuario'] ?? 0));
+        $error = Usuario::validarRestablecer($usuario);
+        if ($error !== null) {
+            flash('danger', $error);
+        } else {
+            $clave = Usuario::generarClaveTemporal();
+            Usuario::actualizarClaveHash((int) $usuario['idUsuario'], password_hash($clave, PASSWORD_DEFAULT));
+            flash('success', "Se restableció la contraseña de {$usuario['correo']}. Su contraseña temporal es $clave. "
+                . 'Entrégasela: no se volverá a mostrar.');
         }
         $this->redirect($this->urlVolver());
     }

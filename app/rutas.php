@@ -88,6 +88,7 @@ $router->get('/admin/usuarios', 'UsuarioController@index');
 $router->post('/admin/usuarios/guardar', 'UsuarioController@guardar');
 $router->post('/admin/usuarios/actualizar', 'UsuarioController@actualizar');
 $router->post('/admin/usuarios/cambiar-estado', 'UsuarioController@cambiarEstado');
+$router->post('/admin/usuarios/restablecer-clave', 'UsuarioController@restablecerClave');
 
 // Administrador: reportes (RF-14)
 $router->get('/admin/reportes', 'ReporteController@index');

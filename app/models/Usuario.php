@@ -119,6 +119,14 @@ class Usuario
         return null;
     }
 
+    /** ¿El administrador puede restablecer esta contraseña? La propia se cambia en "Mi perfil". */
+    public static function validarRestablecer(array $usuario): ?string
+    {
+        return (int) $usuario['idUsuario'] === Auth::id()
+            ? 'Tu propia contraseña no se restablece aquí: cámbiala en "Mi perfil".'
+            : null;
+    }
+
     public static function esTelefono(string $valor): bool
     {
         return (bool) preg_match('/^\+?[0-9][0-9 ()-]{6,18}$/', $valor);
