@@ -17,6 +17,12 @@ class Usuario
         'direccion'          => 250,
     ];
 
+    /** Roles del personal (los clientes se gestionan en Clientes). */
+    public const ROLES_INTERNOS = ['Administrador', 'Operador'];
+
+    /** Campos del modal de crear/editar usuario interno. */
+    public const CAMPOS_FORMULARIO = ['idUsuario', 'nombres', 'apellidos', 'correo', 'telefono', 'documentoIdentidad', 'direccion', 'rol'];
+
     /** Mensajes del error 1062 según el UNIQUE que lo produjo (ver esValorDuplicado()). */
     public const DUPLICADOS = [
         'uq_usuario_correo'    => ['correo', 'Ya hay un usuario con ese correo.'],
@@ -77,6 +83,42 @@ class Usuario
         return $errores;
     }
 
+    /**
+     * Usuario interno (RF-02): datos de la persona y el rol. Al editar, no puedes quitarte
+     * a ti mismo el rol de Administrador ni dejar el sistema sin un administrador activo.
+     *
+     * @param array|null $actual el usuario como está en la base (null al crear)
+     */
+    public static function validar(array $datos, ?array $actual): array
+    {
+        $errores = self::validarPersona($datos, $actual === null ? 0 : (int) $actual['idUsuario']);
+        if (!in_array($datos['rol'], self::ROLES_INTERNOS, true)) {
+            $errores['rol'] = 'Elige el rol: Administrador u Operador.';
+        } elseif ($actual !== null && $actual['rol'] === 'Administrador' && $datos['rol'] !== 'Administrador') {
+            if ((int) $actual['idUsuario'] === Auth::id()) {
+                $errores['rol'] = 'No puedes quitarte a ti mismo el rol de Administrador.';
+            } elseif ($actual['activo'] && self::administradoresActivos((int) $actual['idUsuario']) === 0) {
+                $errores['rol'] = 'Debe quedar al menos un administrador activo.';
+            }
+        }
+        return $errores;
+    }
+
+    /** ¿Se puede activar o desactivar? Devuelve null o el motivo. */
+    public static function validarCambioActivo(array $usuario, bool $activar): ?string
+    {
+        if ((bool) $usuario['activo'] === $activar) {
+            return $activar ? 'El usuario ya está activo.' : 'El usuario ya está desactivado.';
+        }
+        if (!$activar && (int) $usuario['idUsuario'] === Auth::id()) {
+            return 'No puedes desactivarte a ti mismo.';
+        }
+        if (!$activar && $usuario['rol'] === 'Administrador' && self::administradoresActivos((int) $usuario['idUsuario']) === 0) {
+            return 'No se puede desactivar: es el único administrador activo.';
+        }
+        return null;
+    }
+
     public static function esTelefono(string $valor): bool
     {
         return (bool) preg_match('/^\+?[0-9][0-9 ()-]{6,18}$/', $valor);
@@ -111,6 +153,122 @@ class Usuario
             $clave .= $todos[random_int(0, strlen($todos) - 1)];
         }
         return str_shuffle($clave);
+    }
+
+    /** Administradores activos sin contar a $excepto. */
+    private static function administradoresActivos(int $excepto): int
+    {
+        $sentencia = Database::conexion()->prepare(
+            "SELECT COUNT(*) FROM usuario u JOIN rol r ON r.idRol = u.idRol
+              WHERE r.nombre = 'Administrador' AND u.activo = TRUE AND u.idUsuario <> ?"
+        );
+        $sentencia->execute([$excepto]);
+        return (int) $sentencia->fetchColumn();
+    }
+
+    // ---------------------------------------------------------------------
+    // Consultas y cambios de usuarios internos
+    // ---------------------------------------------------------------------
+
+    /** WHERE del listado: solo personal; texto (nombre, correo, documento), rol y activo ('1' | '0' | 'todos'). */
+    private static function condiciones(array $filtros): array
+    {
+        $condiciones = ["r.nombre IN ('Administrador', 'Operador')"];
+        $parametros = [];
+        if ($filtros['buscar'] !== '') {
+            $condiciones[] = "(CONCAT(u.nombres, ' ', u.apellidos) LIKE ? OR u.correo LIKE ? OR u.documentoIdentidad LIKE ?)";
+            array_push($parametros, "%{$filtros['buscar']}%", "%{$filtros['buscar']}%", "%{$filtros['buscar']}%");
+        }
+        if ($filtros['rol'] !== '') {
+            $condiciones[] = 'r.nombre = ?';
+            $parametros[] = $filtros['rol'];
+        }
+        if ($filtros['activo'] !== 'todos') {
+            $condiciones[] = 'u.activo = ?';
+            $parametros[] = (int) $filtros['activo'];
+        }
+        return ['WHERE ' . implode(' AND ', $condiciones), $parametros];
+    }
+
+    public static function contar(array $filtros): int
+    {
+        [$where, $parametros] = self::condiciones($filtros);
+        $sentencia = Database::conexion()->prepare("SELECT COUNT(*) FROM usuario u JOIN rol r ON r.idRol = u.idRol $where");
+        $sentencia->execute($parametros);
+        return (int) $sentencia->fetchColumn();
+    }
+
+    public static function listar(array $filtros, int $limite, int $desplazamiento): array
+    {
+        [$where, $parametros] = self::condiciones($filtros);
+        $sentencia = Database::conexion()->prepare(
+            'SELECT u.idUsuario, u.nombres, u.apellidos, u.correo, u.telefono, u.documentoIdentidad, u.direccion,
+                    u.activo, u.ultimoAcceso, r.nombre AS rol
+               FROM usuario u JOIN rol r ON r.idRol = u.idRol
+               ' . $where . '
+              ORDER BY r.nombre, u.nombres, u.apellidos
+              LIMIT ' . $limite . ' OFFSET ' . $desplazamiento
+        );
+        $sentencia->execute($parametros);
+        return $sentencia->fetchAll();
+    }
+
+    /** Usuario con su rol (cualquier rol), o null. */
+    public static function buscarPorId(int $idUsuario): ?array
+    {
+        $sentencia = Database::conexion()->prepare(
+            'SELECT u.idUsuario, u.nombres, u.apellidos, u.correo, u.telefono, u.documentoIdentidad, u.direccion,
+                    u.activo, u.ultimoAcceso, u.fechaRegistro, r.nombre AS rol
+               FROM usuario u JOIN rol r ON r.idRol = u.idRol
+              WHERE u.idUsuario = ?'
+        );
+        $sentencia->execute([$idUsuario]);
+        return $sentencia->fetch() ?: null;
+    }
+
+    /** Valores para llenar el modal al editar (data-campos): los NULL pasan a texto vacío. */
+    public static function camposFormulario(array $usuario): array
+    {
+        $campos = [];
+        foreach (self::CAMPOS_FORMULARIO as $campo) {
+            $campos[$campo] = (string) ($usuario[$campo] ?? '');
+        }
+        return $campos;
+    }
+
+    /** Crea un usuario interno con su contraseña temporal (guardada con password_hash). Devuelve el id. */
+    public static function crear(array $datos, string $claveTemporal): int
+    {
+        Database::conexion()->prepare(
+            'INSERT INTO usuario (nombres, apellidos, correo, telefono, documentoIdentidad, direccion, claveHash, idRol)
+             VALUES (?, ?, ?, ?, ?, ?, ?, (SELECT idRol FROM rol WHERE nombre = ?))'
+        )->execute(array_merge(self::valores($datos), [password_hash($claveTemporal, PASSWORD_DEFAULT), $datos['rol']]));
+        return (int) Database::conexion()->lastInsertId();
+    }
+
+    /** Actualiza los datos de la persona y su rol (la contraseña no se toca). */
+    public static function actualizar(int $idUsuario, array $datos): void
+    {
+        Database::conexion()->prepare(
+            'UPDATE usuario SET nombres = ?, apellidos = ?, correo = ?, telefono = ?, documentoIdentidad = ?, direccion = ?,
+                                idRol = (SELECT idRol FROM rol WHERE nombre = ?)
+              WHERE idUsuario = ?'
+        )->execute(array_merge(self::valores($datos), [$datos['rol'], $idUsuario]));
+    }
+
+    public static function cambiarActivo(int $idUsuario, bool $activar): void
+    {
+        Database::conexion()->prepare('UPDATE usuario SET activo = ? WHERE idUsuario = ?')->execute([$activar ? 1 : 0, $idUsuario]);
+    }
+
+    /** Datos de la persona en el orden de los INSERT/UPDATE; los opcionales vacíos van como NULL. */
+    private static function valores(array $datos): array
+    {
+        $nulo = function (string $valor): ?string {
+            return $valor === '' ? null : $valor;
+        };
+        return [$datos['nombres'], $datos['apellidos'], $datos['correo'], $nulo($datos['telefono']),
+            $datos['documentoIdentidad'], $nulo($datos['direccion'])];
     }
 
     /** ¿Otro usuario (distinto de $excepto) ya usa ese valor? Solo columnas fijas. */

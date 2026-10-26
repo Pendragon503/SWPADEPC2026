@@ -74,6 +74,12 @@ $router->get('/entregas', 'OperacionController@entregas');
 $router->get('/entregas/registrar', 'OperacionController@formularioEntrega');   // ?id=9
 $router->post('/entregas/guardar', 'OperacionController@guardarEntrega');
 
+// Administrador: usuarios internos (RF-02)
+$router->get('/admin/usuarios', 'UsuarioController@index');
+$router->post('/admin/usuarios/guardar', 'UsuarioController@guardar');
+$router->post('/admin/usuarios/actualizar', 'UsuarioController@actualizar');
+$router->post('/admin/usuarios/cambiar-estado', 'UsuarioController@cambiarEstado');
+
 // Administrador: reportes (RF-14)
 $router->get('/admin/reportes', 'ReporteController@index');
 $router->get('/admin/reportes/equipo', 'ReporteController@equipo');   // ?id=4
