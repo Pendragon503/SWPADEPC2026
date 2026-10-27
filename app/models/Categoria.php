@@ -161,6 +161,21 @@ class Categoria
      * Crea una categoría activa y devuelve su id. Recibe los datos ya validados.
      * Una descripción vacía se guarda como NULL.
      */
+    /**
+     * Número que tendrá la próxima categoría, para mostrar su código en el modal: el
+     * AUTO_INCREMENT de la tabla (que salta los números ya usados, aunque se hayan borrado).
+     * information_schema_stats_expiry = 0 pide el valor actual y no el guardado en caché.
+     * Solo es para mostrar: si dos personas crean a la vez, el código real sale del id.
+     */
+    public static function siguienteId(): int
+    {
+        $conexion = Database::conexion();
+        $conexion->exec('SET SESSION information_schema_stats_expiry = 0');
+        return (int) $conexion->query(
+            "SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'categoria'"
+        )->fetchColumn();
+    }
+
     public static function crear(array $datos): int
     {
         $conexion = Database::conexion();

@@ -72,6 +72,8 @@ class CategoriaController extends Controller
             'total'          => $total,
             'desplazamiento' => $desplazamiento,
             'formulario'     => $formulario,
+            // Código que se muestra en "Crear categoría" (solo para mostrar: el real sale del id).
+            'siguienteCodigo' => codigo('CAT', Categoria::siguienteId()),
         ]);
     }
 

@@ -17,7 +17,8 @@
  * @var int        $totalPaginas
  * @var int        $total
  * @var int        $desplazamiento
- * @var array|null $formulario  datos del último envío con errores (o null)
+ * @var array|null $formulario       datos del último envío con errores (o null)
+ * @var string     $siguienteCodigo  código que se muestra al crear (CAT-NN)
  */
 
 // ---------------------------------------------------------------------
@@ -48,7 +49,7 @@ $urlActualizar = url('/admin/categorias/actualizar');
             data-bs-toggle="modal" data-bs-target="#modalCategoria"
             data-accion="<?= e($urlGuardar) ?>"
             data-titulo="Crear categoría"
-            data-campos="<?= e(json_encode(['idCategoria' => '', 'nombre' => '', 'descripcion' => ''])) ?>">
+            data-campos="<?= e(json_encode(['idCategoria' => '', 'codigoCategoria' => $siguienteCodigo, 'nombre' => '', 'descripcion' => ''])) ?>">
         <i class="bi bi-plus-circle-fill" aria-hidden="true"></i> Crear categoría
     </button>
 </div>
@@ -102,9 +103,10 @@ $urlActualizar = url('/admin/categorias/actualizar');
                         $activa = (bool) $categoria['activa'];
                         // Datos que el botón "Editar" copia al modal (ver app.js).
                         $camposEditar = [
-                            'idCategoria' => $categoria['idCategoria'],
-                            'nombre'      => $categoria['nombre'],
-                            'descripcion' => $categoria['descripcion'] ?? '',
+                            'idCategoria'     => $categoria['idCategoria'],
+                            'codigoCategoria' => codigo('CAT', (int) $categoria['idCategoria']),
+                            'nombre'          => $categoria['nombre'],
+                            'descripcion'     => $categoria['descripcion'] ?? '',
                         ];
                         ?>
                         <tr>
@@ -195,6 +197,13 @@ $urlActualizar = url('/admin/categorias/actualizar');
                     <input type="hidden" name="idCategoria" value="<?= e($valores['idCategoria']) ?>">
                     <input type="hidden" name="buscar" value="<?= e($buscar) ?>">
                     <input type="hidden" name="pagina" value="<?= e($pagina) ?>">
+
+                    <?php // Solo se muestra: el código sale del número de la categoría (codigo('CAT', id)). ?>
+                    <div>
+                        <label for="codigoCategoria" class="form-label"><i class="bi bi-hash" aria-hidden="true"></i> Código de la categoría</label>
+                        <input type="text" id="codigoCategoria" name="codigoCategoria" class="form-control" readonly
+                               value="<?= e($valores['idCategoria'] !== '' ? codigo('CAT', (int) $valores['idCategoria']) : $siguienteCodigo) ?>">
+                    </div>
 
                     <div>
                         <label for="nombre" class="form-label"><i class="bi bi-tags-fill" aria-hidden="true"></i> Nombre de la categoría</label>
