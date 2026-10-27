@@ -2533,9 +2533,21 @@ a.tarjeta-equipo-imagen {
 }
 
 /* Tarjeta del login */
-/* Registro de clientes: la misma tarjeta, más ancha para dos columnas */
-.tarjeta-registro.tarjeta-acceso {
-    max-width: 720px;
+/* Registro de clientes (Figma "Registro"): subtítulo naranja y nota para empresas */
+.subtitulo-acceso.subtitulo-acceso-naranja {
+    font-weight: 600;
+    color: var(--er-naranja);
+}
+
+/* Campo de contraseña con error: sin el ícono de Bootstrap, que tapa el botón del ojo */
+.control-clave.is-invalid {
+    padding-right: 44px;
+    background-image: none;
+}
+
+.pie-acceso.nota-empresa {
+    margin-top: 8px;
+    font-size: 12.5px;
 }
 
 /* Enlace al pie de la tarjeta ("Crear una cuenta", "Inicia sesión") */

@@ -127,6 +127,35 @@ class Usuario
             : null;
     }
 
+    /**
+     * "Nombre completo" del registro -> ['nombres', 'apellidos'] (la tabla usuario los
+     * guarda por separado). Regla: las dos primeras palabras son los nombres y el resto
+     * los apellidos ("Juan Armando Pérez Almada" -> "Juan Armando" + "Pérez Almada").
+     * Con solo dos palabras, la primera es el nombre y la segunda el apellido
+     * ("Juan Pérez"), para que nadie quede sin apellido. Con una sola palabra los
+     * apellidos quedan vacíos y validarNombreCompleto() lo rechaza.
+     */
+    public static function separarNombre(string $nombreCompleto): array
+    {
+        $palabras = preg_split('/\s+/u', trim($nombreCompleto), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+        $cuantas = count($palabras) === 2 ? 1 : 2;
+        return [
+            'nombres'   => implode(' ', array_slice($palabras, 0, $cuantas)),
+            'apellidos' => implode(' ', array_slice($palabras, $cuantas)),
+        ];
+    }
+
+    /** El nombre completo debe traer al menos un nombre y un apellido. */
+    public static function validarNombreCompleto(array $partes): array
+    {
+        if ($partes['nombres'] === '') {
+            return ['nombreCompleto' => 'Escribe tu nombre completo.'];
+        }
+        return $partes['apellidos'] === ''
+            ? ['nombreCompleto' => 'Escribe tu nombre y tus apellidos, por ejemplo: Juan Pérez.']
+            : [];
+    }
+
     public static function esTelefono(string $valor): bool
     {
         return (bool) preg_match('/^\+?[0-9][0-9 ()-]{6,18}$/', $valor);

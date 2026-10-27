@@ -34,19 +34,24 @@ class RegistroController extends Controller
         ], 'simple');
     }
 
-    /** POST /registro: al terminar, al login con un mensaje (no inicia la sesión solo). */
+    /**
+     * POST /registro: al terminar, al login con un mensaje (no inicia la sesión solo).
+     * Desde aquí siempre se crea una persona Natural; las empresas (razón social y NIT)
+     * las registra el personal en Clientes.
+     */
     public function guardar(): void
     {
-        $datos = ['observaciones' => '', 'contactoAlterno' => '', 'telefonoAlterno' => '']; // solo los llena el personal
-        foreach (['nombres', 'apellidos', 'documentoIdentidad', 'correo', 'telefono', 'direccion', 'tipoPersona', 'razonSocial', 'documentoTributario'] as $campo) {
-            $datos[$campo] = trim((string) ($_POST[$campo] ?? ''));
-        }
-        $datos['correo'] = mb_strtolower($datos['correo']);
-        $datos['documentoIdentidad'] = mb_strtoupper($datos['documentoIdentidad']);
-        $datos['documentoTributario'] = mb_strtoupper($datos['documentoTributario']);
+        $nombreCompleto = trim((string) ($_POST['nombreCompleto'] ?? ''));
+        $partes = Usuario::separarNombre($nombreCompleto);
+        $datos = $partes + [
+            'documentoIdentidad' => mb_strtoupper(trim((string) ($_POST['documentoIdentidad'] ?? ''))),
+            'correo'             => mb_strtolower(trim((string) ($_POST['correo'] ?? ''))),
+            'tipoPersona'        => 'Natural',
+        ] + array_fill_keys(['telefono', 'direccion', 'razonSocial', 'documentoTributario', 'contactoAlterno', 'telefonoAlterno', 'observaciones'], '');
         $clave = (string) ($_POST['clave'] ?? '');
 
-        $errores = Cliente::validar($datos, null) + Usuario::validarClave($clave, (string) ($_POST['confirmacion'] ?? ''));
+        $errores = Usuario::validarNombreCompleto($partes) + Cliente::validar($datos, null)
+            + Usuario::validarClave($clave, (string) ($_POST['confirmacion'] ?? ''));
         if (!$errores) {
             try {
                 $nuevo = Cliente::crear($datos, $clave);
@@ -65,7 +70,8 @@ class RegistroController extends Controller
             }
         }
 
-        $_SESSION[self::SESION_FORMULARIO] = ['valores' => $datos, 'errores' => $errores]; // nunca se guarda la contraseña
+        // Se guarda lo escrito (nunca la contraseña) para volver a llenar el formulario.
+        $_SESSION[self::SESION_FORMULARIO] = ['valores' => $datos + ['nombreCompleto' => $nombreCompleto], 'errores' => $errores];
         flash('danger', 'Revisa los datos del formulario.');
         $this->redirect('/registro');
     }
