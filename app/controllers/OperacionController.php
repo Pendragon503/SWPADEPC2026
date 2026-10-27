@@ -4,7 +4,7 @@
  * Administrador y Operador. Los formularios se abren desde el detalle del contrato.
  *
  * Rutas (app/rutas.php):
- *   GET  /entregas                     -> entregas            contratos con equipos por entregar
+ *   GET  /entregas?tab=entregas|devoluciones -> entregas  (sección "Entregas y Devoluciones")
  *   GET  /entregas/registrar?id=9      -> formularioEntrega
  *   POST /entregas/guardar             -> guardarEntrega
  *   GET  /devoluciones                 -> devoluciones        contratos con equipos por recibir
@@ -26,6 +26,11 @@ class OperacionController extends Controller
     /** GET /entregas */
     public function entregas(): void
     {
+        // "Entregas y Devoluciones" tiene dos pestañas: Entregas pendientes y Devoluciones pendientes.
+        if (pestanaActual('operacion') === 'devoluciones') {
+            $this->devoluciones();
+            return;
+        }
         $this->pendientes('entrega', 'Entregas pendientes', 'Entregas y Devoluciones', 'inicio');
     }
 

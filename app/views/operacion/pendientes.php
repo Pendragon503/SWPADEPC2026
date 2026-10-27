@@ -13,7 +13,7 @@ $esEntrega = $tipo === 'entrega';
 ?>
 <div class="encabezado-pagina">
     <div>
-        <h2 class="encabezado-pagina-titulo"><?= $esEntrega ? 'Entregas pendientes' : 'Devoluciones pendientes' ?></h2>
+        <h2 class="encabezado-pagina-titulo">Entregas y Devoluciones</h2>
         <p class="encabezado-pagina-texto">
             <?= $esEntrega
                 ? 'Contratos aprobados con equipos por entregar en obra, del que debía salir primero.'
@@ -21,6 +21,7 @@ $esEntrega = $tipo === 'entrega';
         </p>
     </div>
 </div>
+<?php $grupo = 'operacion'; $pestana = $esEntrega ? 'entregas' : 'devoluciones'; require RAIZ . '/app/views/componentes/pestanas.php'; ?>
 
 <section class="panel">
     <div class="panel-cuerpo">
@@ -75,8 +76,8 @@ $esEntrega = $tipo === 'entrega';
             <div class="pie-tabla">
                 <p class="pie-tabla-texto">Mostrando <?= e($desplazamiento + 1) ?>–<?= e($desplazamiento + count($contratos)) ?> de <?= e($total) ?></p>
                 <?php
-                $rutaPaginacion = $esEntrega ? '/entregas' : '/devoluciones';
-                $parametrosPaginacion = [];
+                $rutaPaginacion = '/entregas';
+                $parametrosPaginacion = ['tab' => $pestana];
                 require RAIZ . '/app/views/componentes/paginacion.php';
                 ?>
             </div>
