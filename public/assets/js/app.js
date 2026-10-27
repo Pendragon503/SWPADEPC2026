@@ -49,6 +49,9 @@ $(function () {
         // jQuery convierte el JSON de data-campos en un objeto.
         $.each($boton.data('campos') || {}, function (nombre, valor) {
             $formulario.find('[name="' + nombre + '"]').val(valor);
+            // Datos que solo se muestran (texto o HTML que arma el servidor, como estadoBadge()):
+            // <span data-campo-html="estadoEtiqueta">.
+            $modal.find('[data-campo-html="' + nombre + '"]').html(valor);
         });
 
         // Opcional: data-modo="crear" | "editar" (ejemplo: app/views/equipos/_formulario.php)

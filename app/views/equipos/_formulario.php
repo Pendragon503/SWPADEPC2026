@@ -55,12 +55,12 @@ $urlActualizarEquipo = url('/admin/equipos/actualizar');
                 <span class="franja-precaucion" aria-hidden="true"></span>
                 <div class="modal-header">
                     <span class="marca-icono marca-icono-38" aria-hidden="true">
-                        <i class="bi bi-plus-lg" <?= $soloAlCrear ?>></i><i class="bi bi-box-seam" <?= $soloAlEditar ?>></i>
+                        <i class="bi bi-plus-lg" <?= $soloAlCrear ?>></i><i class="bi bi-pencil-fill" <?= $soloAlEditar ?>></i>
                     </span>
                     <div>
                         <h2 class="modal-title" id="modalEquipoTitulo"><?= $editando ? 'Editar equipo' : 'Registrar equipo' ?></h2>
                         <p class="modal-subtitulo" <?= $soloAlCrear ?>>Panel de inventario y maquinaria</p>
-                        <p class="modal-subtitulo" <?= $soloAlEditar ?>>Inventario y maquinaria</p>
+                        <p class="modal-subtitulo" <?= $soloAlEditar ?>>Modificar ficha técnica y estado</p>
                     </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
                 </div>
@@ -104,10 +104,11 @@ $urlActualizarEquipo = url('/admin/equipos/actualizar');
                                    class="form-control<?= $claseError('cantidad') ?>" value="<?= e($valor('cantidad') ?: '1') ?>">
                             <?= $mensajeError('cantidad') ?>
                         </div>
-                        <div class="col-md-6 col-lg-3" <?= $soloAlEditar ?>>
-                            <label for="estadoActual" class="form-label"><i class="bi bi-activity" aria-hidden="true"></i> Estado</label>
-                            <input type="text" id="estadoActual" name="estadoActual" class="form-control" readonly
-                                   value="<?= e($valor('estadoActual')) ?>">
+                        <?php // Al editar, en lugar de Cantidad: las unidades de este modelo (solo se muestran). ?>
+                        <div class="col-md-6 col-lg-2" <?= $soloAlEditar ?>>
+                            <span class="form-label"><i class="bi bi-boxes" aria-hidden="true"></i> Unidades</span>
+                            <p class="unidades-modelo mb-0">Unidades de este modelo: <strong data-campo-html="unidadesModelo"><?= e($valor('unidadesModelo')) ?></strong></p>
+                            <input type="hidden" name="unidadesModelo" value="<?= e($valor('unidadesModelo')) ?>">
                         </div>
 
                         <div class="col-md-6 col-lg-4">
@@ -115,6 +116,15 @@ $urlActualizarEquipo = url('/admin/equipos/actualizar');
                             <input type="date" id="fechaAdquisicion" name="fechaAdquisicion" max="<?= e(date('Y-m-d')) ?>"
                                    class="form-control<?= $claseError('fechaAdquisicion') ?>" value="<?= e($valor('fechaAdquisicion')) ?>">
                             <?= $mensajeError('fechaAdquisicion') ?>
+                        </div>
+                        <?php // Estado: solo lectura (se cambia con "Cambiar estado" del detalle). ?>
+                        <div class="col-lg-8" <?= $soloAlEditar ?>>
+                            <div class="recuadro-estado">
+                                <span class="form-label mb-0"><i class="bi bi-activity" aria-hidden="true"></i> Estado</span>
+                                <span data-campo-html="estadoEtiqueta"><?= $valor('estadoActual') !== '' ? estadoBadge($valor('estadoActual')) : '' ?></span>
+                                <span class="form-text m-0">Se cambia con "Cambiar estado" en el detalle del equipo.</span>
+                            </div>
+                            <input type="hidden" name="estadoActual" value="<?= e($valor('estadoActual')) ?>">
                         </div>
                         <div class="col-lg-8 pt-lg-4" <?= $soloAlCrear ?>>
                             <p class="form-text mb-0">Con una cantidad mayor que 1 se registran unidades con códigos seguidos
@@ -180,7 +190,7 @@ $urlActualizarEquipo = url('/admin/equipos/actualizar');
                 <div class="modal-footer">
                     <button type="button" class="btn btn-claro" data-bs-dismiss="modal">Cancelar</button>
                     <button type="submit" class="btn btn-primary"><i class="bi bi-check-circle-fill" aria-hidden="true"></i>
-                        <span <?= $soloAlCrear ?>>Registrar</span><span <?= $soloAlEditar ?>>Guardar</span></button>
+                        <span <?= $soloAlCrear ?>>Registrar</span><span <?= $soloAlEditar ?>>Actualizar</span></button>
                 </div>
         </form>
     </div>

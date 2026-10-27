@@ -295,8 +295,9 @@ class EquipoController extends Controller
             'caracteristicasTecnicas' => $texto('caracteristicasTecnicas'),
             'condicionesUso'          => $texto('condicionesUso'),
             'cantidad'                => (int) ($_POST['cantidad'] ?? 1), // solo al registrar
-            // Solo informativo (campo de solo lectura del modal): no se guarda.
+            // Solo informativos (se muestran en el modal Editar): no se guardan.
             'estadoActual'            => $texto('estadoActual'),
+            'unidadesModelo'          => $texto('unidadesModelo'),
         ];
     }
 

@@ -38,6 +38,13 @@ class Equipo
     /** Unidades que se registran a la vez en el modal "Registrar equipo" (campo Cantidad). */
     public const MAXIMO_UNIDADES = 20;
 
+    /**
+     * Columna "unidades de este modelo" (modal Editar): equipos activos con el mismo
+     * nombre y modelo (<=> compara también NULL con NULL). Alias e = equipo.
+     */
+    private const UNIDADES_MODELO = '(SELECT COUNT(*) FROM equipo x
+                                       WHERE x.nombre = e.nombre AND x.modelo <=> e.modelo AND x.activo = TRUE) AS unidadesModelo';
+
     /** Campos del modal de crear/editar (los "name" del formulario). */
     public const CAMPOS_FORMULARIO = [
         'idEquipo', 'codigoInventario', 'numeroSerie', 'nombre', 'idCategoria', 'estadoActual',
@@ -55,7 +62,10 @@ class Equipo
         foreach (self::CAMPOS_FORMULARIO as $campo) {
             $campos[$campo] = (string) ($equipo[$campo] ?? '');
         }
-        $campos['estadoActual'] = self::ESTADOS[$equipo['estado']] ?? $equipo['estado'];
+        // Solo para mostrar en el modal Editar (app.js los pone con data-campo-html).
+        $campos['estadoActual'] = $equipo['estado'];
+        $campos['estadoEtiqueta'] = estadoBadge($equipo['estado']);
+        $campos['unidadesModelo'] = (string) ($equipo['unidadesModelo'] ?? '');
         return $campos;
     }
 
@@ -309,7 +319,7 @@ class Equipo
             "SELECT e.idEquipo, e.codigoInventario, e.nombre, e.marca, e.modelo, e.numeroSerie,
                     e.descripcion, e.caracteristicasTecnicas, e.condicionesUso,
                     e.estado, e.activo, e.fechaAdquisicion, e.valorReferencia, e.idCategoria,
-                    c.nombre AS categoria, tv.precioDiario
+                    c.nombre AS categoria, tv.precioDiario, " . self::UNIDADES_MODELO . "
                FROM equipo e
                JOIN categoria c ON c.idCategoria = e.idCategoria
                LEFT JOIN v_tarifaDiariaVigente tv ON tv.idEquipo = e.idEquipo
@@ -336,7 +346,7 @@ class Equipo
     public static function buscarPorId(int $idEquipo): ?array
     {
         $sentencia = Database::conexion()->prepare(
-            'SELECT e.*, c.nombre AS categoria, c.activa AS categoriaActiva, tv.precioDiario, tv.depositoSugerido
+            'SELECT e.*, c.nombre AS categoria, c.activa AS categoriaActiva, tv.precioDiario, tv.depositoSugerido, ' . self::UNIDADES_MODELO . '
                FROM equipo e
                JOIN categoria c ON c.idCategoria = e.idCategoria
                LEFT JOIN v_tarifaDiariaVigente tv ON tv.idEquipo = e.idEquipo
