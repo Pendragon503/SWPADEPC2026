@@ -42,6 +42,23 @@ function url(string $ruta = '/'): string
 }
 
 /**
+ * Los filtros de la URL son texto. Un valor manipulado como ?buscar[]=x llega como arreglo
+ * y haría fallar (string), esFecha() o in_array() con un error 500: se descarta y el filtro
+ * toma su valor por defecto. Se llama una vez en app/bootstrap.php, para todas las páginas.
+ * Única excepción: las listas de casillas de un formulario GET, si traen solo texto.
+ */
+function limpiarParametrosUrl(): void
+{
+    $listas = ['equipos']; // paso 1 de "Nuevo alquiler" (contratos/nuevo.php)
+    foreach ($_GET as $nombre => $valor) {
+        $esLista = in_array($nombre, $listas, true) && is_array($valor) && array_filter($valor, 'is_string') === $valor;
+        if (!is_string($valor) && !$esLista) {
+            unset($_GET[$nombre]);
+        }
+    }
+}
+
+/**
  * URL de un archivo dentro de public/assets.
  */
 function asset(string $ruta): string
