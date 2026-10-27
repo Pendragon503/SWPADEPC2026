@@ -947,7 +947,7 @@ Copia esta lista en la descripción de tu Pull Request y márcala (`[x]`):
 | Módulo | Rol | Requerimientos (Etapa 1) | Rama sugerida | Responsable |
 |---|---|---|---|---|
 | Inventario: equipos, fotografías y tarifas | Administrador | RF-04, RF-15 | `feature/inventario` | |
-| Usuarios y clientes: usuarios y roles, clientes, registro de clientes y perfil | Administrador / Cliente (RF-03 también Operador) | RF-02, RF-03, RF-15 | `feature/usuarios-clientes` | |
+| Usuarios y clientes: usuarios y roles, clientes, registro de clientes y perfil (terminado) | Administrador / Cliente (RF-03 también Operador) | RF-02, RF-03, RF-15 | `feature/usuarios-clientes` | |
 | Catálogo y solicitud: catálogo, disponibilidad por fechas, solicitud de alquiler y "Mis alquileres" | Cliente | RF-04, RF-05, RF-06, RF-07, RF-08, RF-15 | `feature/catalogo-solicitud` | |
 | Operación: aprobar/rechazar solicitudes, contratos, entregas, devoluciones y daños | Operador / Administrador | RF-06, RF-08, RF-09, RF-10, RF-11, RF-15 | `feature/operacion` | |
 | Mantenimiento y reportes: mantenimiento, bitácora, dashboards con indicadores, reportes y configuración | Operador / Administrador | RF-12, RF-13, RF-14, RF-15 | `feature/mantenimiento-reportes` | |
@@ -957,8 +957,32 @@ el módulo de ejemplo **Categorías**, **Inventario** (equipos, fotos, tarifas, 
 **Catálogo y solicitud** (catálogo, disponibilidad, "Mi solicitud" con importe y "Mis alquileres"; RF-04 a RF-08, Cliente) y
 **Operación, parte 1** (solicitudes con aprobar y rechazar, consulta de contratos y registro de alquileres; RF-06 y RF-08, Administrador y Operador) y
 **Operación, parte 2** (entregas, devoluciones con daños y penalización por atraso, listas de pendientes; RF-09 a RF-11, Administrador y Operador) y
-**Mantenimiento y reportes** (órdenes de mantenimiento con daños, paneles con indicadores reales, reportes con descarga en Excel y PDF e historial de equipo; RF-12 a RF-14).
+**Mantenimiento y reportes** (órdenes de mantenimiento con daños, paneles con indicadores reales, reportes con descarga en Excel y PDF e historial de equipo; RF-12 a RF-14) y
+**Usuarios, registro y perfil** (usuarios internos con contraseña temporal y restablecimiento, "Crear una cuenta" desde el login,
+"Mi perfil" de los tres roles y cierre de sesión de usuarios desactivados; RF-02).
 Los RNF (seguridad, usabilidad, accesibilidad, compatibilidad…) aplican a todos los módulos.
+
+### Menús y pestañas (ajustes de diseño según Figma, 26/10/2026)
+
+| Rol | Menú lateral (en este orden) |
+|---|---|
+| Administrador | Dashboard · Equipos · Categorías · Alquileres · Clientes · Entregas y Devoluciones · Mantenimiento · Configuración |
+| Operador | Dashboard · Equipos (solo consulta) · Alquileres · Clientes · Entregas y Devoluciones · Mantenimiento |
+
+"Mi perfil" está en la píldora con las iniciales de la barra superior. Varias secciones juntan páginas en
+**pestañas** que se eligen con `?tab=` en la URL (sin JavaScript; componente `componentes/pestanas.php` y
+la función `pestanas()` de los helpers, donde se agrega una pestaña nueva):
+
+| Sección | Ruta | Pestañas (`?tab=`) |
+|---|---|---|
+| Alquileres | `/contratos` | `todos` (lista con filtros y "Nuevo alquiler") · `solicitudes` (aprobar y rechazar) |
+| Entregas y Devoluciones | `/entregas` | `entregas` (pendientes; la entrega es un modal del detalle del contrato) · `devoluciones` |
+| Mantenimiento | `/mantenimiento` | `ordenes` · `danos` |
+| Configuración (solo Administrador) | `/admin/configuracion` | `categorias` · `desactivacion` (equipos dados de baja) · `reportes` (generador, reportes rápidos e historial) · `usuarios` |
+
+Las URL anteriores (`/solicitudes`, `/devoluciones`, `/danos`, `/admin/categorias`, `/admin/usuarios`,
+`/admin/reportes`) siguen funcionando y muestran la misma pestaña. "Categorías" del menú lleva a
+Configuración → Categorías.
 
 Resumen de los RF (texto completo en el documento de la Etapa 1, en `docs/`):
 RF-01 autenticación · RF-02 usuarios y perfiles · RF-03 clientes · RF-04 catálogo de equipos ·
