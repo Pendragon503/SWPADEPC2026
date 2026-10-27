@@ -66,6 +66,17 @@ function asset(string $ruta): string
     return url('assets/' . ltrim($ruta, '/'));
 }
 
+/**
+ * Igual que asset(), con la fecha de modificación del archivo: css/app.css?v=1761536400.
+ * Para los CSS y JS propios: al cambiar el archivo cambia la URL y el navegador descarga
+ * la versión nueva sin Ctrl+F5. (Las librerías de vendor/ ya llevan la versión en la carpeta.)
+ */
+function assetConVersion(string $ruta): string
+{
+    $archivo = RAIZ . '/public/assets/' . ltrim($ruta, '/');
+    return asset($ruta) . (is_file($archivo) ? '?v=' . filemtime($archivo) : '');
+}
+
 // ---------------------------------------------------------------------
 // Presentación
 // ---------------------------------------------------------------------
