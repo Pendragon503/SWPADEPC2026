@@ -170,6 +170,7 @@ class EquipoController extends Controller
             'formulario'        => $formularios[self::SESION_FORMULARIO],
             'formularioEstado'  => $formularios[self::SESION_ESTADO],
             'formularioBaja'    => $formularios[self::SESION_BAJA],
+            'equiposActivos'    => Equipo::activosParaLista(), // lista del modal de baja
             'formularioTarifa'  => $formularios[TarifaController::SESION_FORMULARIO],
         ]);
     }
@@ -211,9 +212,15 @@ class EquipoController extends Controller
     {
         $idEquipo = (int) ($_POST['idEquipo'] ?? 0);
         $activar = ($_POST['activar'] ?? '') === '1';
-        $equipo = $this->equipoOListado($idEquipo);
         // Vuelve a donde se hizo: el detalle del equipo o Configuración → Desactivación de equipos.
         $urlDetalle = ($_POST['volver'] ?? '') === 'configuracion' ? '/admin/configuracion?tab=desactivacion' : '/admin/equipos/detalle?id=' . $idEquipo;
+        if (!$activar && $idEquipo === 0) {
+            // Desde Configuración el equipo se elige en una lista: sin elegir, se reabre el modal.
+            $_SESSION[self::SESION_BAJA] = ['idEquipo' => 0, 'valores' => ['motivo' => (string) ($_POST['motivo'] ?? ''), 'detalle' => ''], 'errores' => ['idEquipo' => 'Elige el equipo que vas a desactivar.']];
+            flash('danger', 'Revisa los datos de la baja.');
+            $this->redirect($urlDetalle);
+        }
+        $equipo = $this->equipoOListado($idEquipo);
 
         if ($activar) {
             $error = Equipo::validarReactivacion($equipo);
@@ -253,10 +260,14 @@ class EquipoController extends Controller
     /** Configuración → Desactivación de equipos (solo Administrador, lo llama ConfiguracionController). */
     public function desactivados(): void
     {
+        $formularioBaja = $_SESSION[self::SESION_BAJA] ?? null; // errores del modal "Desactivar equipo"
+        unset($_SESSION[self::SESION_BAJA]);
         $this->view('configuracion/desactivacion', [
-            'titulo'     => 'Configuración del sistema',
-            'menuActivo' => 'Configuración',
-            'inactivos'  => Equipo::inactivos(),
+            'titulo'         => 'Configuración del sistema',
+            'menuActivo'     => 'Configuración',
+            'inactivos'      => Equipo::inactivos(),
+            'equiposActivos' => Equipo::activosParaLista(),
+            'formularioBaja' => $formularioBaja,
         ]);
     }
 

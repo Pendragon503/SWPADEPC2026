@@ -3,7 +3,9 @@
  * Configuración → Desactivación de equipos: los equipos dados de baja, con su última baja
  * de la bitácora, y "Reactivar" (mismas reglas que en el detalle del equipo).
  *
- * @var array $inactivos  Equipo::inactivos()
+ * @var array      $inactivos       Equipo::inactivos()
+ * @var array      $equiposActivos  Equipo::activosParaLista() (lista del modal "Desactivar equipo")
+ * @var array|null $formularioBaja  errores del último envío del modal (o null)
  */
 $pestana = 'desactivacion';
 require RAIZ . '/app/views/configuracion/_encabezado.php';
@@ -11,6 +13,9 @@ require RAIZ . '/app/views/configuracion/_encabezado.php';
 <section class="panel">
     <div class="panel-cabecera panel-cabecera-linea">
         <h3 class="panel-titulo panel-titulo-mayus">Equipos dados de baja</h3>
+        <button type="button" class="btn btn-danger btn-sm" data-bs-toggle="modal" data-bs-target="#modalBaja">
+            <i class="bi bi-slash-circle" aria-hidden="true"></i> Desactivar equipo
+        </button>
     </div>
     <div class="panel-cuerpo">
         <?php if (!$inactivos): ?>
@@ -59,3 +64,10 @@ require RAIZ . '/app/views/configuracion/_encabezado.php';
         <?php endif; ?>
     </div>
 </section>
+
+<?php
+// El mismo modal del detalle del equipo, aquí sin equipo elegido: se escoge en su lista.
+$idSeleccionado = 0;
+$volverBaja = 'configuracion';
+$contratoAbierto = null;
+require RAIZ . '/app/views/equipos/_modalBaja.php';

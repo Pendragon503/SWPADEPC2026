@@ -313,7 +313,6 @@ $volver = '';
 require RAIZ . '/app/views/equipos/_formulario.php';
 
 $erroresEstado = $formularioEstado['errores'] ?? [];
-$erroresBaja = $formularioBaja['errores'] ?? [];
 $erroresTarifa = $formularioTarifa['errores'] ?? [];
 $valorTarifa = function (string $campo, string $porDefecto = '') use ($formularioTarifa): string {
     return (string) ($formularioTarifa['valores'][$campo] ?? $porDefecto);
@@ -437,72 +436,8 @@ $valorTarifa = function (string $campo, string $porDefecto = '') use ($formulari
     </div>
 </div>
 
-<?php // Baja (desactivar): Figma "Formulario Desactivar Equipo" (53:1052). ?>
-<div class="modal fade modal-er modal-er-peligro" id="modalBaja" tabindex="-1" aria-labelledby="modalBajaTitulo" aria-hidden="true"
-     data-abrir-al-cargar="<?= $formularioBaja ? '1' : '0' ?>">
-    <div class="modal-dialog modal-dialog-centered">
-        <form method="post" action="<?= e(url('/admin/equipos/cambiar-activo')) ?>" class="modal-content" novalidate>
-            <div class="modal-header">
-                <span class="marca-icono marca-icono-38" aria-hidden="true"><i class="bi bi-slash-circle"></i></span>
-                <div>
-                    <h2 class="modal-title" id="modalBajaTitulo">Desactivar equipo</h2>
-                    <p class="modal-subtitulo">Baja de activos operativos</p>
-                </div>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Cerrar"></button>
-            </div>
-            <div class="modal-body">
-                <?= csrfCampo() ?>
-                <input type="hidden" name="idEquipo" value="<?= e($idEquipo) ?>">
-                <input type="hidden" name="activar" value="0">
-
-                <?php if ($contratoAbierto !== null): ?>
-                    <div class="alert alert-danger mb-0" role="alert">
-                        <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
-                        <span>No se puede desactivar: el equipo está en el contrato
-                            <strong><?= e($contratoAbierto['numeroContrato']) ?></strong> (<?= e($contratoAbierto['estado']) ?>).
-                            Espera a que termine o quítalo de ese contrato primero.</span>
-                    </div>
-                <?php else: ?>
-                    <div class="alert alert-danger mb-0" role="note">
-                        <i class="bi bi-exclamation-octagon-fill" aria-hidden="true"></i>
-                        <span>El equipo desactivado quedará <strong>Fuera de servicio</strong> y no estará disponible
-                            para alquileres ni entregas. La baja queda en el historial con fecha y usuario.</span>
-                    </div>
-                <?php endif; ?>
-
-                <div>
-                    <p class="form-label mb-1"><i class="bi bi-box-seam" aria-hidden="true"></i> Equipo a desactivar</p>
-                    <p class="mb-0"><span class="codigo"><?= e($equipo['codigoInventario']) ?></span> <?= e($equipo['nombre']) ?></p>
-                </div>
-                <div>
-                    <label for="motivoBaja" class="form-label"><i class="bi bi-shield-exclamation" aria-hidden="true"></i> Motivo de la baja</label>
-                    <select id="motivoBaja" name="motivo" required class="form-select<?= isset($erroresBaja['motivo']) ? ' is-invalid' : '' ?>">
-                        <option value="">Elige el motivo</option>
-                        <?php foreach (Equipo::MOTIVOS_BAJA as $motivoBaja): ?>
-                            <option value="<?= e($motivoBaja) ?>"<?= ($formularioBaja['valores']['motivo'] ?? '') === $motivoBaja ? ' selected' : '' ?>><?= e($motivoBaja) ?></option>
-                        <?php endforeach; ?>
-                    </select>
-                    <?php if (isset($erroresBaja['motivo'])): ?>
-                        <div class="invalid-feedback"><?= e($erroresBaja['motivo']) ?></div>
-                    <?php endif; ?>
-                </div>
-                <?php // Solo se muestra si el motivo es "Otro" (data-mostrar-si, ver app.js). ?>
-                <div data-mostrar-si="motivo=Otro"<?= ($formularioBaja['valores']['motivo'] ?? '') === 'Otro' ? '' : ' hidden' ?>>
-                    <label for="detalleBaja" class="form-label"><i class="bi bi-chat-left-text" aria-hidden="true"></i> Describe el motivo</label>
-                    <textarea id="detalleBaja" name="detalle" rows="2" maxlength="250"
-                              class="form-control<?= isset($erroresBaja['detalle']) ? ' is-invalid' : '' ?>"
-                              placeholder="Ej. Donado a la municipalidad"><?= e($formularioBaja['valores']['detalle'] ?? '') ?></textarea>
-                    <?php if (isset($erroresBaja['detalle'])): ?>
-                        <div class="invalid-feedback"><?= e($erroresBaja['detalle']) ?></div>
-                    <?php endif; ?>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-claro" data-bs-dismiss="modal">Cancelar</button>
-                <button type="submit" class="btn btn-danger"<?= $contratoAbierto !== null ? ' disabled' : '' ?>>
-                    <i class="bi bi-slash-circle" aria-hidden="true"></i> Desactivar
-                </button>
-            </div>
-        </form>
-    </div>
-</div>
+<?php
+// Baja (desactivar): el modal compartido con Configuración, con este equipo ya elegido.
+$idSeleccionado = $idEquipo;
+$volverBaja = 'detalle';
+require RAIZ . '/app/views/equipos/_modalBaja.php';

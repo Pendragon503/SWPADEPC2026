@@ -1293,13 +1293,17 @@ a.pildora-usuario:hover {
 }
 
 /* Modal de una acción delicada (dar de baja): icono y subtítulo en rojo */
+.modal-er-peligro .modal-header {
+    background: var(--er-rojo); /* cabecera roja (Figma "Desactivar equipo") */
+}
+
 .modal-er-peligro .modal-header .marca-icono {
     color: var(--er-rojo);
-    background: #fee2e2;
+    background: #fff;
 }
 
 .modal-er-peligro .modal-subtitulo {
-    color: #f87171;
+    color: #fee2e2;
 }
 
 .modal-er .modal-footer .btn-danger {
