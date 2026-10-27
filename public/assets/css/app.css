@@ -1205,6 +1205,32 @@ a.pildora-usuario:hover {
     margin: 0;
 }
 
+/* Franja de precaución arriba de la cabecera de un modal (Figma "Registrar equipo") */
+.modal-er .modal-content > .franja-precaucion {
+    display: block;
+}
+
+/* Sección plegable de un modal ("Ficha técnica (opcional)"): <details> nativo, sin JavaScript */
+.ficha-plegable {
+    border: 1px solid var(--er-borde-suave);
+    border-radius: var(--er-radio-control);
+}
+
+.ficha-plegable > summary {
+    padding: 12px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.ficha-plegable[open] > summary {
+    border-bottom: 1px solid var(--er-borde-suave);
+}
+
+.ficha-plegable > .row {
+    padding: 14px;
+}
+
 /* Un solo botón en el pie: ocupa todo el ancho */
 .modal-er .modal-footer > :only-child {
     grid-column: 1 / -1;

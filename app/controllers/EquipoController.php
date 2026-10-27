@@ -83,7 +83,7 @@ class EquipoController extends Controller
         }
 
         try {
-            $idEquipo = Equipo::crear($datos);
+            $nuevo = Equipo::crear($datos);
         } catch (PDOException $e) {
             // Dos personas guardando el mismo código o serie a la vez: lo detiene el UNIQUE (1062).
             if (esValorDuplicado($e, 'uq_equipo_codigo')) {
@@ -95,8 +95,14 @@ class EquipoController extends Controller
             throw $e;
         }
 
-        flash('success', "Se registró el equipo {$datos['codigoInventario']}. Agrégale sus fotos y su tarifa.");
-        $this->redirect('/admin/equipos/detalle?id=' . $idEquipo);
+        // Una unidad: a su detalle. Varias: al listado, buscando el nombre, para verlas todas.
+        if (count($nuevo['codigos']) === 1) {
+            flash('success', "Se registró el equipo {$datos['codigoInventario']}. Agrégale sus fotos y su tarifa.");
+            $this->redirect('/admin/equipos/detalle?id=' . $nuevo['idEquipo']);
+        }
+        flash('success', 'Se registraron ' . count($nuevo['codigos']) . ' unidades: ' . implode(', ', $nuevo['codigos'])
+            . '. Agrega a cada una sus fotos y su tarifa desde su detalle.');
+        $this->redirect('/admin/equipos?' . http_build_query(['buscar' => $datos['nombre']]));
     }
 
     /**
@@ -288,6 +294,7 @@ class EquipoController extends Controller
             'descripcion'             => $texto('descripcion'),
             'caracteristicasTecnicas' => $texto('caracteristicasTecnicas'),
             'condicionesUso'          => $texto('condicionesUso'),
+            'cantidad'                => (int) ($_POST['cantidad'] ?? 1), // solo al registrar
             // Solo informativo (campo de solo lectura del modal): no se guarda.
             'estadoActual'            => $texto('estadoActual'),
         ];
