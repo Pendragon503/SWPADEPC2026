@@ -22,10 +22,11 @@ $campos = [
     ['telefono', 'Teléfono', 'bi-telephone', 'tel', 20, 'Ej. 7000-0000', true],
     ['direccion', 'Dirección', 'bi-geo-alt', 'text', 250, 'Ej. San Salvador', true],
 ];
+$pestana = 'usuarios';
+require RAIZ . '/app/views/configuracion/_encabezado.php';
 ?>
 <div class="encabezado-pagina">
     <div>
-        <h2 class="encabezado-pagina-titulo">Usuarios y roles</h2>
         <p class="encabezado-pagina-texto">Personal que usa el sistema. Los clientes se gestionan en Clientes.</p>
     </div>
     <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalUsuario"
@@ -37,7 +38,8 @@ $campos = [
 
 <section class="panel">
     <div class="panel-cabecera">
-        <form method="get" action="<?= e(url('/admin/usuarios')) ?>" class="filtros-tabla filtros-tabla-3" role="search">
+        <form method="get" action="<?= e(url('/admin/configuracion')) ?>" class="filtros-tabla filtros-tabla-3" role="search">
+            <input type="hidden" name="tab" value="usuarios">
             <div class="buscador-tabla-campo filtros-tabla-texto">
                 <i class="bi bi-search" aria-hidden="true"></i>
                 <label for="buscar" class="visually-hidden">Buscar</label>
@@ -62,7 +64,7 @@ $campos = [
             </div>
             <div class="filtros-tabla-botones">
                 <button type="submit" class="btn btn-secondary">Filtrar</button>
-                <a href="<?= e(url('/admin/usuarios')) ?>" class="btn btn-claro">Limpiar</a>
+                <a href="<?= e(url('/admin/configuracion?tab=usuarios')) ?>" class="btn btn-claro">Limpiar</a>
             </div>
         </form>
     </div>
@@ -137,8 +139,8 @@ $campos = [
             <div class="pie-tabla">
                 <p class="pie-tabla-texto">Mostrando <?= e($desplazamiento + 1) ?>–<?= e($desplazamiento + count($usuarios)) ?> de <?= e($total) ?> usuarios</p>
                 <?php
-                $rutaPaginacion = '/admin/usuarios';
-                $parametrosPaginacion = $filtros;
+                $rutaPaginacion = '/admin/configuracion';
+                $parametrosPaginacion = ['tab' => 'usuarios'] + $filtros;
                 require RAIZ . '/app/views/componentes/paginacion.php';
                 ?>
             </div>

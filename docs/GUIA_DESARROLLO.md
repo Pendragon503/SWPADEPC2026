@@ -914,6 +914,10 @@ cd /d C:\xampp\htdocs\SWPADEPC2026\database
 Hazlo también cada vez que alguien avise en el grupo que cambió `01_schema.sql` o `02_seed.sql`
 (después de `git pull origin main`).
 
+> **Aviso (26/10/2026):** `01_schema.sql` tiene una tabla nueva al final, `reporteGenerado` (historial de
+> reportes de Configuración → Ver reportes). Después de `git pull`, vuelve a correr `01_schema.sql`,
+> `02_seed.sql` y `03_pruebas.sql`; sin esa tabla, la pestaña "Ver reportes" da error.
+
 ---
 
 ## 13. Lista de "terminado" antes del Pull Request

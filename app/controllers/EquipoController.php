@@ -206,7 +206,8 @@ class EquipoController extends Controller
         $idEquipo = (int) ($_POST['idEquipo'] ?? 0);
         $activar = ($_POST['activar'] ?? '') === '1';
         $equipo = $this->equipoOListado($idEquipo);
-        $urlDetalle = '/admin/equipos/detalle?id=' . $idEquipo;
+        // Vuelve a donde se hizo: el detalle del equipo o Configuración → Desactivación de equipos.
+        $urlDetalle = ($_POST['volver'] ?? '') === 'configuracion' ? '/admin/configuracion?tab=desactivacion' : '/admin/equipos/detalle?id=' . $idEquipo;
 
         if ($activar) {
             $error = Equipo::validarReactivacion($equipo);
@@ -241,6 +242,16 @@ class EquipoController extends Controller
         Equipo::desactivar($equipo, $motivo, $detalle);
         flash('success', "Se dio de baja {$equipo['codigoInventario']}: quedó Fuera de servicio e inactivo.");
         $this->redirect($urlDetalle);
+    }
+
+    /** Configuración → Desactivación de equipos (solo Administrador, lo llama ConfiguracionController). */
+    public function desactivados(): void
+    {
+        $this->view('configuracion/desactivacion', [
+            'titulo'     => 'Configuración del sistema',
+            'menuActivo' => 'Configuración',
+            'inactivos'  => Equipo::inactivos(),
+        ]);
     }
 
     // ---------------------------------------------------------------------

@@ -290,6 +290,18 @@ function resumenEquipos(string $primero, int $cantidad): string
 }
 
 /**
+ * Códigos que se muestran calculados a partir del id (no son columnas de la base):
+ * codigo('CAT', 3) -> 'CAT-03'; codigo('REP', 7, '2026-10-26') -> 'REP-2026-007'.
+ * Con fecha lleva el año, y el número va con 3 cifras; sin fecha, con 2.
+ */
+function codigo(string $prefijo, int $id, ?string $fecha = null): string
+{
+    return $fecha === null
+        ? sprintf('%s-%02d', $prefijo, $id)
+        : sprintf('%s-%s-%03d', $prefijo, substr($fecha, 0, 4), $id);
+}
+
+/**
  * Grupos de pestañas (componentes/pestanas.php): [ruta base, [clave => [texto, icono]]].
  * La pestaña se elige con ?tab= en la ruta base; la primera es la de por defecto.
  */

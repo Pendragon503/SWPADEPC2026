@@ -487,6 +487,36 @@ class Equipo
         }
     }
 
+    /**
+     * Equipos dados de baja con su última baja de la bitácora (fecha, motivo y quién),
+     * en UNA consulta: ROW_NUMBER() se queda con la baja más reciente de cada equipo.
+     */
+    public static function inactivos(): array
+    {
+        return Database::conexion()->query(
+            "SELECT e.idEquipo, e.codigoInventario, e.nombre, c.nombre AS categoria, c.activa AS categoriaActiva,
+                    b.fechaCambio AS fechaBaja, REPLACE(b.motivo, 'Baja del equipo: ', '') AS motivo,
+                    CONCAT(u.nombres, ' ', u.apellidos) AS usuario
+               FROM equipo e
+               JOIN categoria c ON c.idCategoria = e.idCategoria
+               LEFT JOIN (SELECT idEquipo, fechaCambio, motivo, idUsuario,
+                                 ROW_NUMBER() OVER (PARTITION BY idEquipo ORDER BY fechaCambio DESC, idBitacora DESC) AS numero
+                            FROM bitacoraEstadoEquipo
+                           WHERE motivo LIKE 'Baja del equipo%') b ON b.idEquipo = e.idEquipo AND b.numero = 1
+               LEFT JOIN usuario u ON u.idUsuario = b.idUsuario
+              WHERE e.activo = FALSE
+              ORDER BY b.fechaCambio DESC, e.codigoInventario"
+        )->fetchAll();
+    }
+
+    /** Equipos activos (id, código y nombre) para la lista del modal de baja. */
+    public static function activosParaLista(): array
+    {
+        return Database::conexion()->query(
+            'SELECT idEquipo, codigoInventario, nombre FROM equipo WHERE activo = TRUE ORDER BY codigoInventario'
+        )->fetchAll();
+    }
+
     /** Historial de estados (bitácora), del más reciente al más antiguo, con el nombre del usuario. */
     public static function historialEstados(int $idEquipo): array
     {

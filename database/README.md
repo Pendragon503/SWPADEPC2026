@@ -6,7 +6,7 @@ Probado el 18/10/2026 en MySQL 26.7: las 8 pruebas y las 10 pruebas negativas de
 
 | Script | Qué hace |
 |---|---|
-| `01_schema.sql` | Borra y crea la base `equiprent`: 16 tablas, función de conflictos, procedimiento de disponibilidad, triggers y vistas. |
+| `01_schema.sql` | Borra y crea la base `equiprent`: 17 tablas (la última, `reporteGenerado`, se agregó el 26/10/2026), función de conflictos, procedimiento de disponibilidad, triggers y vistas. |
 | `02_seed.sql` | Datos de prueba: 3 roles, 6 usuarios, 3 clientes, 11 equipos, 6 contratos en distintos estados. Las fechas se calculan desde el día de ejecución. |
 | `03_pruebas.sql` | 8 pruebas con su resultado esperado + 10 pruebas negativas (deben fallar). Hace `SET NAMES utf8mb4` para que los acentos no se dañen si la consola usa cp850. |
 
@@ -40,6 +40,14 @@ mysql -u root -p --table < 03_pruebas.sql
   SET @app_idUsuario = <usuario en sesión>;
   SET @app_motivo = 'texto opcional';
   ```
+
+## Tabla añadida después de la Etapa 1
+
+- `reporteGenerado` (al final de `01_schema.sql`): historial de los reportes descargados desde
+  Configuración → Ver reportes. Guarda el tipo (`alquileres`, `inventario`, `fallas`, `salidas`), el rango
+  de fechas, el formato (`PDF` o `Excel`), quién lo generó y cuándo. No guarda archivos: "volver a
+  descargar" regenera el reporte con los mismos parámetros. **Si tu base es anterior al 26/10/2026,
+  vuelve a correr `01_schema.sql`, `02_seed.sql` y `03_pruebas.sql`.**
 
 ## Columnas añadidas al diccionario de la Etapa 1
 

@@ -2367,6 +2367,30 @@ a.tarjeta-equipo-imagen {
     border-bottom-color: var(--er-naranja);
 }
 
+/* Reporte rápido de "Ver reportes": icono, título con su número y botones */
+.reporte-rapido .panel-cuerpo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+}
+
+.reporte-rapido-texto {
+    flex: 1;
+    min-width: 200px;
+}
+
+.reporte-rapido-numero {
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.reporte-rapido-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
 /* Acciones de una orden de mantenimiento abierta: estado arriba, "Cerrar" abajo */
 .acciones-orden {
     min-width: 190px;

@@ -20,9 +20,10 @@ class ConfiguracionController extends Controller
     public function index(): void
     {
         match (pestanaActual('configuracion')) {
-            'reportes' => (new ReporteController())->index(),
-            'usuarios' => (new UsuarioController())->index(),
-            default    => (new CategoriaController())->index(),
+            'desactivacion' => (new EquipoController())->desactivados(),
+            'reportes'      => (new ReporteController())->index(),
+            'usuarios'      => (new UsuarioController())->index(),
+            default         => (new CategoriaController())->index(),
         };
     }
 }

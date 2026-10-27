@@ -38,10 +38,10 @@ $errores = $formulario['errores'] ?? [];
 $urlGuardar = url('/admin/categorias/guardar');
 $urlActualizar = url('/admin/categorias/actualizar');
 ?>
+<?php $pestana = 'categorias'; require RAIZ . '/app/views/configuracion/_encabezado.php'; ?>
 <div class="encabezado-pagina">
     <div>
-        <h2 class="encabezado-pagina-titulo">Categorías</h2>
-        <p class="encabezado-pagina-texto">Clasificación de los equipos del inventario.</p>
+        <p class="encabezado-pagina-texto">Clasificación de los equipos del inventario. El código (CAT-01…) se calcula a partir del número de la categoría.</p>
     </div>
     <?php // Abre el modal en modo "crear": data-campos deja todos los campos vacíos. ?>
     <button type="button" class="btn btn-primary"
@@ -49,14 +49,15 @@ $urlActualizar = url('/admin/categorias/actualizar');
             data-accion="<?= e($urlGuardar) ?>"
             data-titulo="Crear categoría"
             data-campos="<?= e(json_encode(['idCategoria' => '', 'nombre' => '', 'descripcion' => ''])) ?>">
-        <i class="bi bi-plus-circle-fill" aria-hidden="true"></i> Nueva categoría
+        <i class="bi bi-plus-circle-fill" aria-hidden="true"></i> Crear categoría
     </button>
 </div>
 
 <section class="panel">
     <div class="panel-cabecera">
         <?php // Búsqueda con GET: el filtro queda en la URL y se puede recargar o compartir. ?>
-        <form method="get" action="<?= e(url('/admin/categorias')) ?>" class="buscador-tabla" role="search">
+        <form method="get" action="<?= e(url('/admin/configuracion')) ?>" class="buscador-tabla" role="search">
+            <input type="hidden" name="tab" value="categorias">
             <div class="buscador-tabla-campo">
                 <i class="bi bi-search" aria-hidden="true"></i>
                 <label for="buscar" class="visually-hidden">Buscar categorías</label>
@@ -65,7 +66,7 @@ $urlActualizar = url('/admin/categorias/actualizar');
             </div>
             <button type="submit" class="btn btn-secondary">Buscar</button>
             <?php if ($buscar !== ''): ?>
-                <a href="<?= e(url('/admin/categorias')) ?>" class="btn btn-claro">Limpiar</a>
+                <a href="<?= e(url('/admin/configuracion?tab=categorias')) ?>" class="btn btn-claro">Limpiar</a>
             <?php endif; ?>
         </form>
     </div>
@@ -79,7 +80,7 @@ $urlActualizar = url('/admin/categorias/actualizar');
                     <p class="estado-vacio-texto">Prueba con otra palabra o limpia la búsqueda.</p>
                 <?php else: ?>
                     <p class="estado-vacio-titulo">Todavía no hay categorías</p>
-                    <p class="estado-vacio-texto">Crea la primera con el botón "Nueva categoría".</p>
+                    <p class="estado-vacio-texto">Crea la primera con el botón "Crear categoría".</p>
                 <?php endif; ?>
             </div>
         <?php else: ?>
@@ -87,9 +88,10 @@ $urlActualizar = url('/admin/categorias/actualizar');
                 <table class="table tabla-er">
                     <thead>
                     <tr>
+                        <th scope="col">Código</th>
                         <th scope="col">Nombre</th>
                         <th scope="col" class="d-none d-md-table-cell">Descripción</th>
-                        <th scope="col" class="text-center">Equipos activos</th>
+                        <th scope="col" class="text-center">Equipos asociados</th>
                         <th scope="col">Estado</th>
                         <th scope="col" class="col-acciones">Acciones</th>
                     </tr>
@@ -106,6 +108,7 @@ $urlActualizar = url('/admin/categorias/actualizar');
                         ];
                         ?>
                         <tr>
+                            <td><span class="codigo"><?= e(codigo('CAT', (int) $categoria['idCategoria'])) ?></span></td>
                             <td class="texto-fuerte"><?= e($categoria['nombre']) ?></td>
                             <td class="texto-suave d-none d-md-table-cell"><?= $categoria['descripcion'] !== null ? e($categoria['descripcion']) : '—' ?></td>
                             <td class="text-center"><?= e($categoria['equiposActivos']) ?></td>
@@ -153,8 +156,8 @@ $urlActualizar = url('/admin/categorias/actualizar');
                     de <?= e($total) ?> <?= $total === 1 ? 'categoría' : 'categorías' ?>
                 </p>
                 <?php
-                $rutaPaginacion = '/admin/categorias';
-                $parametrosPaginacion = ['buscar' => $buscar];
+                $rutaPaginacion = '/admin/configuracion';
+                $parametrosPaginacion = ['tab' => 'categorias', 'buscar' => $buscar];
                 require RAIZ . '/app/views/componentes/paginacion.php';
                 ?>
             </div>
