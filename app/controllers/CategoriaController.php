@@ -63,7 +63,7 @@ class CategoriaController extends Controller
         unset($_SESSION[self::SESION_FORMULARIO]);
 
         $this->view('categorias/index', [
-            'titulo'         => 'Categorías',
+            'titulo'         => 'Configuración del sistema',
             'menuActivo'     => 'Categorías',
             'categorias'     => $categorias,
             'buscar'         => $buscar,

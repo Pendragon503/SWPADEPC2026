@@ -55,7 +55,7 @@ class EquipoController extends Controller
         unset($_SESSION[self::SESION_FORMULARIO]);
 
         $this->view('equipos/index', [
-            'titulo'         => 'Inventario de equipos',
+            'titulo'         => 'Equipos',
             'menuActivo'     => 'Equipos',
             'equipos'        => Equipo::listar($filtros, self::POR_PAGINA, $desplazamiento),
             'indicadores'    => Indicador::resumenGeneral(),
