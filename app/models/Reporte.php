@@ -113,10 +113,10 @@ class Reporte
                 return ['titulo' => $titulo, 'secciones' => [
                     self::seccion('Daños registrados en devoluciones', [['Fecha', 'fecha'], ['Código', 'texto'], ['Equipo', 'texto'], ['Contrato', 'texto'],
                         ['Daño', 'texto'], ['Severidad', 'texto'], ['Costo estimado', 'dinero'], ['Se cobra', 'texto'], ['Estado', 'estado']],
-                        $danos, ['Total', '', '', '', count($danos) . ' daños', '', array_sum(array_column($danos, 6)), '', '']),
+                        $danos, ['Total', '', '', '', count($danos) . ' daños', '', self::suma($danos, 6), '', '']),
                     self::seccion('Órdenes de mantenimiento', [['Orden', 'texto'], ['Código', 'texto'], ['Equipo', 'texto'], ['Tipo', 'texto'],
                         ['Trabajo', 'texto'], ['Ingreso', 'fecha'], ['Salida', 'fecha'], ['Costo', 'dinero'], ['Estado', 'estado']],
-                        $ordenes, ['Total', '', '', '', count($ordenes) . ' órdenes', '', '', array_sum(array_column($ordenes, 7)), '']),
+                        $ordenes, ['Total', '', '', '', count($ordenes) . ' órdenes', '', '', self::suma($ordenes, 7), '']),
                 ]];
 
             default: // salidas
@@ -159,6 +159,12 @@ class Reporte
               WHERE r.fechaGeneracion >= CURRENT_TIMESTAMP - INTERVAL 30 DAY
               ORDER BY r.fechaGeneracion DESC, r.idReporte DESC"
         )->fetchAll();
+    }
+
+    /** Suma de una columna de montos con dos decimales (845.00), igual que los que vienen de la base. */
+    private static function suma(array $filas, int $columna): string
+    {
+        return number_format(array_sum(array_column($filas, $columna)), 2, '.', '');
     }
 
     /** Una sección de reporte con su encabezado. */
