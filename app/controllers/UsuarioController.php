@@ -32,7 +32,7 @@ class UsuarioController extends Controller
         unset($_SESSION[self::SESION_FORMULARIO]);
 
         $this->view('usuarios/index', $paginas + [
-            'titulo'     => 'Usuarios y roles',
+            'titulo'     => 'Configuración del sistema',
             'menuActivo' => 'Configuración',
             'filtros'    => $filtros,
             'total'      => $total,

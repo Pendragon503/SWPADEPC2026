@@ -8,7 +8,7 @@
  */
 $usuario = Auth::usuario();
 
-// [clave, icono, texto, ruta]. Los módulos que todavía no existen llevan '#'.
+// [clave, icono, texto, ruta]
 $menuCliente = [
     ['inicio', 'bi-house-door-fill', 'Inicio', '/cliente'],
     ['catalogo', 'bi-grid-3x3-gap-fill', 'Catálogo', '/cliente/catalogo'],
@@ -73,7 +73,7 @@ $equiposEnSolicitud = Solicitud::cantidad();
                 <?php foreach ($menuCliente as [$clave, $icono, $texto, $ruta]): ?>
                     <li class="nav-item">
                         <a class="nav-link<?= $clave === $activo ? ' active' : '' ?>"
-                           href="<?= $ruta === '#' ? '#' : e(url($ruta)) ?>"<?= $clave === $activo ? ' aria-current="page"' : '' ?>>
+                           href="<?= e(url($ruta)) ?>"<?= $clave === $activo ? ' aria-current="page"' : '' ?>>
                             <i class="bi <?= e($icono) ?>" aria-hidden="true"></i><?= e($texto) ?>
                         </a>
                     </li>

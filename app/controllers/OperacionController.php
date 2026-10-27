@@ -34,7 +34,7 @@ class OperacionController extends Controller
             $this->devoluciones();
             return;
         }
-        $this->pendientes('entrega', 'Entregas pendientes', 'Entregas y Devoluciones', 'inicio');
+        $this->pendientes('entrega', 'inicio');
     }
 
     /** GET /entregas/registrar?id=9: la entrega ahora es un modal del detalle del contrato. */
@@ -96,7 +96,7 @@ class OperacionController extends Controller
     /** GET /devoluciones */
     public function devoluciones(): void
     {
-        $this->pendientes('devolucion', 'Devoluciones pendientes', 'Entregas y Devoluciones', 'fin');
+        $this->pendientes('devolucion', 'fin');
     }
 
     /** GET /devoluciones/registrar?id=9 */
@@ -130,15 +130,15 @@ class OperacionController extends Controller
     // ---------------------------------------------------------------------
 
     /** Lista de contratos con equipos por entregar o por recibir, los más urgentes primero ($orden). */
-    private function pendientes(string $tipo, string $titulo, string $menu, string $orden): void
+    private function pendientes(string $tipo, string $orden): void
     {
         $filtros = ['pendiente' => $tipo];
         $total = Contrato::contar($filtros);
         $paginas = paginacion($total, (int) ($_GET['pagina'] ?? 1), self::POR_PAGINA);
 
         $this->view('operacion/pendientes', $paginas + [
-            'titulo'     => $titulo,
-            'menuActivo' => $menu,
+            'titulo'     => 'Entregas y Devoluciones',
+            'menuActivo' => 'Entregas y Devoluciones',
             'tipo'       => $tipo,
             'total'      => $total,
             'contratos'  => Contrato::buscar($filtros, $orden, self::POR_PAGINA, $paginas['desplazamiento']),

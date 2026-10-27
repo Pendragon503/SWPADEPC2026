@@ -21,7 +21,7 @@ comandos tal como están.
 11. [Datos de prueba](#11-datos-de-prueba)
 12. [Restaurar la base de prueba](#12-restaurar-la-base-de-prueba)
 13. [Lista de "terminado" antes del Pull Request](#13-lista-de-terminado-antes-del-pull-request)
-14. [Módulos, responsables y pantallas de Figma](#14-módulos-responsables-y-pantallas-de-figma)
+14. [Módulos, estado y pantallas de Figma](#14-módulos-estado-y-pantallas-de-figma)
 
 ---
 
@@ -697,6 +697,11 @@ Prueba con la lista de la sección 13, haz tus commits y crea el Pull Request (s
     }
     ```
 
+13. **Los filtros de la URL son texto.** `limpiarParametrosUrl()` (helpers, se llama en `app/bootstrap.php`)
+    descarta de `$_GET` todo valor que no sea texto: un `?buscar[]=x` manipulado se ignora en lugar de dar
+    un error 500. Si un formulario GET tuyo envía una lista de casillas (`name="algo[]"`), agrega `'algo'`
+    a `$listas` dentro de esa función; hoy la única es `equipos` (paso 1 de "Nuevo alquiler").
+
 ---
 
 ## 9. Librerías, estilos y componentes
@@ -710,6 +715,11 @@ internet). Los layouts ya las cargan; no agregues otras sin avisar.
 | Bootstrap Icons | 1.11.3 | `public/assets/vendor/bootstrap-icons-1.11.3/` |
 | jQuery | 3.7.1 | `public/assets/vendor/jquery-3.7.1/` |
 | Inter (fuente) | 5.2.8 | `public/assets/vendor/inter-5.2.8/` |
+
+**Archivos propios:** `public/assets/css/app.css` y `public/assets/js/app.js` se cargan con
+`assetConVersion()` (en `layouts/recursos.php` y `layouts/scripts.php`), que agrega
+`?v=<fecha de modificación del archivo>`. Al cambiarlos, el navegador descarga la versión nueva sin
+Ctrl+F5. Si agregas otro CSS o JS propio, cárgalo igual.
 
 **Identidad del sistema:** la marca es **EQUIPRENT**, el naranja principal es **`#F9A825`** (texto
 naranja `#E89400`) y la fuente es **Inter**. Algunos frames de Figma usan otros nombres
@@ -823,6 +833,10 @@ Estas reglas cruzan módulos: si tu módulo toca estos datos, respétalas aunque
 - **Disponibilidad:** usa `CALL sp_equiposDisponibles(inicio, fin, idCategoria o NULL)`; no escribas
   tu propia consulta. Un equipo no puede estar en dos contratos Pendiente/Aprobado/Activo con fechas
   cruzadas (lo impide un trigger), y un contrato Activo vencido sin devolución bloquea el equipo.
+- **Entregas, no antes del inicio del contrato.** `Entrega::validar()` rechaza una fecha de entrega
+  anterior a `fechaInicio`: si el equipo saliera antes, quedaría fuera en días que la base considera
+  libres y otro contrato podría reservarlo. Si el cliente lo necesita antes, primero se cambian las
+  fechas del contrato.
 - **Tarifas:** el catálogo usa la vista `v_tarifaDiariaVigente` (la tarifa diaria activa y vigente).
 - **Números automáticos:** `numeroContrato` (`ALQ-AAAA-00001`) y `codigoCliente` (`CLI-000001`) los
   asigna la aplicación después del `INSERT`, dentro de la misma transacción.
@@ -869,7 +883,8 @@ Retroexcavadoras (todas activas).
 | EQ-6002 | Retroexcavadora JCB 3CX | Retroexcavadoras | Disponible (reservado en contrato 5) | $260 |
 
 Fotos: hay registros en `fotografiaEquipo` para EQ-1001, 1002, 1003, 2001 y 6001, pero los archivos
-todavía no existen en `public/uploads/` (el módulo de Inventario los subirá).
+no existen en `public/uploads/`: el sistema muestra el marcador gris (`imagenEquipo()`). Para ver fotos
+reales, súbelas desde el detalle del equipo en Inventario.
 
 ### Contratos
 
@@ -940,27 +955,29 @@ Copia esta lista en la descripción de tu Pull Request y márcala (`[x]`):
 
 ---
 
-## 14. Módulos, responsables y pantallas de Figma
+## 14. Módulos, estado y pantallas de Figma
 
 ### Tabla de módulos
 
-| Módulo | Rol | Requerimientos (Etapa 1) | Rama sugerida | Responsable |
-|---|---|---|---|---|
-| Inventario: equipos, fotografías y tarifas | Administrador | RF-04, RF-15 | `feature/inventario` | |
-| Usuarios y clientes: usuarios y roles, clientes, registro de clientes y perfil (terminado) | Administrador / Cliente (RF-03 también Operador) | RF-02, RF-03, RF-15 | `feature/usuarios-clientes` | |
-| Catálogo y solicitud: catálogo, disponibilidad por fechas, solicitud de alquiler y "Mis alquileres" | Cliente | RF-04, RF-05, RF-06, RF-07, RF-08, RF-15 | `feature/catalogo-solicitud` | |
-| Operación: aprobar/rechazar solicitudes, contratos, entregas, devoluciones y daños | Operador / Administrador | RF-06, RF-08, RF-09, RF-10, RF-11, RF-15 | `feature/operacion` | |
-| Mantenimiento y reportes: mantenimiento, bitácora, dashboards con indicadores, reportes y configuración | Operador / Administrador | RF-12, RF-13, RF-14, RF-15 | `feature/mantenimiento-reportes` | |
+> **Estado final (cierre del proyecto, 26/10/2026): todos los módulos están terminados y unidos a `main`.**
+> Lo que siga son correcciones: rama `fix/<tema>` o `feature/<tema>` y Pull Request, como siempre.
 
-Ya hechos y en `main`: login y control de acceso por rol (RF-01), layout y paneles de los tres roles,
-el módulo de ejemplo **Categorías**, **Inventario** (equipos, fotos, tarifas, estados y bitácora; RF-04), **Clientes** (registro con usuario y contraseña temporal, edición y activación; RF-03, Administrador y Operador),
-**Catálogo y solicitud** (catálogo, disponibilidad, "Mi solicitud" con importe y "Mis alquileres"; RF-04 a RF-08, Cliente) y
-**Operación, parte 1** (solicitudes con aprobar y rechazar, consulta de contratos y registro de alquileres; RF-06 y RF-08, Administrador y Operador) y
-**Operación, parte 2** (entregas, devoluciones con daños y penalización por atraso, listas de pendientes; RF-09 a RF-11, Administrador y Operador) y
-**Mantenimiento y reportes** (órdenes de mantenimiento con daños, paneles con indicadores reales, reportes con descarga en Excel y PDF e historial de equipo; RF-12 a RF-14) y
-**Usuarios, registro y perfil** (usuarios internos con contraseña temporal y restablecimiento, "Crear una cuenta" desde el login,
-"Mi perfil" de los tres roles y cierre de sesión de usuarios desactivados; RF-02).
+| Módulo | Rol | Requerimientos (Etapa 1) | Estado | Pull Request |
+|---|---|---|---|---|
+| Base: login, control por rol, layouts, paneles y Categorías | Todos | RF-01, RF-13 | Terminado | (antes de los PR) |
+| Inventario: equipos, fotografías, tarifas, estados y bitácora | Administrador (Operador consulta) | RF-04, RF-15 | Terminado | #1 |
+| Clientes: registro con usuario y contraseña temporal, edición y activación | Administrador / Operador | RF-03, RF-15 | Terminado | #2 |
+| Catálogo y solicitud: catálogo, disponibilidad, "Mi solicitud" con importe y "Mis alquileres" | Cliente | RF-04 a RF-08, RF-15 | Terminado | #3 |
+| Operación 1: solicitudes (aprobar y rechazar), contratos y registro de alquileres | Operador / Administrador | RF-06, RF-08, RF-15 | Terminado | #4 |
+| Operación 2: entregas, devoluciones con daños y penalización por atraso | Operador / Administrador | RF-09, RF-10, RF-11, RF-15 | Terminado | #5 |
+| Mantenimiento, paneles con indicadores, reportes e historial de equipo | Operador / Administrador | RF-12, RF-13, RF-14 | Terminado | #6, #7 |
+| Usuarios internos, registro de clientes ("Crear una cuenta") y "Mi perfil" | Administrador / todos | RF-02, RF-15 | Terminado | #8 |
+| Ajustes de diseño según Figma: menús, pestañas, Configuración, modales y reportes con historial | Administrador / Operador | RF-04, RF-09, RF-14 | Terminado | #9 |
+| Cierre: revisión del ciclo completo y correcciones finales | Todos | RF-09, RF-15, RNF-07 | Terminado | rama `feature/cierre` |
+
 Los RNF (seguridad, usabilidad, accesibilidad, compatibilidad…) aplican a todos los módulos.
+Pendiente fuera del código: la prueba manual en **Chrome** (RNF-07); en Edge ya se revisaron todas las
+páginas en escritorio y en celular sin errores de consola.
 
 ### Menús y pestañas (ajustes de diseño según Figma, 26/10/2026)
 
@@ -983,6 +1000,10 @@ la función `pestanas()` de los helpers, donde se agrega una pestaña nueva):
 Las URL anteriores (`/solicitudes`, `/devoluciones`, `/danos`, `/admin/categorias`, `/admin/usuarios`,
 `/admin/reportes`) siguen funcionando y muestran la misma pestaña. "Categorías" del menú lleva a
 Configuración → Categorías.
+
+En cada sección, el título de la barra naranja es el mismo encabezado de la página ("Alquileres",
+"Entregas y Devoluciones", "Configuración del sistema"…), en cualquier pestaña. En celular las pestañas
+quedan en una sola fila que se desliza de lado, y la pestaña activa se muestra sola (`app.js`).
 
 Resumen de los RF (texto completo en el documento de la Etapa 1, en `docs/`):
 RF-01 autenticación · RF-02 usuarios y perfiles · RF-03 clientes · RF-04 catálogo de equipos ·

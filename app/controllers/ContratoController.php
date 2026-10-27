@@ -31,7 +31,7 @@ class ContratoController extends Controller
         $paginas = paginacion($total, (int) ($_GET['pagina'] ?? 1), self::POR_PAGINA);
 
         $this->view('contratos/solicitudes', $paginas + [
-            'titulo'            => 'Solicitudes',
+            'titulo'            => 'Alquileres',
             'menuActivo'        => 'Alquileres',
             'total'             => $total,
             'solicitudes'       => Contrato::buscar($filtros, 'antiguos', self::POR_PAGINA, $paginas['desplazamiento']),
@@ -99,7 +99,7 @@ class ContratoController extends Controller
         $paginas = paginacion($total, (int) ($_GET['pagina'] ?? 1), self::POR_PAGINA);
 
         $this->view('contratos/index', $paginas + [
-            'titulo'     => 'Contratos',
+            'titulo'     => 'Alquileres',
             'menuActivo' => 'Alquileres',
             'filtros'    => $filtros,
             'total'      => $total,

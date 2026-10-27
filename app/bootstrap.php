@@ -37,6 +37,7 @@ set_error_handler(function (int $nivel, string $mensaje, string $archivo, int $l
     throw new ErrorException($mensaje, 0, $nivel, $archivo, $linea);
 });
 set_exception_handler('manejarExcepcion');
+limpiarParametrosUrl(); // ?buscar[]=x se ignora en lugar de dar un error
 
 iniciarSesion();
 Auth::verificarVigencia(); // un usuario o rol desactivado pierde la sesión en su siguiente clic

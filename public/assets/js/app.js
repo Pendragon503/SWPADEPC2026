@@ -1,10 +1,5 @@
 /* EquipRent - JavaScript propio (Bootstrap 5 + jQuery). */
 $(function () {
-    // Los enlaces de prueba (href="#") de módulos que aún no existen no navegan.
-    $(document).on('click', 'a[href="#"]', function (evento) {
-        evento.preventDefault();
-    });
-
     // Confirmación antes de enviar: <form data-confirmar="¿Seguro que...?">
     $(document).on('submit', 'form[data-confirmar]', function (evento) {
         if (!window.confirm($(this).data('confirmar'))) {
@@ -118,6 +113,11 @@ $(function () {
             $campo.remove();
             listo();
         }
+    });
+
+    // Pestañas (componentes/pestanas.php): en celular se deslizan de lado; la activa se deja a la vista.
+    $('.pestanas-enlace.activa').each(function () {
+        this.parentNode.scrollLeft = this.offsetLeft - 16;
     });
 
     // Página que se abre para imprimir ("Descargar PDF" de Ver reportes): <div data-imprimir-al-cargar>.
