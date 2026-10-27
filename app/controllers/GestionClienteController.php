@@ -70,7 +70,7 @@ class GestionClienteController extends Controller
             $this->volverConErrores('crear', 0, $datos, $errores);
         }
 
-        $claveTemporal = Cliente::generarClaveTemporal();
+        $claveTemporal = Usuario::generarClaveTemporal();
         try {
             $nuevo = Cliente::crear($datos, $claveTemporal);
         } catch (PDOException $e) {
@@ -78,9 +78,9 @@ class GestionClienteController extends Controller
             throw $e;
         }
 
-        // Solo aquí se conoce la contraseña sin cifrar: en la base queda su hash.
-        flash('success', "Se registró el cliente {$nuevo['codigoCliente']}. Su usuario es {$datos['correo']} "
-            . "y su contraseña temporal es $claveTemporal. Entrégasela al cliente: no se volverá a mostrar.");
+        // Solo aquí se conoce la contraseña sin cifrar (en la base queda su hash): va al cuadro de la contraseña temporal.
+        flash('success', "Se registró el cliente {$nuevo['codigoCliente']}. Su usuario es {$datos['correo']}.");
+        flashClaveTemporal("{$datos['nombres']} {$datos['apellidos']} ({$nuevo['codigoCliente']})", $datos['correo'], $claveTemporal);
         $this->redirect($this->urlVolver());
     }
 

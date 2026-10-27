@@ -13,6 +13,15 @@ $router->get('/login', 'AuthController@mostrarLogin');
 $router->post('/login', 'AuthController@login');
 $router->post('/logout', 'AuthController@logout');
 
+// Mi perfil (los tres roles)
+$router->get('/perfil', 'PerfilController@index');
+$router->post('/perfil/datos', 'PerfilController@datos');
+$router->post('/perfil/clave', 'PerfilController@clave');
+
+// Registro de clientes desde el login (público)
+$router->get('/registro', 'RegistroController@mostrar');
+$router->post('/registro', 'RegistroController@guardar');
+
 // Paneles por rol
 $router->get('/admin', 'AdminController@dashboard');
 $router->get('/operador', 'OperadorController@dashboard');
@@ -73,6 +82,13 @@ $router->post('/contratos/registrar', 'RegistroAlquilerController@registrar');
 $router->get('/entregas', 'OperacionController@entregas');
 $router->get('/entregas/registrar', 'OperacionController@formularioEntrega');   // ?id=9
 $router->post('/entregas/guardar', 'OperacionController@guardarEntrega');
+
+// Administrador: usuarios internos (RF-02)
+$router->get('/admin/usuarios', 'UsuarioController@index');
+$router->post('/admin/usuarios/guardar', 'UsuarioController@guardar');
+$router->post('/admin/usuarios/actualizar', 'UsuarioController@actualizar');
+$router->post('/admin/usuarios/cambiar-estado', 'UsuarioController@cambiarEstado');
+$router->post('/admin/usuarios/restablecer-clave', 'UsuarioController@restablecerClave');
 
 // Administrador: reportes (RF-14)
 $router->get('/admin/reportes', 'ReporteController@index');

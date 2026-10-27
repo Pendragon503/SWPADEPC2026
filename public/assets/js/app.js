@@ -97,6 +97,25 @@ $(function () {
         bootstrap.Modal.getOrCreateInstance(this).show();
     });
 
+    // Copiar al portapapeles el texto de otro elemento: <button data-copiar="#idDelElemento">
+    // (por ejemplo, la contraseña temporal). El botón cambia a "Copiado".
+    $(document).on('click', '[data-copiar]', function () {
+        var $boton = $(this);
+        var texto = $($boton.data('copiar')).text().trim();
+        var listo = function () {
+            $boton.html('<i class="bi bi-check2" aria-hidden="true"></i> Copiado');
+        };
+        if (navigator.clipboard && window.isSecureContext) {
+            navigator.clipboard.writeText(texto).then(listo);
+        } else {
+            // Sin HTTPS no hay navigator.clipboard: se copia desde un campo temporal.
+            var $campo = $('<textarea>').val(texto).appendTo('body').trigger('select');
+            document.execCommand('copy');
+            $campo.remove();
+            listo();
+        }
+    });
+
     // Botón de imprimir (reportes): <button data-imprimir>. Lo que no sale en papel lleva .no-imprimir.
     $(document).on('click', '[data-imprimir]', function () {
         window.print();

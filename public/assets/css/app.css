@@ -474,8 +474,16 @@
     align-items: center;
     gap: 10px;
     padding: 4px 14px 4px 4px;
+    color: inherit;
+    text-decoration: none;
     background: rgba(35, 38, 38, .1);
     border-radius: 999px;
+}
+
+/* La píldora lleva a "Mi perfil" */
+a.pildora-usuario:hover {
+    color: inherit;
+    background: rgba(35, 38, 38, .18);
 }
 
 .avatar-iniciales {
@@ -1195,6 +1203,30 @@
 
 .modal-er .modal-footer > * {
     margin: 0;
+}
+
+/* Un solo botón en el pie: ocupa todo el ancho */
+.modal-er .modal-footer > :only-child {
+    grid-column: 1 / -1;
+}
+
+/* Contraseña temporal en grande con su botón "Copiar" (componentes/claveTemporal.php) */
+.clave-temporal {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    padding: 14px 16px;
+    background: var(--er-fondo-tabla);
+    border: 1px dashed var(--er-gris-claro);
+    border-radius: var(--er-radio-control);
+}
+
+.clave-temporal code {
+    font-size: 26px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    color: var(--er-texto);
 }
 
 .modal-er .modal-footer .btn {
@@ -2501,6 +2533,36 @@ a.tarjeta-equipo-imagen {
 }
 
 /* Tarjeta del login */
+/* Registro de clientes (Figma "Registro"): subtítulo naranja y nota para empresas */
+.subtitulo-acceso.subtitulo-acceso-naranja {
+    font-weight: 600;
+    color: var(--er-naranja);
+}
+
+/* Campo de contraseña con error: sin el ícono de Bootstrap, que tapa el botón del ojo */
+.control-clave.is-invalid {
+    padding-right: 44px;
+    background-image: none;
+}
+
+.pie-acceso.nota-empresa {
+    margin-top: 8px;
+    font-size: 12.5px;
+}
+
+/* Enlace al pie de la tarjeta ("Crear una cuenta", "Inicia sesión") */
+.pie-acceso {
+    margin: 18px 0 0;
+    font-size: 13.5px;
+    text-align: center;
+    color: var(--er-texto-2);
+}
+
+.pie-acceso a {
+    font-weight: 700;
+    color: var(--er-naranja-texto);
+}
+
 .tarjeta-acceso {
     width: 100%;
     max-width: 420px;

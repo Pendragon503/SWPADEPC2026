@@ -10,7 +10,7 @@
 $menus = [
     'Administrador' => [
         ['bi-speedometer2', 'Panel', '/admin'],
-        ['bi-people-fill', 'Usuarios y roles', '#'],
+        ['bi-people-fill', 'Usuarios y roles', '/admin/usuarios'],
         // Las tarifas se administran dentro del detalle de cada equipo (Inventario).
         ['bi-box-seam-fill', 'Inventario', '/admin/equipos'],
         ['bi-tags-fill', 'Categorías', '/admin/categorias'],
@@ -20,6 +20,7 @@ $menus = [
         ['bi-wrench-adjustable', 'Mantenimiento', '/mantenimiento'], // RF-12: también lo usa el administrador
         ['bi-gear-fill', 'Configuración', '#'],
         ['bi-bar-chart-fill', 'Reportes', '/admin/reportes'],
+        ['bi-person-circle', 'Mi perfil', '/perfil'],
     ],
     'Operador' => [
         ['bi-speedometer2', 'Panel', '/operador'],
@@ -30,6 +31,7 @@ $menus = [
         ['bi-arrow-left-right', 'Devoluciones', '/devoluciones'],
         ['bi-exclamation-triangle-fill', 'Daños', '/danos'],
         ['bi-wrench-adjustable', 'Mantenimiento', '/mantenimiento'],
+        ['bi-person-circle', 'Mi perfil', '/perfil'],
     ],
 ];
 

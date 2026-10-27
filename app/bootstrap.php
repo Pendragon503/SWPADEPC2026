@@ -39,3 +39,4 @@ set_error_handler(function (int $nivel, string $mensaje, string $archivo, int $l
 set_exception_handler('manejarExcepcion');
 
 iniciarSesion();
+Auth::verificarVigencia(); // un usuario o rol desactivado pierde la sesión en su siguiente clic

@@ -1,14 +1,8 @@
 <?php
 /**
  * Inicio de sesión (RF-01). Diseño: Figma "Sistema Web", frame "Login".
- * Los mensajes flash se muestran aquí, dentro de la tarjeta; así el layout ya no los repite.
+ * Los mensajes flash se muestran aquí, dentro de la tarjeta (auth/_mensajes.php).
  */
-$iconosAlerta = [
-    'danger'  => 'bi-exclamation-circle-fill',
-    'warning' => 'bi-exclamation-triangle-fill',
-    'success' => 'bi-check-circle-fill',
-    'info'    => 'bi-info-circle-fill',
-];
 ?>
 <section class="tarjeta-acceso mx-auto">
     <div class="tarjeta-acceso-cabecera">
@@ -22,12 +16,7 @@ $iconosAlerta = [
     <div class="tarjeta-acceso-cuerpo">
         <p class="intro-acceso">Accede para gestionar tus alquileres y equipos</p>
 
-        <?php foreach (flashes() as $mensaje): ?>
-            <div class="alert alert-<?= e($mensaje['tipo']) ?> alerta-acceso" role="alert">
-                <i class="bi <?= e($iconosAlerta[$mensaje['tipo']] ?? 'bi-info-circle-fill') ?>" aria-hidden="true"></i>
-                <span><?= e($mensaje['mensaje']) ?></span>
-            </div>
-        <?php endforeach; ?>
+        <?php require RAIZ . '/app/views/auth/_mensajes.php'; ?>
 
         <form method="post" action="<?= e(url('/login')) ?>" class="formulario-acceso" novalidate>
             <?= csrfCampo() ?>
@@ -51,5 +40,6 @@ $iconosAlerta = [
                 <i class="bi bi-box-arrow-in-right" aria-hidden="true"></i> Iniciar sesión
             </button>
         </form>
+        <p class="pie-acceso">¿Eres cliente y no tienes cuenta? <a href="<?= e(url('/registro')) ?>">Crear una cuenta</a></p>
     </div>
 </section>

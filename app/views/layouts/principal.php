@@ -43,13 +43,13 @@ $usuario = Auth::usuario();
             <h1 class="barra-superior-titulo"><?= e($titulo ?? 'EquipRent') ?></h1>
 
             <div class="barra-superior-usuario">
-                <span class="pildora-usuario">
+                <a class="pildora-usuario" href="<?= e(url('/perfil')) ?>" title="Mi perfil">
                     <span class="avatar-iniciales" aria-hidden="true"><?= e(iniciales($usuario['nombres'], $usuario['apellidos'])) ?></span>
                     <span class="pildora-usuario-texto">
                         <strong><?= e(Auth::nombreCompleto()) ?></strong>
                         <small><?= e(Auth::rol()) ?></small>
                     </span>
-                </span>
+                </a>
                 <form method="post" action="<?= e(url('/logout')) ?>" class="m-0">
                     <?= csrfCampo() ?>
                     <button type="submit" class="boton-salir" aria-label="Cerrar sesión">
@@ -61,6 +61,7 @@ $usuario = Auth::usuario();
 
         <main class="app-contenido">
             <?php require RAIZ . '/app/views/layouts/mensajes.php'; ?>
+            <?php require RAIZ . '/app/views/componentes/claveTemporal.php'; // solo si hay una recién generada ?>
             <?= $contenido ?>
         </main>
     </div>
