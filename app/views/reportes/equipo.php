@@ -15,7 +15,7 @@ if ($equipo) {
     require RAIZ . '/app/views/reportes/_encabezadoImpresion.php';
 }
 ?>
-<a href="<?= e(url('/admin/reportes')) ?>" class="enlace-volver no-imprimir"><i class="bi bi-arrow-left" aria-hidden="true"></i> Volver a reportes</a>
+<a href="<?= e(url('/admin/configuracion?tab=reportes')) ?>" class="enlace-volver no-imprimir"><i class="bi bi-arrow-left" aria-hidden="true"></i> Volver a Ver reportes</a>
 
 <div class="encabezado-pagina">
     <div>

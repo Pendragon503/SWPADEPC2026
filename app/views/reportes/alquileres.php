@@ -12,6 +12,8 @@ $detalleImpresion = 'Alquileres por ' . mb_strtolower($tituloGrupo) . ' · del '
     . ' · ' . ($filtros['estado'] === '' ? 'sin Rechazados ni Cancelados' : 'solo ' . $filtros['estado']);
 require RAIZ . '/app/views/reportes/_encabezadoImpresion.php';
 ?>
+<a href="<?= e(url('/admin/configuracion?tab=reportes')) ?>" class="enlace-volver no-imprimir"><i class="bi bi-arrow-left" aria-hidden="true"></i> Volver a Ver reportes</a>
+
 <div class="encabezado-pagina">
     <div>
         <h2 class="encabezado-pagina-titulo">Reporte de alquileres por <?= e(mb_strtolower($tituloGrupo)) ?></h2>
@@ -28,7 +30,7 @@ require RAIZ . '/app/views/reportes/_encabezadoImpresion.php';
 
 <section class="panel mb-4 no-imprimir">
     <div class="panel-cuerpo">
-        <form method="get" action="<?= e(url('/admin/reportes')) ?>" class="filtros-contratos">
+        <form method="get" action="<?= e(url('/admin/reportes/alquileres')) ?>" class="filtros-contratos">
             <div>
                 <label for="desde" class="form-label">Desde</label>
                 <input type="date" id="desde" name="desde" class="form-control" value="<?= e($filtros['desde']) ?>">
@@ -55,7 +57,7 @@ require RAIZ . '/app/views/reportes/_encabezadoImpresion.php';
                 </select>
             </div>
             <div class="filtros-tabla-botones filtros-contratos-botones">
-                <a href="<?= e(url('/admin/reportes')) ?>" class="btn btn-secondary">Mes actual</a>
+                <a href="<?= e(url('/admin/reportes/alquileres')) ?>" class="btn btn-secondary">Mes actual</a>
                 <button type="submit" class="btn btn-primary"><i class="bi bi-bar-chart" aria-hidden="true"></i> Generar</button>
             </div>
         </form>

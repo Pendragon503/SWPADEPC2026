@@ -645,3 +645,27 @@ SELECT e.idEquipo,
   JOIN categoria c ON c.idCategoria = e.idCategoria
   LEFT JOIN v_tarifaDiariaVigente tv ON tv.idEquipo = e.idEquipo
   LEFT JOIN fotografiaEquipo f ON f.idEquipo = e.idEquipo AND f.esPrincipal = TRUE;
+
+-- ---------------------------------------------------------------------
+-- 17. reporteGenerado: historial de reportes descargados desde
+--     Configuración → Ver reportes. No guarda archivos: volver a
+--     descargar regenera el reporte con los mismos parámetros.
+--     tipo: alquileres | inventario | fallas | salidas
+-- ---------------------------------------------------------------------
+CREATE TABLE reporteGenerado (
+  idReporte        INT          NOT NULL AUTO_INCREMENT,
+  tipo             VARCHAR(20)  NOT NULL,
+  fechaInicio      DATE         NOT NULL,
+  fechaFin         DATE         NOT NULL,
+  formato          VARCHAR(10)  NOT NULL,
+  idUsuario        INT          NOT NULL,
+  fechaGeneracion  TIMESTAMP    NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  CONSTRAINT pk_reporteGenerado PRIMARY KEY (idReporte),
+  CONSTRAINT fk_reporteGenerado_usuario FOREIGN KEY (idUsuario) REFERENCES usuario (idUsuario)
+    ON UPDATE CASCADE ON DELETE RESTRICT,
+  CONSTRAINT ck_reporteGenerado_tipo CHECK (tipo IN ('alquileres', 'inventario', 'fallas', 'salidas')),
+  CONSTRAINT ck_reporteGenerado_formato CHECK (formato IN ('PDF', 'Excel')),
+  CONSTRAINT ck_reporteGenerado_fechas CHECK (fechaFin >= fechaInicio)
+) ENGINE=InnoDB;
+
+CREATE INDEX ix_reporteGenerado_fecha ON reporteGenerado (fechaGeneracion);

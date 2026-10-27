@@ -49,6 +49,9 @@ $(function () {
         // jQuery convierte el JSON de data-campos en un objeto.
         $.each($boton.data('campos') || {}, function (nombre, valor) {
             $formulario.find('[name="' + nombre + '"]').val(valor);
+            // Datos que solo se muestran (texto o HTML que arma el servidor, como estadoBadge()):
+            // <span data-campo-html="estadoEtiqueta">.
+            $modal.find('[data-campo-html="' + nombre + '"]').html(valor);
         });
 
         // Opcional: data-modo="crear" | "editar" (ejemplo: app/views/equipos/_formulario.php)
@@ -80,11 +83,12 @@ $(function () {
     // Mostrar un bloque solo cuando otro campo del mismo formulario tiene cierto valor:
     //   <div data-mostrar-si="motivo=Otro"> se ve solo si el campo name="motivo" vale "Otro".
     // (Ejemplo en app/views/equipos/detalle.php, modal de baja.)
+    // También acepta "distinto de": <div data-mostrar-si="equipo!=todos">.
     function actualizarMostrarSi($formulario) {
         $formulario.find('[data-mostrar-si]').each(function () {
-            var partes = String($(this).data('mostrar-si')).split('=');
-            var valorActual = $formulario.find('[name="' + partes[0] + '"]').val();
-            $(this).prop('hidden', valorActual !== partes[1]);
+            var partes = String($(this).data('mostrar-si')).match(/^(.+?)(!?=)(.*)$/);
+            var igual = $formulario.find('[name="' + partes[1] + '"]').val() === partes[3];
+            $(this).prop('hidden', partes[2] === '=' ? !igual : igual);
         });
     }
     $(document).on('change', 'form :input', function () {
@@ -115,6 +119,13 @@ $(function () {
             listo();
         }
     });
+
+    // Página que se abre para imprimir ("Descargar PDF" de Ver reportes): <div data-imprimir-al-cargar>.
+    if ($('[data-imprimir-al-cargar]').length) {
+        $(window).on('load', function () {
+            window.print();
+        });
+    }
 
     // Botón de imprimir (reportes): <button data-imprimir>. Lo que no sale en papel lleva .no-imprimir.
     $(document).on('click', '[data-imprimir]', function () {

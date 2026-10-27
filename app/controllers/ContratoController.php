@@ -5,10 +5,10 @@
  * la base de las entregas y devoluciones (parte 2 de Operación).
  *
  * Rutas (app/rutas.php):
- *   GET  /solicitudes?pagina=                                              -> solicitudes
+ *   GET  /solicitudes?pagina= (= /contratos?tab=solicitudes)               -> solicitudes
  *   POST /contratos/aprobar     (idContrato, volver)                       -> aprobar
  *   POST /contratos/rechazar    (idContrato, motivoRechazo, volver)        -> rechazar
- *   GET  /contratos?numero=&cliente=&equipo=&estado=&desde=&hasta=&pagina= -> index
+ *   GET  /contratos?tab=todos|solicitudes&numero=&cliente=&...&pagina=     -> index (Alquileres)
  *   GET  /contratos/detalle?id=9                                           -> detalle
  */
 declare(strict_types=1);
@@ -32,7 +32,7 @@ class ContratoController extends Controller
 
         $this->view('contratos/solicitudes', $paginas + [
             'titulo'            => 'Solicitudes',
-            'menuActivo'        => 'Solicitudes',
+            'menuActivo'        => 'Alquileres',
             'total'             => $total,
             'solicitudes'       => Contrato::buscar($filtros, 'antiguos', self::POR_PAGINA, $paginas['desplazamiento']),
             'formularioRechazo' => $this->tomarFormularioRechazo(),
@@ -89,13 +89,18 @@ class ContratoController extends Controller
     /** GET /contratos */
     public function index(): void
     {
+        // Alquileres tiene dos pestañas: Todos (esta lista) y Solicitudes pendientes.
+        if (pestanaActual('alquileres') === 'solicitudes') {
+            $this->solicitudes();
+            return;
+        }
         $filtros = $this->leerFiltros($_GET);
         $total = Contrato::contar($filtros);
         $paginas = paginacion($total, (int) ($_GET['pagina'] ?? 1), self::POR_PAGINA);
 
         $this->view('contratos/index', $paginas + [
             'titulo'     => 'Contratos',
-            'menuActivo' => 'Contratos',
+            'menuActivo' => 'Alquileres',
             'filtros'    => $filtros,
             'total'      => $total,
             'contratos'  => Contrato::buscar($filtros, 'recientes', self::POR_PAGINA, $paginas['desplazamiento']),
@@ -111,17 +116,39 @@ class ContratoController extends Controller
         }
 
         $importe = Contrato::importe($contrato);
+        $seguimiento = Contrato::seguimiento($contrato, $importe['lineas']);
         $this->view('contratos/detalle', [
             'titulo'            => 'Contrato ' . $contrato['numeroContrato'],
-            'menuActivo'        => 'Contratos',
+            'menuActivo'        => 'Alquileres',
             'contrato'          => $contrato,
             'pasos'             => Contrato::pasosProgreso($contrato),
             'importe'           => $importe,
-            'seguimiento'       => Contrato::seguimiento($contrato, $importe['lineas']),
+            'seguimiento'       => $seguimiento,
             'liquidacion'       => Contrato::liquidacion($contrato),
             'puedeGestionar'    => Contrato::validarGestion($contrato) === null,
             'formularioRechazo' => $this->tomarFormularioRechazo(),
+            'entrega'           => $seguimiento['entregar'] ? $this->datosEntrega($contrato, $importe['lineas']) : null,
         ]);
+    }
+
+    /**
+     * Datos del modal "Formulario de entrega" (OperacionController::guardarEntrega): los
+     * equipos que pueden salir, el código de la siguiente entrega (solo para mostrar) y lo
+     * escrito con errores. Se abre solo con ?entregar=1 o si el último envío tuvo errores.
+     */
+    private function datosEntrega(array $contrato, array $lineas): array
+    {
+        $formulario = $_SESSION[OperacionController::SESION_ENTREGA] ?? null;
+        unset($_SESSION[OperacionController::SESION_ENTREGA]);
+        if (($formulario['idContrato'] ?? null) !== (int) $contrato['idContrato']) {
+            $formulario = null; // eran de otro contrato
+        }
+        return [
+            'pendientes' => Entrega::pendientes($lineas),
+            'codigo'     => codigo('ENT', siguienteId('entrega'), date('Y-m-d')),
+            'formulario' => $formulario,
+            'abrir'      => $formulario !== null || ($_GET['entregar'] ?? '') === '1',
+        ];
     }
 
     // ---------------------------------------------------------------------
@@ -141,7 +168,7 @@ class ContratoController extends Controller
     /** Después de aprobar o rechazar se vuelve a donde se hizo: el detalle o la lista de solicitudes. */
     private function urlVolver(array $contrato): string
     {
-        return ($_POST['volver'] ?? '') === 'detalle' ? '/contratos/detalle?id=' . $contrato['idContrato'] : '/solicitudes';
+        return ($_POST['volver'] ?? '') === 'detalle' ? '/contratos/detalle?id=' . $contrato['idContrato'] : '/contratos?tab=solicitudes';
     }
 
     /** Modal de rechazo con errores del último envío (o null); se lee una sola vez. */

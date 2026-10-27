@@ -34,6 +34,7 @@ $mensaje = function (?array $modal, string $campo): string {
         <i class="bi bi-plus-lg" aria-hidden="true"></i> Abrir orden
     </button>
 </div>
+<?php $grupo = 'mantenimiento'; $pestana = 'ordenes'; require RAIZ . '/app/views/componentes/pestanas.php'; ?>
 
 <?php if ($enRevision): ?>
     <section class="panel mb-4">

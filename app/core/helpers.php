@@ -289,6 +289,63 @@ function resumenEquipos(string $primero, int $cantidad): string
     return e($primero) . ($cantidad > 1 ? ' <span class="texto-suave small">+' . ($cantidad - 1) . ' más</span>' : '');
 }
 
+/**
+ * Códigos que se muestran calculados a partir del id (no son columnas de la base):
+ * codigo('CAT', 3) -> 'CAT-03'; codigo('REP', 7, '2026-10-26') -> 'REP-2026-007'.
+ * Con fecha lleva el año, y el número va con 3 cifras; sin fecha, con 2.
+ */
+function codigo(string $prefijo, int $id, ?string $fecha = null): string
+{
+    return $fecha === null
+        ? sprintf('%s-%02d', $prefijo, $id)
+        : sprintf('%s-%s-%03d', $prefijo, substr($fecha, 0, 4), $id);
+}
+
+/**
+ * Número que tendrá la próxima fila de una tabla (su AUTO_INCREMENT), para mostrar un
+ * código antes de guardar (CAT-12, ENT-2026-021). information_schema_stats_expiry = 0 pide
+ * el valor actual y no el de la caché. Solo es para mostrar: el código real sale del id.
+ */
+function siguienteId(string $tabla): int
+{
+    $permitidas = ['categoria', 'entrega']; // nombres fijos: nunca un valor del usuario
+    if (!in_array($tabla, $permitidas, true)) {
+        throw new InvalidArgumentException("Tabla no permitida: $tabla");
+    }
+    $conexion = Database::conexion();
+    $conexion->exec('SET SESSION information_schema_stats_expiry = 0');
+    $sentencia = $conexion->prepare('SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?');
+    $sentencia->execute([$tabla]);
+    return (int) $sentencia->fetchColumn();
+}
+
+/**
+ * Grupos de pestañas (componentes/pestanas.php): [ruta base, [clave => [texto, icono]]].
+ * La pestaña se elige con ?tab= en la ruta base; la primera es la de por defecto.
+ */
+function pestanas(string $grupo): array
+{
+    $grupos = [
+        'alquileres'    => ['/contratos', ['todos' => ['Todos', 'bi-list-ul'], 'solicitudes' => ['Solicitudes pendientes', 'bi-inbox']]],
+        'operacion'     => ['/entregas', ['entregas' => ['Entregas pendientes', 'bi-truck'], 'devoluciones' => ['Devoluciones pendientes', 'bi-arrow-left-right']]],
+        'mantenimiento' => ['/mantenimiento', ['ordenes' => ['Órdenes', 'bi-wrench-adjustable'], 'danos' => ['Daños', 'bi-exclamation-triangle']]],
+        'configuracion' => ['/admin/configuracion', [
+            'categorias'    => ['Categorías', 'bi-tags'],
+            'desactivacion' => ['Desactivación de equipos', 'bi-slash-circle'],
+            'reportes'      => ['Ver reportes', 'bi-bar-chart'],
+            'usuarios'      => ['Usuarios y roles', 'bi-people'],
+        ]],
+    ];
+    return $grupos[$grupo];
+}
+
+/** La pestaña pedida en ?tab= si existe en el grupo; si no, la primera. */
+function pestanaActual(string $grupo): string
+{
+    $claves = array_keys(pestanas($grupo)[1]);
+    return in_array($_GET['tab'] ?? '', $claves, true) ? $_GET['tab'] : $claves[0];
+}
+
 /** Monto en dólares: dinero(1500) -> '$1,500.00'. */
 function dinero($monto): string
 {

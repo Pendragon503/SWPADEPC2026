@@ -34,7 +34,7 @@ class PerfilController extends Controller
 
         $this->view('perfil/index', [
             'titulo'     => 'Mi perfil',
-            'menuActivo' => $esCliente ? 'perfil' : 'Mi perfil',
+            'menuActivo' => $esCliente ? 'perfil' : '',
             'esCliente'  => $esCliente,
             'perfil'     => $actual,
             'valores'    => $formulario['valores'] ?? $actual,

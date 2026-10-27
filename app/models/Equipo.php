@@ -35,6 +35,16 @@ class Equipo
     /** Largo máximo que se acepta en los textos largos (columnas TEXT). */
     private const MAX_TEXTO_LARGO = 2000;
 
+    /** Unidades que se registran a la vez en el modal "Registrar equipo" (campo Cantidad). */
+    public const MAXIMO_UNIDADES = 20;
+
+    /**
+     * Columna "unidades de este modelo" (modal Editar): equipos activos con el mismo
+     * nombre y modelo (<=> compara también NULL con NULL). Alias e = equipo.
+     */
+    private const UNIDADES_MODELO = '(SELECT COUNT(*) FROM equipo x
+                                       WHERE x.nombre = e.nombre AND x.modelo <=> e.modelo AND x.activo = TRUE) AS unidadesModelo';
+
     /** Campos del modal de crear/editar (los "name" del formulario). */
     public const CAMPOS_FORMULARIO = [
         'idEquipo', 'codigoInventario', 'numeroSerie', 'nombre', 'idCategoria', 'estadoActual',
@@ -52,7 +62,10 @@ class Equipo
         foreach (self::CAMPOS_FORMULARIO as $campo) {
             $campos[$campo] = (string) ($equipo[$campo] ?? '');
         }
-        $campos['estadoActual'] = self::ESTADOS[$equipo['estado']] ?? $equipo['estado'];
+        // Solo para mostrar en el modal Editar (app.js los pone con data-campo-html).
+        $campos['estadoActual'] = $equipo['estado'];
+        $campos['estadoEtiqueta'] = estadoBadge($equipo['estado']);
+        $campos['unidadesModelo'] = (string) ($equipo['unidadesModelo'] ?? '');
         return $campos;
     }
 
@@ -86,8 +99,13 @@ class Equipo
                 $errores['codigoInventario'] = 'El código no puede tener más de 30 caracteres.';
             } elseif (!preg_match('/^[A-Z0-9-]+$/', $codigo)) {
                 $errores['codigoInventario'] = 'Usa solo letras, números y guiones (por ejemplo EQ-1005).';
-            } elseif (self::existeCodigo($codigo)) {
-                $errores['codigoInventario'] = self::ERROR_CODIGO_REPETIDO;
+            } elseif ($datos['cantidad'] < 1 || $datos['cantidad'] > self::MAXIMO_UNIDADES) {
+                $errores['cantidad'] = 'De 1 a ' . self::MAXIMO_UNIDADES . ' unidades.';
+            } elseif (($codigos = self::codigosConsecutivos($codigo, $datos['cantidad'])) === null) {
+                $errores['codigoInventario'] = 'Para registrar varias unidades, el código debe terminar en número (por ejemplo EQ-1005).';
+            } elseif ($repetidos = self::codigosExistentes($codigos)) {
+                $errores['codigoInventario'] = count($codigos) === 1 ? self::ERROR_CODIGO_REPETIDO
+                    : 'Ya existen estos códigos: ' . implode(', ', $repetidos) . '. Cambia el código inicial o la cantidad.';
             }
         }
 
@@ -301,7 +319,7 @@ class Equipo
             "SELECT e.idEquipo, e.codigoInventario, e.nombre, e.marca, e.modelo, e.numeroSerie,
                     e.descripcion, e.caracteristicasTecnicas, e.condicionesUso,
                     e.estado, e.activo, e.fechaAdquisicion, e.valorReferencia, e.idCategoria,
-                    c.nombre AS categoria, tv.precioDiario
+                    c.nombre AS categoria, tv.precioDiario, " . self::UNIDADES_MODELO . "
                FROM equipo e
                JOIN categoria c ON c.idCategoria = e.idCategoria
                LEFT JOIN v_tarifaDiariaVigente tv ON tv.idEquipo = e.idEquipo
@@ -328,7 +346,7 @@ class Equipo
     public static function buscarPorId(int $idEquipo): ?array
     {
         $sentencia = Database::conexion()->prepare(
-            'SELECT e.*, c.nombre AS categoria, c.activa AS categoriaActiva, tv.precioDiario, tv.depositoSugerido
+            'SELECT e.*, c.nombre AS categoria, c.activa AS categoriaActiva, tv.precioDiario, tv.depositoSugerido, ' . self::UNIDADES_MODELO . '
                FROM equipo e
                JOIN categoria c ON c.idCategoria = e.idCategoria
                LEFT JOIN v_tarifaDiariaVigente tv ON tv.idEquipo = e.idEquipo
@@ -339,13 +357,6 @@ class Equipo
         return $fila === false ? null : $fila;
     }
 
-    /** ¿Ya existe ese código? (utf8mb4_spanish_ci: no distingue mayúsculas). */
-    public static function existeCodigo(string $codigo): bool
-    {
-        $sentencia = Database::conexion()->prepare('SELECT COUNT(*) FROM equipo WHERE codigoInventario = ?');
-        $sentencia->execute([$codigo]);
-        return (int) $sentencia->fetchColumn() > 0;
-    }
 
     /** ¿Otro equipo (distinto de $excepto) ya tiene ese número de serie? */
     public static function existeSerie(string $serie, int $excepto): bool
@@ -361,35 +372,78 @@ class Equipo
      * Registra un equipo nuevo. Nace Disponible y el trigger lo anota en la bitácora
      * con @app_motivo. Devuelve el id.
      */
-    public static function crear(array $datos): int
+    /**
+     * Registra $datos['cantidad'] unidades iguales con códigos consecutivos (EQ-1005,
+     * EQ-1006...) en UNA transacción y un solo INSERT de varias filas. Con más de una
+     * unidad, el número de serie queda vacío (cada unidad tiene el suyo). Nacen
+     * Disponibles y el trigger las anota en la bitácora con @app_motivo.
+     * Devuelve los códigos y el id de la primera.
+     */
+    public static function crear(array $datos): array
     {
+        $codigos = self::codigosConsecutivos($datos['codigoInventario'], $datos['cantidad']);
+        $serie = count($codigos) === 1 ? self::nuloSiVacio($datos['numeroSerie']) : null;
+        $filas = [];
+        $valores = [];
+        foreach ($codigos as $codigo) {
+            $filas[] = "(?, ?, ?, ?, ?, ?, ?, ?, 'Disponible', ?, ?, ?)";
+            array_push($valores, $codigo, $datos['nombre'], self::nuloSiVacio($datos['marca']), self::nuloSiVacio($datos['modelo']),
+                $serie, self::nuloSiVacio($datos['descripcion']), self::nuloSiVacio($datos['caracteristicasTecnicas']),
+                self::nuloSiVacio($datos['condicionesUso']), self::nuloSiVacio($datos['fechaAdquisicion']),
+                self::nuloSiVacio($datos['valorReferencia']), $datos['idCategoria']);
+        }
+
         $conexion = Database::conexion();
+        $conexion->beginTransaction();
         $conexion->prepare('SET @app_motivo = ?')->execute(['Registro del equipo en el inventario']);
         try {
-            $sentencia = $conexion->prepare(
-                "INSERT INTO equipo (codigoInventario, nombre, marca, modelo, numeroSerie, descripcion,
+            $conexion->prepare(
+                'INSERT INTO equipo (codigoInventario, nombre, marca, modelo, numeroSerie, descripcion,
                                      caracteristicasTecnicas, condicionesUso, estado, fechaAdquisicion,
                                      valorReferencia, idCategoria)
-                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'Disponible', ?, ?, ?)"
-            );
-            $sentencia->execute([
-                $datos['codigoInventario'],
-                $datos['nombre'],
-                self::nuloSiVacio($datos['marca']),
-                self::nuloSiVacio($datos['modelo']),
-                self::nuloSiVacio($datos['numeroSerie']),
-                self::nuloSiVacio($datos['descripcion']),
-                self::nuloSiVacio($datos['caracteristicasTecnicas']),
-                self::nuloSiVacio($datos['condicionesUso']),
-                self::nuloSiVacio($datos['fechaAdquisicion']),
-                self::nuloSiVacio($datos['valorReferencia']),
-                $datos['idCategoria'],
-            ]);
-            return (int) $conexion->lastInsertId();
+                 VALUES ' . implode(', ', $filas)
+            )->execute($valores);
+            $idPrimero = (int) $conexion->lastInsertId(); // con varias filas, MySQL da el id de la primera
+            $conexion->commit();
+            return ['codigos' => $codigos, 'idEquipo' => $idPrimero];
+        } catch (Throwable $e) {
+            $conexion->rollBack(); // si una unidad falla, no queda ninguna
+            throw $e;
         } finally {
             // finally se ejecuta aunque haya error: el motivo no se queda para el siguiente cambio.
             $conexion->exec('SET @app_motivo = NULL');
         }
+    }
+
+    /**
+     * Códigos de $cantidad unidades a partir del primero, con el mismo número de cifras:
+     * ('EQ-1005', 3) -> EQ-1005, EQ-1006, EQ-1007; ('EQ-009', 2) -> EQ-009, EQ-010.
+     * Devuelve null si se piden varias y el código no termina en número.
+     */
+    public static function codigosConsecutivos(string $codigo, int $cantidad): ?array
+    {
+        if ($cantidad === 1) {
+            return [$codigo];
+        }
+        if (!preg_match('/^(.*?)(\d+)$/', $codigo, $partes)) {
+            return null;
+        }
+        [, $prefijo, $numero] = $partes;
+        $codigos = [];
+        for ($i = 0; $i < $cantidad; $i++) {
+            $codigos[] = $prefijo . str_pad((string) ((int) $numero + $i), strlen($numero), '0', STR_PAD_LEFT);
+        }
+        return $codigos;
+    }
+
+    /** De los códigos dados, los que ya existen, en una sola consulta (utf8mb4_spanish_ci: no distingue mayúsculas). */
+    private static function codigosExistentes(array $codigos): array
+    {
+        $sentencia = Database::conexion()->prepare(
+            'SELECT codigoInventario FROM equipo WHERE codigoInventario IN (' . implode(', ', array_fill(0, count($codigos), '?')) . ')'
+        );
+        $sentencia->execute($codigos);
+        return $sentencia->fetchAll(PDO::FETCH_COLUMN);
     }
 
     /** Actualiza la ficha. No toca el código, el estado ni si está activo (tienen su propia acción). */
@@ -485,6 +539,36 @@ class Equipo
         } finally {
             $conexion->exec('SET @app_motivo = NULL');
         }
+    }
+
+    /**
+     * Equipos dados de baja con su última baja de la bitácora (fecha, motivo y quién),
+     * en UNA consulta: ROW_NUMBER() se queda con la baja más reciente de cada equipo.
+     */
+    public static function inactivos(): array
+    {
+        return Database::conexion()->query(
+            "SELECT e.idEquipo, e.codigoInventario, e.nombre, c.nombre AS categoria, c.activa AS categoriaActiva,
+                    b.fechaCambio AS fechaBaja, REPLACE(b.motivo, 'Baja del equipo: ', '') AS motivo,
+                    CONCAT(u.nombres, ' ', u.apellidos) AS usuario
+               FROM equipo e
+               JOIN categoria c ON c.idCategoria = e.idCategoria
+               LEFT JOIN (SELECT idEquipo, fechaCambio, motivo, idUsuario,
+                                 ROW_NUMBER() OVER (PARTITION BY idEquipo ORDER BY fechaCambio DESC, idBitacora DESC) AS numero
+                            FROM bitacoraEstadoEquipo
+                           WHERE motivo LIKE 'Baja del equipo%') b ON b.idEquipo = e.idEquipo AND b.numero = 1
+               LEFT JOIN usuario u ON u.idUsuario = b.idUsuario
+              WHERE e.activo = FALSE
+              ORDER BY b.fechaCambio DESC, e.codigoInventario"
+        )->fetchAll();
+    }
+
+    /** Equipos activos (id, código y nombre) para la lista del modal de baja. */
+    public static function activosParaLista(): array
+    {
+        return Database::conexion()->query(
+            'SELECT idEquipo, codigoInventario, nombre FROM equipo WHERE activo = TRUE ORDER BY codigoInventario'
+        )->fetchAll();
     }
 
     /** Historial de estados (bitácora), del más reciente al más antiguo, con el nombre del usuario. */

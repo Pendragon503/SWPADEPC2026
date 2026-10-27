@@ -1,6 +1,6 @@
 <?php
 /**
- * EquipRent - Inventario de equipos (RF-04, Administrador).
+ * EquipRent - Equipos / inventario (RF-04): el Administrador gestiona y el Operador consulta.
  *
  * Sigue el patrón del módulo de Categorías: el controlador lee los datos, llama
  * al modelo (Equipo), que valida y aplica las reglas, y decide qué mostrar.
@@ -27,9 +27,13 @@ class EquipoController extends Controller
     private const SESION_ESTADO = 'formularioEstadoEquipo';
     private const SESION_BAJA = 'formularioBajaEquipo';
 
+    /**
+     * Ver (GET) lo pueden el Administrador y el Operador (solo consulta); cambiar (POST),
+     * solo el Administrador.
+     */
     public function __construct()
     {
-        $this->requireRole('Administrador');
+        $this->requireRole(...($_SERVER['REQUEST_METHOD'] === 'POST' ? ['Administrador'] : ['Administrador', 'Operador']));
     }
 
     /**
@@ -52,7 +56,7 @@ class EquipoController extends Controller
 
         $this->view('equipos/index', [
             'titulo'         => 'Inventario de equipos',
-            'menuActivo'     => 'Inventario',
+            'menuActivo'     => 'Equipos',
             'equipos'        => Equipo::listar($filtros, self::POR_PAGINA, $desplazamiento),
             'indicadores'    => Indicador::resumenGeneral(),
             'categorias'     => Categoria::listar('', 1000, 0),
@@ -79,7 +83,7 @@ class EquipoController extends Controller
         }
 
         try {
-            $idEquipo = Equipo::crear($datos);
+            $nuevo = Equipo::crear($datos);
         } catch (PDOException $e) {
             // Dos personas guardando el mismo código o serie a la vez: lo detiene el UNIQUE (1062).
             if (esValorDuplicado($e, 'uq_equipo_codigo')) {
@@ -91,8 +95,14 @@ class EquipoController extends Controller
             throw $e;
         }
 
-        flash('success', "Se registró el equipo {$datos['codigoInventario']}. Agrégale sus fotos y su tarifa.");
-        $this->redirect('/admin/equipos/detalle?id=' . $idEquipo);
+        // Una unidad: a su detalle. Varias: al listado, buscando el nombre, para verlas todas.
+        if (count($nuevo['codigos']) === 1) {
+            flash('success', "Se registró el equipo {$datos['codigoInventario']}. Agrégale sus fotos y su tarifa.");
+            $this->redirect('/admin/equipos/detalle?id=' . $nuevo['idEquipo']);
+        }
+        flash('success', 'Se registraron ' . count($nuevo['codigos']) . ' unidades: ' . implode(', ', $nuevo['codigos'])
+            . '. Agrega a cada una sus fotos y su tarifa desde su detalle.');
+        $this->redirect('/admin/equipos?' . http_build_query(['buscar' => $datos['nombre']]));
     }
 
     /**
@@ -150,7 +160,7 @@ class EquipoController extends Controller
 
         $this->view('equipos/detalle', [
             'titulo'            => 'Equipo ' . $equipo['codigoInventario'],
-            'menuActivo'        => 'Inventario',
+            'menuActivo'        => 'Equipos',
             'equipo'            => $equipo,
             'historial'         => Equipo::historialEstados($idEquipo),
             'fotos'             => FotografiaEquipo::listarPorEquipo($idEquipo),
@@ -160,6 +170,7 @@ class EquipoController extends Controller
             'formulario'        => $formularios[self::SESION_FORMULARIO],
             'formularioEstado'  => $formularios[self::SESION_ESTADO],
             'formularioBaja'    => $formularios[self::SESION_BAJA],
+            'equiposActivos'    => Equipo::activosParaLista(), // lista del modal de baja
             'formularioTarifa'  => $formularios[TarifaController::SESION_FORMULARIO],
         ]);
     }
@@ -201,8 +212,15 @@ class EquipoController extends Controller
     {
         $idEquipo = (int) ($_POST['idEquipo'] ?? 0);
         $activar = ($_POST['activar'] ?? '') === '1';
+        // Vuelve a donde se hizo: el detalle del equipo o Configuración → Desactivación de equipos.
+        $urlDetalle = ($_POST['volver'] ?? '') === 'configuracion' ? '/admin/configuracion?tab=desactivacion' : '/admin/equipos/detalle?id=' . $idEquipo;
+        if (!$activar && $idEquipo === 0) {
+            // Desde Configuración el equipo se elige en una lista: sin elegir, se reabre el modal.
+            $_SESSION[self::SESION_BAJA] = ['idEquipo' => 0, 'valores' => ['motivo' => (string) ($_POST['motivo'] ?? ''), 'detalle' => ''], 'errores' => ['idEquipo' => 'Elige el equipo que vas a desactivar.']];
+            flash('danger', 'Revisa los datos de la baja.');
+            $this->redirect($urlDetalle);
+        }
         $equipo = $this->equipoOListado($idEquipo);
-        $urlDetalle = '/admin/equipos/detalle?id=' . $idEquipo;
 
         if ($activar) {
             $error = Equipo::validarReactivacion($equipo);
@@ -239,6 +257,20 @@ class EquipoController extends Controller
         $this->redirect($urlDetalle);
     }
 
+    /** Configuración → Desactivación de equipos (solo Administrador, lo llama ConfiguracionController). */
+    public function desactivados(): void
+    {
+        $formularioBaja = $_SESSION[self::SESION_BAJA] ?? null; // errores del modal "Desactivar equipo"
+        unset($_SESSION[self::SESION_BAJA]);
+        $this->view('configuracion/desactivacion', [
+            'titulo'         => 'Configuración del sistema',
+            'menuActivo'     => 'Configuración',
+            'inactivos'      => Equipo::inactivos(),
+            'equiposActivos' => Equipo::activosParaLista(),
+            'formularioBaja' => $formularioBaja,
+        ]);
+    }
+
     // ---------------------------------------------------------------------
     // Ayudantes privados
     // ---------------------------------------------------------------------
@@ -273,8 +305,10 @@ class EquipoController extends Controller
             'descripcion'             => $texto('descripcion'),
             'caracteristicasTecnicas' => $texto('caracteristicasTecnicas'),
             'condicionesUso'          => $texto('condicionesUso'),
-            // Solo informativo (campo de solo lectura del modal): no se guarda.
+            'cantidad'                => (int) ($_POST['cantidad'] ?? 1), // solo al registrar
+            // Solo informativos (se muestran en el modal Editar): no se guardan.
             'estadoActual'            => $texto('estadoActual'),
+            'unidadesModelo'          => $texto('unidadesModelo'),
         ];
     }
 

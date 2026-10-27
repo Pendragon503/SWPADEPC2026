@@ -1205,6 +1205,55 @@ a.pildora-usuario:hover {
     margin: 0;
 }
 
+/* Franja de precaución arriba de la cabecera de un modal (Figma "Registrar equipo") */
+.modal-er .modal-content > .franja-precaucion {
+    display: block;
+}
+
+/* Recuadro naranja claro con el estado (modal Editar equipo) y el texto de unidades */
+.recuadro-estado {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px 12px;
+    padding: 12px 14px;
+    background: #fffbeb;
+    border: 1px solid #fde68a;
+    border-radius: var(--er-radio-control);
+}
+
+/* Campos de solo lectura de un modal (ID del equipo al editar): se ven deshabilitados */
+.modal-er .form-control[readonly] {
+    color: var(--er-texto-2);
+    background-color: var(--er-fondo-tabla);
+}
+
+.unidades-modelo {
+    padding-top: 8px;
+    font-size: 13.5px;
+}
+
+/* Sección plegable de un modal ("Ficha técnica (opcional)"): <details> nativo, sin JavaScript */
+.ficha-plegable {
+    border: 1px solid var(--er-borde-suave);
+    border-radius: var(--er-radio-control);
+}
+
+.ficha-plegable > summary {
+    padding: 12px 14px;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.ficha-plegable[open] > summary {
+    border-bottom: 1px solid var(--er-borde-suave);
+}
+
+.ficha-plegable > .row {
+    padding: 14px;
+}
+
 /* Un solo botón en el pie: ocupa todo el ancho */
 .modal-er .modal-footer > :only-child {
     grid-column: 1 / -1;
@@ -1244,13 +1293,17 @@ a.pildora-usuario:hover {
 }
 
 /* Modal de una acción delicada (dar de baja): icono y subtítulo en rojo */
+.modal-er-peligro .modal-header {
+    background: var(--er-rojo); /* cabecera roja (Figma "Desactivar equipo") */
+}
+
 .modal-er-peligro .modal-header .marca-icono {
     color: var(--er-rojo);
-    background: #fee2e2;
+    background: #fff;
 }
 
 .modal-er-peligro .modal-subtitulo {
-    color: #f87171;
+    color: #fee2e2;
 }
 
 .modal-er .modal-footer .btn-danger {
@@ -2334,6 +2387,61 @@ a.tarjeta-equipo-imagen {
     letter-spacing: 1px;
     text-transform: uppercase;
     color: var(--er-naranja);
+}
+
+/* Pestañas de una sección (componentes/pestanas.php): enlaces con la activa subrayada en naranja */
+.pestanas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 20px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--er-borde);
+}
+
+.pestanas-enlace {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 2px;
+    margin-bottom: -1px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--er-texto-2);
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+}
+
+.pestanas-enlace:hover {
+    color: var(--er-texto);
+}
+
+.pestanas-enlace.activa {
+    color: var(--er-texto);
+    border-bottom-color: var(--er-naranja);
+}
+
+/* Reporte rápido de "Ver reportes": icono, título con su número y botones */
+.reporte-rapido .panel-cuerpo {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 14px;
+}
+
+.reporte-rapido-texto {
+    flex: 1;
+    min-width: 200px;
+}
+
+.reporte-rapido-numero {
+    font-size: 22px;
+    font-weight: 800;
+}
+
+.reporte-rapido-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
 }
 
 /* Acciones de una orden de mantenimiento abierta: estado arriba, "Cerrar" abajo */

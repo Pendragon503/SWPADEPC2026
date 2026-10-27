@@ -31,7 +31,7 @@ class RegistroAlquilerController extends Controller
 
         $this->view('contratos/nuevo', [
             'titulo'      => 'Nuevo alquiler',
-            'menuActivo'  => 'Contratos',
+            'menuActivo'  => 'Alquileres',
             'solicitud'   => $solicitud,
             'idCategoria' => $idCategoria,
             'categorias'  => Catalogo::categoriasConTotal(),
@@ -54,7 +54,7 @@ class RegistroAlquilerController extends Controller
 
         $this->view('contratos/revisar', [
             'titulo'       => 'Nuevo alquiler',
-            'menuActivo'   => 'Contratos',
+            'menuActivo'   => 'Alquileres',
             'solicitud'    => $solicitud,
             'importe'      => $importe,
             'tarifaDiaria' => array_sum(array_column($importe['lineas'], 'precioDiario')), // de todos los equipos juntos

@@ -12,6 +12,7 @@
  * @var array      $liquidacion        Contrato::liquidacion(): ['cargos', 'garantia', 'saldo']
  * @var bool       $puedeGestionar     true si sigue Pendiente (aprobar o rechazar)
  * @var array|null $formularioRechazo  modal de rechazo con errores (o null)
+ * @var array|null $entrega            datos del modal de entrega (ContratoController::datosEntrega) o null
  */
 ?>
 <a href="<?= e(url('/contratos')) ?>" class="enlace-volver"><i class="bi bi-arrow-left" aria-hidden="true"></i> Volver a contratos</a>
@@ -45,9 +46,9 @@
     <?php elseif ($seguimiento['entregar'] || $seguimiento['recibir']): ?>
         <div class="acciones-pagina">
             <?php if ($seguimiento['entregar']): ?>
-                <a href="<?= e(url('/entregas/registrar?id=' . $contrato['idContrato'])) ?>" class="btn btn-primary">
+                <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalEntrega">
                     <i class="bi bi-truck" aria-hidden="true"></i> Registrar entrega
-                </a>
+                </button>
             <?php endif; ?>
             <?php if ($seguimiento['recibir']): ?>
                 <a href="<?= e(url('/devoluciones/registrar?id=' . $contrato['idContrato'])) ?>" class="btn btn-primary">
@@ -176,4 +177,8 @@
 
 <?php if ($puedeGestionar): ?>
     <?php $volver = 'detalle'; require RAIZ . '/app/views/contratos/_modalRechazo.php'; ?>
+<?php endif; ?>
+
+<?php if ($entrega !== null): ?>
+    <?php require RAIZ . '/app/views/operacion/_modalEntrega.php'; ?>
 <?php endif; ?>
