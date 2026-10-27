@@ -9,10 +9,11 @@
 ?>
 <div class="encabezado-pagina">
     <div>
-        <h2 class="encabezado-pagina-titulo">Daños</h2>
+        <h2 class="encabezado-pagina-titulo">Mantenimiento</h2>
         <p class="encabezado-pagina-texto">Daños detectados al recibir los equipos. Se reparan abriendo una orden de mantenimiento.</p>
     </div>
-    <form method="get" action="<?= e(url('/danos')) ?>" class="d-flex gap-2">
+    <form method="get" action="<?= e(url('/mantenimiento')) ?>" class="d-flex gap-2">
+        <input type="hidden" name="tab" value="danos">
         <label for="estado" class="visually-hidden">Estado</label>
         <select id="estado" name="estado" class="form-select">
             <option value="">Todos los estados</option>
@@ -23,6 +24,7 @@
         <button type="submit" class="btn btn-secondary">Filtrar</button>
     </form>
 </div>
+<?php $grupo = 'mantenimiento'; $pestana = 'danos'; require RAIZ . '/app/views/componentes/pestanas.php'; ?>
 
 <section class="panel">
     <div class="panel-cuerpo">

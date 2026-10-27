@@ -3,11 +3,11 @@
  * EquipRent - Mantenimiento (RF-12) y daños, para Administrador y Operador.
  *
  * Rutas (app/rutas.php):
- *   GET  /mantenimiento?equipo=&tipo=&estado=&pagina=   -> index    órdenes + equipos en revisión
+ *   GET  /mantenimiento?tab=ordenes|danos&equipo=&...   -> index    órdenes + equipos en revisión (o daños)
  *   POST /mantenimiento/guardar                         -> guardar  abrir una orden (modal)
  *   POST /mantenimiento/estado                          -> estado   avanzar entre estados abiertos
  *   POST /mantenimiento/cerrar                          -> cerrar   finalizar o cancelar (modal)
- *   GET  /danos?estado=                                 -> danos    daños de las devoluciones
+ *   GET  /danos?estado= (= /mantenimiento?tab=danos)    -> danos    daños de las devoluciones
  */
 declare(strict_types=1);
 
@@ -21,9 +21,13 @@ class MantenimientoController extends Controller
         $this->requireRole('Administrador', 'Operador');
     }
 
-    /** GET /mantenimiento */
+    /** GET /mantenimiento: pestañas Órdenes (esta lista) y Daños (?tab=danos). */
     public function index(): void
     {
+        if (pestanaActual('mantenimiento') === 'danos') {
+            $this->danos();
+            return;
+        }
         $filtros = [
             'equipo' => trim((string) ($_GET['equipo'] ?? '')),
             'tipo'   => in_array($_GET['tipo'] ?? '', Mantenimiento::TIPOS, true) ? $_GET['tipo'] : '',
