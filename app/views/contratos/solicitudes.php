@@ -8,12 +8,11 @@
  * @var int        $total, $pagina, $totalPaginas, $desplazamiento
  */
 ?>
-<div class="encabezado-pagina">
-    <div>
-        <h2 class="encabezado-pagina-titulo">Solicitudes pendientes</h2>
-        <p class="encabezado-pagina-texto">Solicitudes de los clientes por aprobar, de la más antigua a la más reciente. Al aprobar se revisa otra vez que cada equipo siga libre.</p>
-    </div>
-</div>
+<?php
+$pestana = 'solicitudes';
+$textoPestana = 'Solicitudes de los clientes por aprobar, de la más antigua a la más reciente. Al aprobar se revisa otra vez que cada equipo siga libre.';
+require RAIZ . '/app/views/contratos/_encabezado.php';
+?>
 
 <section class="panel">
     <div class="panel-cuerpo">
@@ -87,8 +86,8 @@
                     de <?= e($total) ?> <?= $total === 1 ? 'solicitud' : 'solicitudes' ?>
                 </p>
                 <?php
-                $rutaPaginacion = '/solicitudes';
-                $parametrosPaginacion = [];
+                $rutaPaginacion = '/contratos';
+                $parametrosPaginacion = ['tab' => 'solicitudes'];
                 require RAIZ . '/app/views/componentes/paginacion.php';
                 ?>
             </div>

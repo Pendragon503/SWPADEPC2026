@@ -5,10 +5,10 @@
  * la base de las entregas y devoluciones (parte 2 de Operación).
  *
  * Rutas (app/rutas.php):
- *   GET  /solicitudes?pagina=                                              -> solicitudes
+ *   GET  /solicitudes?pagina= (= /contratos?tab=solicitudes)               -> solicitudes
  *   POST /contratos/aprobar     (idContrato, volver)                       -> aprobar
  *   POST /contratos/rechazar    (idContrato, motivoRechazo, volver)        -> rechazar
- *   GET  /contratos?numero=&cliente=&equipo=&estado=&desde=&hasta=&pagina= -> index
+ *   GET  /contratos?tab=todos|solicitudes&numero=&cliente=&...&pagina=     -> index (Alquileres)
  *   GET  /contratos/detalle?id=9                                           -> detalle
  */
 declare(strict_types=1);
@@ -89,6 +89,11 @@ class ContratoController extends Controller
     /** GET /contratos */
     public function index(): void
     {
+        // Alquileres tiene dos pestañas: Todos (esta lista) y Solicitudes pendientes.
+        if (pestanaActual('alquileres') === 'solicitudes') {
+            $this->solicitudes();
+            return;
+        }
         $filtros = $this->leerFiltros($_GET);
         $total = Contrato::contar($filtros);
         $paginas = paginacion($total, (int) ($_GET['pagina'] ?? 1), self::POR_PAGINA);
@@ -141,7 +146,7 @@ class ContratoController extends Controller
     /** Después de aprobar o rechazar se vuelve a donde se hizo: el detalle o la lista de solicitudes. */
     private function urlVolver(array $contrato): string
     {
-        return ($_POST['volver'] ?? '') === 'detalle' ? '/contratos/detalle?id=' . $contrato['idContrato'] : '/solicitudes';
+        return ($_POST['volver'] ?? '') === 'detalle' ? '/contratos/detalle?id=' . $contrato['idContrato'] : '/contratos?tab=solicitudes';
     }
 
     /** Modal de rechazo con errores del último envío (o null); se lee una sola vez. */

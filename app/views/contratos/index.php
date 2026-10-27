@@ -9,13 +9,11 @@
  * @var int   $total, $pagina, $totalPaginas, $desplazamiento
  */
 ?>
-<div class="encabezado-pagina">
-    <div>
-        <h2 class="encabezado-pagina-titulo">Contratos</h2>
-        <p class="encabezado-pagina-texto">Gestiona y consulta los alquileres registrados, del más reciente al más antiguo.</p>
-    </div>
-    <a href="<?= e(url('/contratos/nuevo')) ?>" class="btn btn-primary"><i class="bi bi-plus-lg" aria-hidden="true"></i> Nuevo alquiler</a>
-</div>
+<?php
+$pestana = 'todos';
+$textoPestana = 'Gestiona y consulta los alquileres registrados, del más reciente al más antiguo.';
+require RAIZ . '/app/views/contratos/_encabezado.php';
+?>
 
 <section class="panel mb-4">
     <div class="panel-cabecera panel-cabecera-linea">
