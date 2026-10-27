@@ -34,6 +34,11 @@ class Entrega
             'nombreReceptor' => [160, 'el nombre de quien recibe'],
             'documentoReceptor' => [25, 'el documento de quien recibe'],
         ], true) + self::validarLargos($datos, ['observaciones' => [500, 'las observaciones']], false);
+        // No se entrega antes del inicio: el equipo saldría en días que la base considera libres.
+        if (!isset($errores['fecha']) && substr($datos['fecha'], 0, 10) < $contrato['fechaInicio']) {
+            $errores['fecha'] = 'No se puede entregar antes del inicio del contrato (' . fechaCorta($contrato['fechaInicio'])
+                . '). Si el cliente lo necesita antes, cambia primero las fechas del contrato.';
+        }
 
         // Solo equipos de este contrato, sin entregar y listos para salir.
         $porId = array_column($lineas, null, 'idDetalleContrato');
