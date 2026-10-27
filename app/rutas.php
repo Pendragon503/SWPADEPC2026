@@ -83,6 +83,9 @@ $router->get('/entregas', 'OperacionController@entregas');
 $router->get('/entregas/registrar', 'OperacionController@formularioEntrega');   // ?id=9
 $router->post('/entregas/guardar', 'OperacionController@guardarEntrega');
 
+// Administrador: configuración del sistema (pestañas de categorías, desactivación, reportes y usuarios)
+$router->get('/admin/configuracion', 'ConfiguracionController@index');   // ?tab=
+
 // Administrador: usuarios internos (RF-02)
 $router->get('/admin/usuarios', 'UsuarioController@index');
 $router->post('/admin/usuarios/guardar', 'UsuarioController@guardar');

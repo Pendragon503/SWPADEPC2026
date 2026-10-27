@@ -1,6 +1,6 @@
 <?php
 /**
- * EquipRent - Inventario de equipos (RF-04, Administrador).
+ * EquipRent - Equipos / inventario (RF-04): el Administrador gestiona y el Operador consulta.
  *
  * Sigue el patrón del módulo de Categorías: el controlador lee los datos, llama
  * al modelo (Equipo), que valida y aplica las reglas, y decide qué mostrar.
@@ -27,9 +27,13 @@ class EquipoController extends Controller
     private const SESION_ESTADO = 'formularioEstadoEquipo';
     private const SESION_BAJA = 'formularioBajaEquipo';
 
+    /**
+     * Ver (GET) lo pueden el Administrador y el Operador (solo consulta); cambiar (POST),
+     * solo el Administrador.
+     */
     public function __construct()
     {
-        $this->requireRole('Administrador');
+        $this->requireRole(...($_SERVER['REQUEST_METHOD'] === 'POST' ? ['Administrador'] : ['Administrador', 'Operador']));
     }
 
     /**
@@ -52,7 +56,7 @@ class EquipoController extends Controller
 
         $this->view('equipos/index', [
             'titulo'         => 'Inventario de equipos',
-            'menuActivo'     => 'Inventario',
+            'menuActivo'     => 'Equipos',
             'equipos'        => Equipo::listar($filtros, self::POR_PAGINA, $desplazamiento),
             'indicadores'    => Indicador::resumenGeneral(),
             'categorias'     => Categoria::listar('', 1000, 0),
@@ -150,7 +154,7 @@ class EquipoController extends Controller
 
         $this->view('equipos/detalle', [
             'titulo'            => 'Equipo ' . $equipo['codigoInventario'],
-            'menuActivo'        => 'Inventario',
+            'menuActivo'        => 'Equipos',
             'equipo'            => $equipo,
             'historial'         => Equipo::historialEstados($idEquipo),
             'fotos'             => FotografiaEquipo::listarPorEquipo($idEquipo),

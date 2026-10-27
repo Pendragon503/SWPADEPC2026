@@ -15,6 +15,8 @@
  * @var array|null $formularioEstado  modal de cambiar estado con errores
  * @var array|null $formularioBaja    modal de baja con errores
  */
+// El Operador ve el equipo en solo consulta: sin botones, formularios ni modales.
+$soloConsulta = Auth::rol() !== 'Administrador';
 $idEquipo = (int) $equipo['idEquipo'];
 $activo = (bool) $equipo['activo'];
 $urlDetalle = url('/admin/equipos/detalle?id=' . $idEquipo);
@@ -38,7 +40,7 @@ $parrafo = function (?string $texto): string {
     return $texto === null || $texto === '' ? '<span class="texto-suave">—</span>' : nl2br(e($texto));
 };
 ?>
-<a href="<?= e(url('/admin/equipos')) ?>" class="enlace-volver"><i class="bi bi-arrow-left" aria-hidden="true"></i> Volver al inventario</a>
+<a href="<?= e(url('/admin/equipos')) ?>" class="enlace-volver"><i class="bi bi-arrow-left" aria-hidden="true"></i> Volver a equipos</a>
 
 <div class="encabezado-pagina">
     <div>
@@ -50,6 +52,7 @@ $parrafo = function (?string $texto): string {
             <span class="ms-1"><?= e($equipo['categoria']) ?></span>
         </p>
     </div>
+    <?php if (!$soloConsulta): ?>
     <div class="acciones-pagina">
         <a href="<?= e(url('/admin/reportes/equipo?id=' . $idEquipo)) ?>" class="btn btn-secondary">
             <i class="bi bi-clock-history" aria-hidden="true"></i> Historial
@@ -79,6 +82,7 @@ $parrafo = function (?string $texto): string {
             </form>
         <?php endif; ?>
     </div>
+    <?php endif; ?>
 </div>
 
 <?php if (!$activo): ?>
@@ -150,6 +154,7 @@ $parrafo = function (?string $texto): string {
                                         <span class="foto-galeria-etiqueta"><i class="bi bi-star-fill" aria-hidden="true"></i> Principal</span>
                                     <?php endif; ?>
                                 </div>
+                                <?php if (!$soloConsulta): ?>
                                 <div class="foto-galeria-acciones">
                                     <?php if (!$foto['esPrincipal']): ?>
                                         <form method="post" action="<?= e(url('/admin/equipos/fotos/principal')) ?>">
@@ -182,12 +187,14 @@ $parrafo = function (?string $texto): string {
                                         </button>
                                     </form>
                                 </div>
+                                <?php endif; ?>
                             </li>
                         <?php endforeach; ?>
                     </ul>
                 <?php endif; ?>
 
                 <?php // enctype="multipart/form-data" es obligatorio para enviar archivos. ?>
+                <?php if (!$soloConsulta): ?>
                 <form method="post" action="<?= e(url('/admin/equipos/fotos/subir')) ?>" enctype="multipart/form-data" class="subir-fotos">
                     <?= csrfCampo() ?>
                     <input type="hidden" name="idEquipo" value="<?= e($idEquipo) ?>">
@@ -199,6 +206,7 @@ $parrafo = function (?string $texto): string {
                     </div>
                     <div class="form-text" id="ayudaFotos">JPG, PNG o WebP · hasta 2 MB cada una · máximo <?= FotografiaEquipo::MAXIMO_POR_ENVIO ?> a la vez.</div>
                 </form>
+                <?php endif; ?>
             </div>
         </section>
     </div>
@@ -207,7 +215,7 @@ $parrafo = function (?string $texto): string {
 <section class="panel mb-4" id="tarifas">
     <div class="panel-cabecera">
         <h3 class="panel-titulo">Tarifas</h3>
-        <?php if ($activo): ?>
+        <?php if ($activo && !$soloConsulta): ?>
             <button type="button" class="btn btn-primary btn-sm" data-bs-toggle="modal" data-bs-target="#modalTarifa">
                 <i class="bi bi-plus-circle-fill" aria-hidden="true"></i> Nueva tarifa
             </button>
@@ -293,8 +301,11 @@ $parrafo = function (?string $texto): string {
 
 <?php
 // ---------------------------------------------------------------------
-// Modales
+// Modales (solo el Administrador los usa)
 // ---------------------------------------------------------------------
+if ($soloConsulta) {
+    return;
+}
 
 // Editar (el mismo modal del listado, pero vuelve al detalle).
 $origen = 'detalle';

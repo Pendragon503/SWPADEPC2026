@@ -26,7 +26,7 @@ class OperacionController extends Controller
     /** GET /entregas */
     public function entregas(): void
     {
-        $this->pendientes('entrega', 'Entregas pendientes', 'Entregas', 'inicio');
+        $this->pendientes('entrega', 'Entregas pendientes', 'Entregas y Devoluciones', 'inicio');
     }
 
     /** GET /entregas/registrar?id=9 */
@@ -57,7 +57,7 @@ class OperacionController extends Controller
     /** GET /devoluciones */
     public function devoluciones(): void
     {
-        $this->pendientes('devolucion', 'Devoluciones pendientes', 'Devoluciones', 'fin');
+        $this->pendientes('devolucion', 'Devoluciones pendientes', 'Entregas y Devoluciones', 'fin');
     }
 
     /** GET /devoluciones/registrar?id=9 */
@@ -127,7 +127,7 @@ class OperacionController extends Controller
 
         $this->view($vista, [
             'titulo'      => $titulo . ' ' . $contrato['numeroContrato'],
-            'menuActivo'  => 'Contratos',
+            'menuActivo'  => 'Entregas y Devoluciones',
             'contrato'    => $contrato,
             'lineas'      => $lineas,
             'liquidacion' => Contrato::liquidacion($contrato), // cargos de devoluciones anteriores

@@ -32,7 +32,7 @@ class ContratoController extends Controller
 
         $this->view('contratos/solicitudes', $paginas + [
             'titulo'            => 'Solicitudes',
-            'menuActivo'        => 'Solicitudes',
+            'menuActivo'        => 'Alquileres',
             'total'             => $total,
             'solicitudes'       => Contrato::buscar($filtros, 'antiguos', self::POR_PAGINA, $paginas['desplazamiento']),
             'formularioRechazo' => $this->tomarFormularioRechazo(),
@@ -95,7 +95,7 @@ class ContratoController extends Controller
 
         $this->view('contratos/index', $paginas + [
             'titulo'     => 'Contratos',
-            'menuActivo' => 'Contratos',
+            'menuActivo' => 'Alquileres',
             'filtros'    => $filtros,
             'total'      => $total,
             'contratos'  => Contrato::buscar($filtros, 'recientes', self::POR_PAGINA, $paginas['desplazamiento']),
@@ -113,7 +113,7 @@ class ContratoController extends Controller
         $importe = Contrato::importe($contrato);
         $this->view('contratos/detalle', [
             'titulo'            => 'Contrato ' . $contrato['numeroContrato'],
-            'menuActivo'        => 'Contratos',
+            'menuActivo'        => 'Alquileres',
             'contrato'          => $contrato,
             'pasos'             => Contrato::pasosProgreso($contrato),
             'importe'           => $importe,

@@ -2336,6 +2336,37 @@ a.tarjeta-equipo-imagen {
     color: var(--er-naranja);
 }
 
+/* Pestañas de una sección (componentes/pestanas.php): enlaces con la activa subrayada en naranja */
+.pestanas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px 20px;
+    margin-bottom: 20px;
+    border-bottom: 1px solid var(--er-borde);
+}
+
+.pestanas-enlace {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 10px 2px;
+    margin-bottom: -1px;
+    font-size: 14px;
+    font-weight: 600;
+    color: var(--er-texto-2);
+    text-decoration: none;
+    border-bottom: 3px solid transparent;
+}
+
+.pestanas-enlace:hover {
+    color: var(--er-texto);
+}
+
+.pestanas-enlace.activa {
+    color: var(--er-texto);
+    border-bottom-color: var(--er-naranja);
+}
+
 /* Acciones de una orden de mantenimiento abierta: estado arriba, "Cerrar" abajo */
 .acciones-orden {
     min-width: 190px;

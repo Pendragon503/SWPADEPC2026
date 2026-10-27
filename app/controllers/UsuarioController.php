@@ -33,7 +33,7 @@ class UsuarioController extends Controller
 
         $this->view('usuarios/index', $paginas + [
             'titulo'     => 'Usuarios y roles',
-            'menuActivo' => 'Usuarios y roles',
+            'menuActivo' => 'Configuración',
             'filtros'    => $filtros,
             'total'      => $total,
             'usuarios'   => Usuario::listar($filtros, self::POR_PAGINA, $paginas['desplazamiento']),

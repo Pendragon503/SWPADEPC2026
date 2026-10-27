@@ -111,7 +111,7 @@ class MantenimientoController extends Controller
         $estado = in_array($_GET['estado'] ?? '', Mantenimiento::ESTADOS_DANO, true) ? $_GET['estado'] : '';
         $this->view('mantenimiento/danos', [
             'titulo'     => 'Daños',
-            'menuActivo' => 'Daños',
+            'menuActivo' => 'Mantenimiento',
             'estado'     => $estado,
             'danos'      => Mantenimiento::danos($estado),
         ]);

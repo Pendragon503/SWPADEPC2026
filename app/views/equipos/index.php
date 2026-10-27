@@ -29,10 +29,12 @@ $tarjetas = [
 ?>
 <div class="encabezado-pagina">
     <div>
-        <h2 class="encabezado-pagina-titulo">Inventario de equipos</h2>
+        <h2 class="encabezado-pagina-titulo">Equipos</h2>
         <p class="encabezado-pagina-texto">Cada fila es una unidad física, con su propio código de inventario.</p>
     </div>
+    <?php $soloConsulta = Auth::rol() !== 'Administrador'; // el Operador solo consulta ?>
     <?php // Abre el modal vacío en modo "crear" (ver app.js). ?>
+    <?php if (!$soloConsulta): ?>
     <button type="button" class="btn btn-primary"
             data-bs-toggle="modal" data-bs-target="#modalEquipo"
             data-accion="<?= e(url('/admin/equipos/guardar')) ?>"
@@ -40,6 +42,7 @@ $tarjetas = [
             data-campos="<?= e(json_encode(array_fill_keys(Equipo::CAMPOS_FORMULARIO, ''))) ?>">
         <i class="bi bi-plus-circle-fill" aria-hidden="true"></i> Registrar equipo
     </button>
+    <?php endif; ?>
 </div>
 
 <div class="row g-3 mb-4">
@@ -148,6 +151,7 @@ $tarjetas = [
                                    title="Ver detalle" aria-label="Ver detalle de <?= e($equipo['codigoInventario']) ?>">
                                     <i class="bi bi-eye-fill" aria-hidden="true"></i>
                                 </a>
+                                <?php if (!$soloConsulta): ?>
                                 <button type="button" class="btn btn-secondary btn-sm"
                                         data-bs-toggle="modal" data-bs-target="#modalEquipo"
                                         data-accion="<?= e(url('/admin/equipos/actualizar')) ?>"
@@ -156,6 +160,7 @@ $tarjetas = [
                                         title="Editar" aria-label="Editar <?= e($equipo['codigoInventario']) ?>">
                                     <i class="bi bi-pencil-fill" aria-hidden="true"></i>
                                 </button>
+                                <?php endif; ?>
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -179,6 +184,8 @@ $tarjetas = [
 </section>
 
 <?php
-$origen = 'listado';
-require RAIZ . '/app/views/equipos/_formulario.php';
+if (!$soloConsulta) {
+    $origen = 'listado';
+    require RAIZ . '/app/views/equipos/_formulario.php';
+}
 ?>

@@ -22,7 +22,7 @@ class ReporteController extends Controller
         $filtros = $this->leerFiltros();
         $this->view('reportes/index', [
             'titulo'     => 'Reportes',
-            'menuActivo' => 'Reportes',
+            'menuActivo' => 'Configuración',
             'filtros'    => $filtros,
             'reporte'    => Reporte::resumen($filtros),
             'urlExcel'   => '/admin/reportes/excel?' . http_build_query($filtros),
@@ -70,7 +70,7 @@ class ReporteController extends Controller
 
         $this->view('reportes/equipo', [
             'titulo'         => 'Historial de equipo',
-            'menuActivo'     => 'Reportes',
+            'menuActivo'     => 'Configuración',
             'equipos'        => Reporte::equipos(),
             'equipo'         => $equipo,
             'contratos'      => $equipo ? Reporte::contratosDeEquipo($idEquipo) : [],

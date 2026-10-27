@@ -1,47 +1,42 @@
 <?php
 /**
- * Menú lateral de Administrador y Operador. El menú del Cliente está en layouts/cliente.php.
+ * Menú lateral de Administrador y Operador (Figma). El menú del Cliente está en layouts/cliente.php.
  *
- * Para agregar un módulo: añadir una fila [icono, texto, ruta] en el rol que corresponda.
- * Los módulos que todavía no existen llevan la ruta '#' (enlace de prueba).
- * $menuActivo (opcional) marca el enlace actual; por defecto, el Panel.
+ * Cada fila es [icono, texto, ruta]. Varias secciones juntan páginas en pestañas (?tab=,
+ * componentes/pestanas.php); sus URL anteriores (/solicitudes, /devoluciones, /danos,
+ * /admin/categorias, /admin/usuarios, /admin/reportes) siguen funcionando.
+ * "Mi perfil" está en la píldora de la barra superior.
+ * $menuActivo (opcional) marca el enlace actual; por defecto, el Dashboard.
  * Iconos: https://icons.getbootstrap.com
  */
 $menus = [
     'Administrador' => [
-        ['bi-speedometer2', 'Panel', '/admin'],
-        ['bi-people-fill', 'Usuarios y roles', '/admin/usuarios'],
-        // Las tarifas se administran dentro del detalle de cada equipo (Inventario).
-        ['bi-box-seam-fill', 'Inventario', '/admin/equipos'],
-        ['bi-tags-fill', 'Categorías', '/admin/categorias'],
+        ['bi-speedometer2', 'Dashboard', '/admin'],
+        ['bi-box-seam-fill', 'Equipos', '/admin/equipos'],
+        ['bi-tags-fill', 'Categorías', '/admin/configuracion?tab=categorias'],
+        ['bi-file-earmark-text-fill', 'Alquileres', '/contratos'],
         ['bi-person-vcard-fill', 'Clientes', '/clientes'],
-        ['bi-inbox-fill', 'Solicitudes', '/solicitudes'],
-        ['bi-file-earmark-text-fill', 'Contratos', '/contratos'],
-        ['bi-wrench-adjustable', 'Mantenimiento', '/mantenimiento'], // RF-12: también lo usa el administrador
-        ['bi-gear-fill', 'Configuración', '#'],
-        ['bi-bar-chart-fill', 'Reportes', '/admin/reportes'],
-        ['bi-person-circle', 'Mi perfil', '/perfil'],
+        ['bi-truck', 'Entregas y Devoluciones', '/entregas'],
+        ['bi-wrench-adjustable', 'Mantenimiento', '/mantenimiento'],
+        ['bi-gear-fill', 'Configuración', '/admin/configuracion'],
     ],
     'Operador' => [
-        ['bi-speedometer2', 'Panel', '/operador'],
-        ['bi-inbox-fill', 'Solicitudes', '/solicitudes'],
-        ['bi-file-earmark-text-fill', 'Contratos', '/contratos'], // RF-08: consulta y registro de alquileres
-        ['bi-person-vcard-fill', 'Clientes', '/clientes'], // RF-03: también lo usa el operador
-        ['bi-truck', 'Entregas', '/entregas'],
-        ['bi-arrow-left-right', 'Devoluciones', '/devoluciones'],
-        ['bi-exclamation-triangle-fill', 'Daños', '/danos'],
+        ['bi-speedometer2', 'Dashboard', '/operador'],
+        ['bi-box-seam-fill', 'Equipos', '/admin/equipos'], // solo consulta
+        ['bi-file-earmark-text-fill', 'Alquileres', '/contratos'],
+        ['bi-person-vcard-fill', 'Clientes', '/clientes'],
+        ['bi-truck', 'Entregas y Devoluciones', '/entregas'],
         ['bi-wrench-adjustable', 'Mantenimiento', '/mantenimiento'],
-        ['bi-person-circle', 'Mi perfil', '/perfil'],
     ],
 ];
 
-$activo = $menuActivo ?? 'Panel';
+$activo = $menuActivo ?? 'Dashboard';
 ?>
 <nav class="menu-lateral" aria-label="Menú principal">
     <?php foreach ($menus[Auth::rol()] ?? [] as [$icono, $texto, $ruta]): ?>
         <?php $esActivo = ($texto === $activo); ?>
         <a class="menu-lateral-enlace<?= $esActivo ? ' activo' : '' ?>"
-           href="<?= $ruta === '#' ? '#' : e(url($ruta)) ?>"<?= $esActivo ? ' aria-current="page"' : '' ?>>
+           href="<?= e(url($ruta)) ?>"<?= $esActivo ? ' aria-current="page"' : '' ?>>
             <i class="bi <?= e($icono) ?>" aria-hidden="true"></i><?= e($texto) ?>
         </a>
     <?php endforeach; ?>

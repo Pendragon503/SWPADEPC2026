@@ -289,6 +289,33 @@ function resumenEquipos(string $primero, int $cantidad): string
     return e($primero) . ($cantidad > 1 ? ' <span class="texto-suave small">+' . ($cantidad - 1) . ' más</span>' : '');
 }
 
+/**
+ * Grupos de pestañas (componentes/pestanas.php): [ruta base, [clave => [texto, icono]]].
+ * La pestaña se elige con ?tab= en la ruta base; la primera es la de por defecto.
+ */
+function pestanas(string $grupo): array
+{
+    $grupos = [
+        'alquileres'    => ['/contratos', ['todos' => ['Todos', 'bi-list-ul'], 'solicitudes' => ['Solicitudes pendientes', 'bi-inbox']]],
+        'operacion'     => ['/entregas', ['entregas' => ['Entregas pendientes', 'bi-truck'], 'devoluciones' => ['Devoluciones pendientes', 'bi-arrow-left-right']]],
+        'mantenimiento' => ['/mantenimiento', ['ordenes' => ['Órdenes', 'bi-wrench-adjustable'], 'danos' => ['Daños', 'bi-exclamation-triangle']]],
+        'configuracion' => ['/admin/configuracion', [
+            'categorias'    => ['Categorías', 'bi-tags'],
+            'desactivacion' => ['Desactivación de equipos', 'bi-slash-circle'],
+            'reportes'      => ['Ver reportes', 'bi-bar-chart'],
+            'usuarios'      => ['Usuarios y roles', 'bi-people'],
+        ]],
+    ];
+    return $grupos[$grupo];
+}
+
+/** La pestaña pedida en ?tab= si existe en el grupo; si no, la primera. */
+function pestanaActual(string $grupo): string
+{
+    $claves = array_keys(pestanas($grupo)[1]);
+    return in_array($_GET['tab'] ?? '', $claves, true) ? $_GET['tab'] : $claves[0];
+}
+
 /** Monto en dólares: dinero(1500) -> '$1,500.00'. */
 function dinero($monto): string
 {
