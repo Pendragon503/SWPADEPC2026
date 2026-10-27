@@ -5,8 +5,8 @@
  *
  * Rutas (app/rutas.php):
  *   GET  /entregas?tab=entregas|devoluciones -> entregas  (sección "Entregas y Devoluciones")
- *   GET  /entregas/registrar?id=9      -> formularioEntrega
- *   POST /entregas/guardar             -> guardarEntrega
+ *   GET  /entregas/registrar?id=9      -> formularioEntrega   (lleva al detalle del contrato con el modal abierto)
+ *   POST /entregas/guardar             -> guardarEntrega      (modal "Formulario de entrega")
  *   GET  /devoluciones                 -> devoluciones        contratos con equipos por recibir
  *   GET  /devoluciones/registrar?id=9  -> formularioDevolucion
  *   POST /devoluciones/guardar         -> guardarDevolucion
@@ -17,6 +17,9 @@ class OperacionController extends Controller
 {
     private const POR_PAGINA = 10;
     private const SESION_FORMULARIO = 'formularioOperacion';
+
+    /** Modal de entrega con errores; lo lee ContratoController::detalle(), donde vive el modal. */
+    public const SESION_ENTREGA = 'formularioEntrega';
 
     public function __construct()
     {
@@ -34,25 +37,56 @@ class OperacionController extends Controller
         $this->pendientes('entrega', 'Entregas pendientes', 'Entregas y Devoluciones', 'inicio');
     }
 
-    /** GET /entregas/registrar?id=9 */
+    /** GET /entregas/registrar?id=9: la entrega ahora es un modal del detalle del contrato. */
     public function formularioEntrega(): void
     {
-        $this->formulario('operacion/entrega', 'Registrar entrega', 'entregar');
+        $this->redirect('/contratos/detalle?id=' . (int) ($_GET['id'] ?? 0) . '&entregar=1');
     }
 
-    /** POST /entregas/guardar */
+    /**
+     * POST /entregas/guardar (modal "Formulario de entrega"): un equipo o "todos los
+     * pendientes". Se convierte al formato de siempre y usa Entrega::validar() y
+     * registrar() sin cambiar sus reglas.
+     */
     public function guardarEntrega(): void
     {
-        [$contrato, $lineas, $datos] = $this->leerEnvio();
-        $datos['nombreReceptor'] = trim((string) ($_POST['nombreReceptor'] ?? ''));
-        $datos['documentoReceptor'] = mb_strtoupper(trim((string) ($_POST['documentoReceptor'] ?? '')));
-        $datos['observaciones'] = trim((string) ($_POST['observaciones'] ?? ''));
+        $contrato = $this->contrato((int) ($_POST['idContrato'] ?? 0));
+        $lineas = Contrato::lineas((int) $contrato['idContrato']);
+        $texto = function (string $campo): string {
+            return trim((string) ($_POST[$campo] ?? ''));
+        };
+        $eleccion = $texto('equipo');
+        $campos = [
+            'estadoFisico'     => $texto('estadoFisico'),
+            'nivelCombustible' => $texto('nivelCombustible'),
+            'lecturaHorometro' => $texto('lecturaHorometro'),
+            'accesorios'       => $texto('accesorios'),
+        ];
+        $datos = [
+            'fecha'             => $texto('fecha'),
+            'nombreReceptor'    => $texto('nombreReceptor'),
+            'documentoReceptor' => mb_strtoupper($texto('documentoReceptor')),
+            'observaciones'     => $texto('observaciones'),
+            'equipos'           => Entrega::equiposDelModal($lineas, $eleccion, $campos),
+        ];
+        $urlModal = '/contratos/detalle?id=' . $contrato['idContrato'] . '&entregar=1';
 
-        $this->siHayErroresVolver('/entregas/registrar', $contrato, $datos, Entrega::validar($contrato, $lineas, $datos));
+        $errores = Entrega::erroresDelModal(Entrega::validar($contrato, $lineas, $datos));
+        if ($errores) {
+            // Se reabre el modal con lo escrito y los errores.
+            $_SESSION[self::SESION_ENTREGA] = [
+                'idContrato' => (int) $contrato['idContrato'],
+                'valores'    => ['equipo' => $eleccion] + $campos + $datos,
+                'errores'    => $errores,
+            ];
+            // El motivo va también en el mensaje: si ya no quedan pendientes, el modal no se muestra.
+            flash('danger', $errores['general'] ?? $errores['equipo'] ?? 'Revisa los datos de la entrega.');
+            $this->redirect($urlModal);
+        }
         $error = Entrega::registrar($contrato, $datos, (int) Auth::id());
         if ($error !== null) {
             flash('danger', $error);
-            $this->redirect('/entregas/registrar?id=' . $contrato['idContrato']);
+            $this->redirect($urlModal);
         }
 
         flash('success', 'Se entregaron ' . count($datos['equipos']) . " equipo(s) de {$contrato['numeroContrato']} a {$datos['nombreReceptor']}. Quedaron Alquilados.");

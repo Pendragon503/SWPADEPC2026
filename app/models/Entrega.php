@@ -116,6 +116,42 @@ class Entrega
     // Ayudantes (también los usa Devolucion)
     // ---------------------------------------------------------------------
 
+    /** Estados que ofrece el modal de entrega (al salir, un equipo no va "Dañado"). */
+    public const ESTADOS_SALIDA = ['Buen estado', 'Desgaste normal', 'Detalles menores'];
+
+    /** Líneas del contrato que se pueden entregar ahora: sin entregar y listas para salir. */
+    public static function pendientes(array $lineas): array
+    {
+        return array_values(array_filter($lineas, function (array $linea): bool {
+            return $linea['fechaEntrega'] === null && $linea['listoParaSalir'];
+        }));
+    }
+
+    /**
+     * Modal de entrega -> equipos[idDetalleContrato] => campos, el formato que esperan
+     * validar() y registrar(). $eleccion es un idDetalleContrato o 'todos' (todos los
+     * pendientes, con el mismo estado y los mismos detalles de salida).
+     */
+    public static function equiposDelModal(array $lineas, string $eleccion, array $campos): array
+    {
+        $ids = $eleccion === 'todos' ? array_column(self::pendientes($lineas), 'idDetalleContrato') : [(int) $eleccion];
+        return array_fill_keys(array_filter($ids), $campos + ['marcado' => '1']);
+    }
+
+    /**
+     * Errores de validar() con los nombres de los campos del modal: "equipos[5][estadoFisico]"
+     * -> "estadoFisico" (todos los equipos llevan los mismos datos) y "equipos" -> "equipo".
+     */
+    public static function erroresDelModal(array $errores): array
+    {
+        $modal = [];
+        foreach ($errores as $clave => $mensaje) {
+            $campo = preg_replace('/^equipos\[\d+\]\[(\w+)\]$/', '$1', $clave);
+            $modal[$campo === 'equipos' ? 'equipo' : $campo] = $mensaje;
+        }
+        return $modal;
+    }
+
     /** De equipos[id][...] del formulario, solo los que tienen la casilla "marcado". */
     public static function equiposMarcados(array $equipos): array
     {

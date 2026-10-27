@@ -302,6 +302,24 @@ function codigo(string $prefijo, int $id, ?string $fecha = null): string
 }
 
 /**
+ * Número que tendrá la próxima fila de una tabla (su AUTO_INCREMENT), para mostrar un
+ * código antes de guardar (CAT-12, ENT-2026-021). information_schema_stats_expiry = 0 pide
+ * el valor actual y no el de la caché. Solo es para mostrar: el código real sale del id.
+ */
+function siguienteId(string $tabla): int
+{
+    $permitidas = ['categoria', 'entrega']; // nombres fijos: nunca un valor del usuario
+    if (!in_array($tabla, $permitidas, true)) {
+        throw new InvalidArgumentException("Tabla no permitida: $tabla");
+    }
+    $conexion = Database::conexion();
+    $conexion->exec('SET SESSION information_schema_stats_expiry = 0');
+    $sentencia = $conexion->prepare('SELECT AUTO_INCREMENT FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?');
+    $sentencia->execute([$tabla]);
+    return (int) $sentencia->fetchColumn();
+}
+
+/**
  * Grupos de pestañas (componentes/pestanas.php): [ruta base, [clave => [texto, icono]]].
  * La pestaña se elige con ?tab= en la ruta base; la primera es la de por defecto.
  */

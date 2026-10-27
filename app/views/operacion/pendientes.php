@@ -63,7 +63,7 @@ $esEntrega = $tipo === 'entrega';
                             <td class="col-acciones text-nowrap">
                                 <a href="<?= e(url('/contratos/detalle?id=' . $contrato['idContrato'])) ?>" class="btn btn-claro btn-sm"
                                    title="Ver detalle" aria-label="Ver <?= e($contrato['numeroContrato']) ?>"><i class="bi bi-eye" aria-hidden="true"></i></a>
-                                <a href="<?= e(url(($esEntrega ? '/entregas' : '/devoluciones') . '/registrar?id=' . $contrato['idContrato'])) ?>" class="btn btn-primary btn-sm">
+                                <a href="<?= e(url($esEntrega ? '/contratos/detalle?id=' . $contrato['idContrato'] . '&entregar=1' : '/devoluciones/registrar?id=' . $contrato['idContrato'])) ?>" class="btn btn-primary btn-sm">
                                     <?= $esEntrega ? 'Registrar entrega' : 'Registrar devolución' ?>
                                 </a>
                             </td>

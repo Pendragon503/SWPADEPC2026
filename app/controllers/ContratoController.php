@@ -116,17 +116,39 @@ class ContratoController extends Controller
         }
 
         $importe = Contrato::importe($contrato);
+        $seguimiento = Contrato::seguimiento($contrato, $importe['lineas']);
         $this->view('contratos/detalle', [
             'titulo'            => 'Contrato ' . $contrato['numeroContrato'],
             'menuActivo'        => 'Alquileres',
             'contrato'          => $contrato,
             'pasos'             => Contrato::pasosProgreso($contrato),
             'importe'           => $importe,
-            'seguimiento'       => Contrato::seguimiento($contrato, $importe['lineas']),
+            'seguimiento'       => $seguimiento,
             'liquidacion'       => Contrato::liquidacion($contrato),
             'puedeGestionar'    => Contrato::validarGestion($contrato) === null,
             'formularioRechazo' => $this->tomarFormularioRechazo(),
+            'entrega'           => $seguimiento['entregar'] ? $this->datosEntrega($contrato, $importe['lineas']) : null,
         ]);
+    }
+
+    /**
+     * Datos del modal "Formulario de entrega" (OperacionController::guardarEntrega): los
+     * equipos que pueden salir, el código de la siguiente entrega (solo para mostrar) y lo
+     * escrito con errores. Se abre solo con ?entregar=1 o si el último envío tuvo errores.
+     */
+    private function datosEntrega(array $contrato, array $lineas): array
+    {
+        $formulario = $_SESSION[OperacionController::SESION_ENTREGA] ?? null;
+        unset($_SESSION[OperacionController::SESION_ENTREGA]);
+        if (($formulario['idContrato'] ?? null) !== (int) $contrato['idContrato']) {
+            $formulario = null; // eran de otro contrato
+        }
+        return [
+            'pendientes' => Entrega::pendientes($lineas),
+            'codigo'     => codigo('ENT', siguienteId('entrega'), date('Y-m-d')),
+            'formulario' => $formulario,
+            'abrir'      => $formulario !== null || ($_GET['entregar'] ?? '') === '1',
+        ];
     }
 
     // ---------------------------------------------------------------------
