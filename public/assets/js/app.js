@@ -115,6 +115,11 @@ $(function () {
         }
     });
 
+    // Pestañas (componentes/pestanas.php): en celular se deslizan de lado; la activa se deja a la vista.
+    $('.pestanas-enlace.activa').each(function () {
+        this.parentNode.scrollLeft = this.offsetLeft - 16;
+    });
+
     // Página que se abre para imprimir ("Descargar PDF" de Ver reportes): <div data-imprimir-al-cargar>.
     if ($('[data-imprimir-al-cargar]').length) {
         $(window).on('load', function () {
