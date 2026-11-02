@@ -2,7 +2,7 @@
 /**
  * EquipRent - Módulo de Categorías (Administrador).
  *
- * MÓDULO DE EJEMPLO: copiarlo para crear otros módulos (ver docs/GUIA_DESARROLLO.md).
+ * MÓDULO DE EJEMPLO: copiarlo para crear otros módulos.
  *
  * Rutas (app/rutas.php):
  *   GET  /admin/categorias                 -> index          listado con búsqueda y paginación

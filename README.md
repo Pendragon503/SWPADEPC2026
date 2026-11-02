@@ -6,13 +6,9 @@ Permite administrar inventario, categorías, clientes, tarifas y contratos, cons
 
 Desarrollado con HTML5, CSS3, Bootstrap, JavaScript, PHP, MySQL y arquitectura MVC.
 
-## Para desarrolladores
-
-Si vas a programar un módulo, empieza por la **[Guía de desarrollo](docs/GUIA_DESARROLLO.md)**: instalación en Windows (MySQL 26.7 + Apache de XAMPP), cómo trabajar con Git y Pull Requests, cómo crear un módulo copiando el de Categorías, reglas obligatorias, datos de prueba y la tabla de módulos con sus pantallas de Figma.
-
 ## Cómo probar el sistema
 
-Con el sistema instalado (pasos en la guía) y la base cargada con `database/01_schema.sql` y
+Con el sistema instalado y la base cargada con `database/01_schema.sql` y
 `database/02_seed.sql`, abre **http://localhost/SWPADEPC2026** e inicia sesión.
 
 **Usuarios de prueba** (contraseña de todos: `Equip2026!`):
@@ -40,5 +36,5 @@ También puedes crear un cliente nuevo con **"Crear una cuenta"** en la pantalla
 6. **Administrador:** revisa el *Dashboard* y genera los reportes en *Configuración → Ver reportes*
    (alquileres, inventario, fallas y salidas, en PDF o Excel).
 
-Para volver a los datos de prueba iniciales, ejecuta otra vez `01_schema.sql` y `02_seed.sql`
-(sección 12 de la guía); `03_pruebas.sql` comprueba las reglas de la base de datos.
+Para volver a los datos de prueba iniciales, ejecuta otra vez `01_schema.sql` y `02_seed.sql`;
+`03_pruebas.sql` comprueba las reglas de la base de datos.
