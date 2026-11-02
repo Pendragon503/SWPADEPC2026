@@ -120,13 +120,6 @@ $(function () {
         this.parentNode.scrollLeft = this.offsetLeft - 16;
     });
 
-    // Página que se abre para imprimir ("Descargar PDF" de Ver reportes): <div data-imprimir-al-cargar>.
-    if ($('[data-imprimir-al-cargar]').length) {
-        $(window).on('load', function () {
-            window.print();
-        });
-    }
-
     // Botón de imprimir (reportes): <button data-imprimir>. Lo que no sale en papel lleva .no-imprimir.
     $(document).on('click', '[data-imprimir]', function () {
         window.print();

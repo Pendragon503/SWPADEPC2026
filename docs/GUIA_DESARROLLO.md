@@ -715,6 +715,7 @@ internet). Los layouts ya las cargan; no agregues otras sin avisar.
 | Bootstrap Icons | 1.11.3 | `public/assets/vendor/bootstrap-icons-1.11.3/` |
 | jQuery | 3.7.1 | `public/assets/vendor/jquery-3.7.1/` |
 | Inter (fuente) | 5.2.8 | `public/assets/vendor/inter-5.2.8/` |
+| Dompdf (PHP, genera los reportes en PDF; trae sus dependencias, sin Composer) | 3.1.6 | `app/vendor/dompdf-3.1.6/` (fuera de `public/`: es código del servidor) |
 
 **Archivos propios:** `public/assets/css/app.css` y `public/assets/js/app.js` se cargan con
 `assetConVersion()` (en `layouts/recursos.php` y `layouts/scripts.php`), que agrega

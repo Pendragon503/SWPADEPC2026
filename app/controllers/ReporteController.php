@@ -4,8 +4,9 @@
  *
  * Rutas (app/rutas.php):
  *   GET  /admin/reportes  (= /admin/configuracion?tab=reportes)  -> index       "Ver reportes": generador, tarjetas e historial
- *   POST /admin/reportes/generar                                 -> generar     registra y abre el PDF o descarga el Excel
- *   GET  /admin/reportes/ver?tipo=&desde=&hasta=[&imprimir=1]     -> ver         página imprimible (vista previa o PDF)
+ *   POST /admin/reportes/generar                                 -> generar     registra y descarga el PDF o el Excel
+ *   GET  /admin/reportes/ver?tipo=&desde=&hasta=                  -> ver         vista previa en pantalla
+ *   GET  /admin/reportes/pdf?tipo=&desde=&hasta=                  -> pdf         archivo .pdf (Dompdf)
  *   GET  /admin/reportes/descargar?tipo=&desde=&hasta=            -> descargar   CSV (Excel)
  *   GET  /admin/reportes/alquileres?desde=&hasta=&agrupar=&estado= -> alquileres  reporte de alquileres por mes/cliente/equipo/estado
  *   GET  /admin/reportes/excel?(mismos filtros)                   -> excel       ese reporte en CSV
@@ -34,7 +35,7 @@ class ReporteController extends Controller
         ]);
     }
 
-    /** POST /admin/reportes/generar: lo anota en el historial y abre el PDF o descarga el Excel. */
+    /** POST /admin/reportes/generar: lo anota en el historial y descarga el PDF o el Excel. */
     public function generar(): void
     {
         $datos = [];
@@ -54,7 +55,7 @@ class ReporteController extends Controller
         $this->redirect($this->urlDescarga($datos['tipo'], $datos['desde'], $datos['hasta'], $datos['formato']));
     }
 
-    /** GET /admin/reportes/ver: el reporte en una página imprimible; con imprimir=1 abre la ventana de impresión. */
+    /** GET /admin/reportes/ver: vista previa del reporte en pantalla. */
     public function ver(): void
     {
         [$tipo, $desde, $hasta] = $this->leerReporte();
@@ -65,9 +66,35 @@ class ReporteController extends Controller
             'desde'      => $desde,
             'hasta'      => $hasta,
             'reporte'    => Reporte::generar($tipo, $desde, $hasta),
-            'imprimir'   => ($_GET['imprimir'] ?? '') === '1',
             'urlExcel'   => $this->urlDescarga($tipo, $desde, $hasta, 'Excel'),
+            'urlPdf'     => $this->urlDescarga($tipo, $desde, $hasta, 'PDF'),
         ]);
+    }
+
+    /**
+     * GET /admin/reportes/pdf: el reporte como archivo .pdf, generado en el servidor con
+     * Dompdf (app/vendor, sin internet ni Composer). Las tablas anchas van en horizontal.
+     */
+    public function pdf(): void
+    {
+        require_once RAIZ . '/app/vendor/dompdf-3.1.6/autoload.inc.php';
+        [$tipo, $desde, $hasta] = $this->leerReporte();
+        $reporte = Reporte::generar($tipo, $desde, $hasta);
+        $columnas = max(array_map(fn(array $seccion): int => count($seccion['columnas']), $reporte['secciones']));
+
+        $dompdf = new \Dompdf\Dompdf(['defaultFont' => 'DejaVu Sans']);
+        $html = $this->renderizar('app/views/reportes/pdf.php', compact('tipo', 'desde', 'hasta', 'reporte'));
+        // Códigos (EQ-1001, ALQ-2026-00001, CLI-000001) con guion que no se corta al final de la línea (U+2011).
+        $html = preg_replace_callback('/\b(?:EQ|ALQ|CLI)-[\d-]+/', fn(array $m): string => str_replace('-', "\u{2011}", $m[0]), $html);
+        $dompdf->loadHtml($html, 'UTF-8');
+        $dompdf->setPaper('letter', $columnas > 6 ? 'landscape' : 'portrait');
+        $dompdf->render();
+        // Número de página al pie (Dompdf reemplaza {PAGE_NUM} y {PAGE_COUNT}).
+        $canvas = $dompdf->getCanvas();
+        $canvas->page_text($canvas->get_width() - 110, $canvas->get_height() - 28, 'Página {PAGE_NUM} de {PAGE_COUNT}',
+            $dompdf->getFontMetrics()->getFont('DejaVu Sans'), 8, [0.36, 0.39, 0.44]);
+        $dompdf->stream("reporte-$tipo-" . date('Y-m-d') . '.pdf', ['Attachment' => true]);
+        exit;
     }
 
     /** GET /admin/reportes/descargar: el mismo reporte en CSV. */
@@ -160,11 +187,11 @@ class ReporteController extends Controller
         fclose($csv);
     }
 
-    /** Ruta para abrir (PDF: página con la ventana de impresión) o descargar (Excel) un reporte. */
+    /** Ruta que descarga un reporte en PDF o en Excel (CSV). */
     private function urlDescarga(string $tipo, string $desde, string $hasta, string $formato): string
     {
         $consulta = http_build_query(['tipo' => $tipo, 'desde' => $desde, 'hasta' => $hasta]);
-        return $formato === 'Excel' ? "/admin/reportes/descargar?$consulta" : "/admin/reportes/ver?$consulta&imprimir=1";
+        return $formato === 'Excel' ? "/admin/reportes/descargar?$consulta" : "/admin/reportes/pdf?$consulta";
     }
 
     /** Tipo y rango de un reporte de la URL; lo desconocido se cambia por el valor por defecto. */
