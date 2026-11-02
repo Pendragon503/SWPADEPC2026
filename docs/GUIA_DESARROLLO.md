@@ -983,7 +983,7 @@ páginas en escritorio y en celular sin errores de consola.
 
 | Rol | Menú lateral (en este orden) |
 |---|---|
-| Administrador | Dashboard · Equipos · Categorías · Alquileres · Clientes · Entregas y Devoluciones · Mantenimiento · Configuración |
+| Administrador | Dashboard · Equipos · Alquileres · Clientes · Entregas y Devoluciones · Mantenimiento · Configuración |
 | Operador | Dashboard · Equipos (solo consulta) · Alquileres · Clientes · Entregas y Devoluciones · Mantenimiento |
 
 "Mi perfil" está en la píldora con las iniciales de la barra superior. Varias secciones juntan páginas en
@@ -998,8 +998,8 @@ la función `pestanas()` de los helpers, donde se agrega una pestaña nueva):
 | Configuración (solo Administrador) | `/admin/configuracion` | `categorias` · `desactivacion` (equipos dados de baja) · `reportes` (generador, reportes rápidos e historial) · `usuarios` |
 
 Las URL anteriores (`/solicitudes`, `/devoluciones`, `/danos`, `/admin/categorias`, `/admin/usuarios`,
-`/admin/reportes`) siguen funcionando y muestran la misma pestaña. "Categorías" del menú lleva a
-Configuración → Categorías.
+`/admin/reportes`) siguen funcionando y muestran la misma pestaña. Categorías no está en el menú: se abre en
+Configuración → Categorías (la primera pestaña), y el menú marca "Configuración".
 
 En cada sección, el título de la barra naranja es el mismo encabezado de la página ("Alquileres",
 "Entregas y Devoluciones", "Configuración del sistema"…), en cualquier pestaña. En celular las pestañas

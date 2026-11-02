@@ -64,7 +64,7 @@ class CategoriaController extends Controller
 
         $this->view('categorias/index', [
             'titulo'         => 'Configuración del sistema',
-            'menuActivo'     => 'Categorías',
+            'menuActivo'     => 'Configuración', // Categorías es una pestaña de Configuración
             'categorias'     => $categorias,
             'buscar'         => $buscar,
             'pagina'         => $pagina,
