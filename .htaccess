@@ -1,6 +1,6 @@
 # EquipRent - Raíz del proyecto.
 # Solo public/ es accesible desde el navegador. La raíz redirige a public/
-# y todo lo demás (.git/, app/, config/, database/, docs/...) se bloquea.
+# y todo lo demás (.git/, app/, config/, database/...) se bloquea.
 
 Options -Indexes
 

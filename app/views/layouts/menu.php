@@ -13,7 +13,6 @@ $menus = [
     'Administrador' => [
         ['bi-speedometer2', 'Dashboard', '/admin'],
         ['bi-box-seam-fill', 'Equipos', '/admin/equipos'],
-        ['bi-tags-fill', 'Categorías', '/admin/configuracion?tab=categorias'],
         ['bi-file-earmark-text-fill', 'Alquileres', '/contratos'],
         ['bi-person-vcard-fill', 'Clientes', '/clientes'],
         ['bi-truck', 'Entregas y Devoluciones', '/entregas'],

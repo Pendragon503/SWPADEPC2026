@@ -2,7 +2,7 @@
 /**
  * EquipRent - Módulo de Categorías (Administrador).
  *
- * MÓDULO DE EJEMPLO: copiarlo para crear otros módulos (ver docs/GUIA_DESARROLLO.md).
+ * MÓDULO DE EJEMPLO: copiarlo para crear otros módulos.
  *
  * Rutas (app/rutas.php):
  *   GET  /admin/categorias                 -> index          listado con búsqueda y paginación
@@ -64,7 +64,7 @@ class CategoriaController extends Controller
 
         $this->view('categorias/index', [
             'titulo'         => 'Configuración del sistema',
-            'menuActivo'     => 'Categorías',
+            'menuActivo'     => 'Configuración', // Categorías es una pestaña de Configuración
             'categorias'     => $categorias,
             'buscar'         => $buscar,
             'pagina'         => $pagina,
