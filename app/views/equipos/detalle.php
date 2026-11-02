@@ -138,7 +138,8 @@ $parrafo = function (?string $texto): string {
             </div>
             <div class="panel-cuerpo">
                 <?php if (!$fotos): ?>
-                    <div class="estado-vacio">
+                    <?php // h-auto: aquí el estado vacío no ocupa toda la tarjeta, porque debajo va "Agregar fotos". ?>
+                    <div class="estado-vacio h-auto">
                         <span class="estado-vacio-icono"><i class="bi bi-images" aria-hidden="true"></i></span>
                         <p class="estado-vacio-titulo">Sin fotos</p>
                         <p class="estado-vacio-texto">La primera que subas será la foto principal del catálogo.</p>
@@ -198,9 +199,9 @@ $parrafo = function (?string $texto): string {
                 <form method="post" action="<?= e(url('/admin/equipos/fotos/subir')) ?>" enctype="multipart/form-data" class="subir-fotos">
                     <?= csrfCampo() ?>
                     <input type="hidden" name="idEquipo" value="<?= e($idEquipo) ?>">
-                    <label for="fotos" class="form-label">Agregar fotos</label>
+                    <label for="archivosFotos" class="form-label">Agregar fotos</label>
                     <div class="subir-fotos-campos">
-                        <input type="file" id="fotos" name="fotos[]" multiple required class="form-control"
+                        <input type="file" id="archivosFotos" name="fotos[]" multiple required class="form-control"
                                accept="image/jpeg,image/png,image/webp" aria-describedby="ayudaFotos">
                         <button type="submit" class="btn btn-primary"><i class="bi bi-upload" aria-hidden="true"></i> Subir</button>
                     </div>
