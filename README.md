@@ -6,14 +6,7 @@ Permite administrar inventario, categorías, clientes, tarifas y contratos, cons
 
 Desarrollado con HTML5, CSS3, Bootstrap, JavaScript, PHP, MySQL y arquitectura MVC.
 
-## Para desarrolladores
 
-Si vas a programar un módulo, empieza por la **[Guía de desarrollo](docs/GUIA_DESARROLLO.md)**: instalación en Windows (MySQL 26.7 + Apache de XAMPP), cómo trabajar con Git y Pull Requests, cómo crear un módulo copiando el de Categorías, reglas obligatorias, datos de prueba y la tabla de módulos con sus pantallas de Figma.
-
-## Cómo probar el sistema
-
-Con el sistema instalado (pasos en la guía) y la base cargada con `database/01_schema.sql` y
-`database/02_seed.sql`, abre **http://localhost/SWPADEPC2026** e inicia sesión.
 
 **Usuarios de prueba** (contraseña de todos: `Equip2026!`):
 
