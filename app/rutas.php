@@ -96,8 +96,7 @@ $router->post('/admin/usuarios/restablecer-clave', 'UsuarioController@restablece
 // Administrador: reportes (RF-14)
 $router->get('/admin/reportes', 'ReporteController@index');           // = Configuración → Ver reportes
 $router->post('/admin/reportes/generar', 'ReporteController@generar');
-$router->get('/admin/reportes/ver', 'ReporteController@ver');         // ?tipo=&desde=&hasta=
-$router->get('/admin/reportes/pdf', 'ReporteController@pdf');         // ?tipo=&desde=&hasta= (descarga el .pdf)
+$router->get('/admin/reportes/ver', 'ReporteController@ver');         // ?tipo=&desde=&hasta=[&imprimir=1]
 $router->get('/admin/reportes/descargar', 'ReporteController@descargar');
 $router->get('/admin/reportes/alquileres', 'ReporteController@alquileres');
 $router->get('/admin/reportes/equipo', 'ReporteController@equipo');   // ?id=4

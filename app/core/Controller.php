@@ -37,7 +37,7 @@ abstract class Controller
         }
     }
 
-    protected function renderizar(string $archivo, array $datos): string
+    private function renderizar(string $archivo, array $datos): string
     {
         extract($datos, EXTR_SKIP);
         ob_start();

@@ -56,7 +56,7 @@ $consulta = function (string $tipo, string $desde, string $hasta): string {
                             </div>
                         <?php endforeach; ?>
                     </div>
-                    <p class="form-text m-0">"Inventario y disponibilidad" es un corte al día de hoy: no usa las fechas.</p>
+                    <p class="form-text m-0">"Inventario y disponibilidad" es un corte al día de hoy: no usa las fechas. El PDF se guarda desde la ventana de impresión ("Guardar como PDF").</p>
                     <button type="submit" class="btn btn-primary"><i class="bi bi-file-earmark-arrow-down" aria-hidden="true"></i> Generar reporte</button>
                 </form>
                 <p class="small mt-3 mb-0">
@@ -124,7 +124,7 @@ $consulta = function (string $tipo, string $desde, string $hasta): string {
                             <td><span class="estado <?= $reporte['formato'] === 'PDF' ? 'estado-rojo' : 'estado-verde' ?>"><?= e($reporte['formato']) ?></span></td>
                             <td class="col-acciones">
                                 <?php // Volver a descargar regenera el reporte con los mismos parámetros (no se vuelve a anotar). ?>
-                                <a class="btn btn-claro btn-sm" href="<?= e(url($reporte['formato'] === 'Excel' ? "/admin/reportes/descargar?$parametros" : "/admin/reportes/pdf?$parametros")) ?>">
+                                <a class="btn btn-claro btn-sm" href="<?= e(url($reporte['formato'] === 'Excel' ? "/admin/reportes/descargar?$parametros" : "/admin/reportes/ver?$parametros&imprimir=1")) ?>">
                                     <i class="bi bi-arrow-repeat" aria-hidden="true"></i> Volver a descargar
                                 </a>
                             </td>
